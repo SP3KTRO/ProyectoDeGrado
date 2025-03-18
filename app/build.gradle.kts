@@ -5,12 +5,12 @@ plugins {
 
 android {
     namespace = "com.tupausa"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.tupausa"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -69,10 +69,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.compose.material:material-icons-extended:1.7.8")
+
     // Compose
     implementation ("androidx.compose.ui:ui:1.7.8")
     implementation ("androidx.compose.material:material:1.7.8")
     implementation ("androidx.compose.runtime:runtime-livedata:1.7.8")
     implementation ("androidx.navigation:navigation-compose:2.8.9")
+    implementation ("androidx.recyclerview:recyclerview:1.3.2")
     //
 }

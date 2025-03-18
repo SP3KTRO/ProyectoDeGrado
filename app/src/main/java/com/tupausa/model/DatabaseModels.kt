@@ -87,7 +87,39 @@ data class DeteccionMovimientos(
     val idTipoDeteccion: Int,
     val resultadoValidacion: String?,
     val video: ByteArray?
-)
+) {
+    // Sobrescribir equals()
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is DeteccionMovimientos) return false
+
+        // Comparar todas las propiedades
+        if (idMovimiento != other.idMovimiento) return false
+        if (idRegistro != other.idRegistro) return false
+        if (fecha != other.fecha) return false
+        if (idTipoDeteccion != other.idTipoDeteccion) return false
+        if (resultadoValidacion != other.resultadoValidacion) return false
+
+        // Comparar el contenido del ByteArray
+        if (video != null) {
+            if (other.video == null) return false
+            if (!video.contentEquals(other.video)) return false
+        } else if (other.video != null) return false
+
+        return true
+    }
+
+    // Sobrescribir hashCode()
+    override fun hashCode(): Int {
+        var result = idMovimiento
+        result = 31 * result + idRegistro
+        result = 31 * result + fecha.hashCode()
+        result = 31 * result + idTipoDeteccion
+        result = 31 * result + (resultadoValidacion?.hashCode() ?: 0)
+        result = 31 * result + (video?.contentHashCode() ?: 0)
+        return result
+    }
+}
 
 // Entidad HistorialPausas
 data class HistorialPausas(
