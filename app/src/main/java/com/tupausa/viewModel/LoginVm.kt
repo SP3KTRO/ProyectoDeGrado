@@ -23,6 +23,11 @@ class LoginViewModel : ViewModel() {
     private val _loginSuccess = MutableLiveData<Boolean>()
     val loginSuccess: LiveData<Boolean> get() = _loginSuccess
 
+    // Método para actualizar el mensaje de error
+    fun setError(message: String) {
+        _error.value = message
+    }
+
     // Método para iniciar sesión
     fun login(correoElectronico: String, contrasena: String) {
         _isLoading.value = true
@@ -48,16 +53,16 @@ class LoginViewModel : ViewModel() {
                     if (usuario != null) {
                         _loginSuccess.value = true
                     } else {
-                        _error.value = "Credenciales incorrectas"
+                        setError("Credenciales incorrectas")
                     }
                 } else {
-                    _error.value = "Error: ${response.message()}"
+                    setError("Error: ${response.message()}")
                 }
             }
 
             override fun onFailure(call: Call<List<List<Any>>>, t: Throwable) {
                 _isLoading.value = false
-                _error.value = "Error de red: ${t.message}"
+                setError("Error de red: ${t.message}")
             }
         })
     }

@@ -1,5 +1,7 @@
 package com.tupausa.model
 
+import com.google.gson.annotations.SerializedName
+
 // Entidad TipoUsuario
 data class TipoUsuario(
     val idTipoUsuario: Int,
@@ -8,11 +10,11 @@ data class TipoUsuario(
 
 // Entidad Usuario
 data class Usuario(
-    val idUsuario: Int,
-    val nombre: String,
-    val correoElectronico: String,
-    val contrasena: String,
-    val idTipoUsuario: Int
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("correo_electronico") val correoElectronico: String, // Mapea a "correo_electronico"
+    @SerializedName("contrasena") val contrasena: String,
+    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int
 )
 
 // Entidad EstadoPausa
