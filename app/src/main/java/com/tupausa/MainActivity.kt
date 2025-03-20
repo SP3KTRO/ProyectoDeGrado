@@ -33,7 +33,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.tupausa.model.Usuario
 import com.tupausa.ui.theme.TuPausaTheme
+import com.tupausa.view.LoginScreen
+import com.tupausa.viewModel.RegisterScreen
 import com.tupausa.viewModel.TuPausaViewModel
+import com.tupausa.viewModel.appNavigation.AppRoutes
 import com.tupausa.viewmodel.TuPausaViewModelFactory
 
 class MainActivity : ComponentActivity() {
@@ -67,14 +70,27 @@ fun AppNavigation(viewModel: TuPausaViewModel) {
 
     NavHost(
         navController = navController,
-        startDestination = AppRoutes.WELCOME
+        startDestination = AppRoutes.LOGIN // La pantalla de Login será la primera
     ) {
+        // Pantalla de Login
+        composable(AppRoutes.LOGIN) {
+            LoginScreen(
+                onNavigateToRegister = { navController.navigate(AppRoutes.REGISTER) },
+                onLoginSuccess = { navController.navigate(AppRoutes.USUARIOS_LIST) }
+            )
+        }
+
+        // Pantalla de Registro
+        composable(AppRoutes.REGISTER) {
+            RegisterScreen(
+                onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) }
+            )
+        }
+
         // Pantalla de Bienvenida
         composable(AppRoutes.WELCOME) {
             ScreenWelcome(
-                onNavigateToUsuarioList = {
-                    navController.navigate(AppRoutes.USUARIOS_LIST)
-                }
+                onNavigateToUsuarioList = { navController.navigate(AppRoutes.USUARIOS_LIST) }
             )
         }
 
@@ -212,6 +228,8 @@ fun UsuarioItem(usuario: Usuario) {
 
 // Rutas de la aplicación
 object AppRoutes {
+    const val LOGIN = "login"
+    const val REGISTER = "register"
     const val WELCOME = "welcome"
     const val USUARIOS_LIST = "usuarios_list"
 }
