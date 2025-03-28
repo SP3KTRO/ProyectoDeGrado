@@ -12,11 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import com.tupausa.viewModel.appNavigation.AppRoutes
 
 @Composable
-fun screenWelcome(navController: NavController) {
+fun MainScreen(onNavigateToUsuarioList: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -27,10 +25,7 @@ fun screenWelcome(navController: NavController) {
         Text(text = "¡Bienvenido a TuPausa!")
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = {
-                // Navega a la pantalla de Usuariolist
-                navController.navigate(AppRoutes.USUARIOS_LIST)
-            }
+            onClick = onNavigateToUsuarioList
         ) {
             Text(text = "Ver Lista de Usuarios")
         }
