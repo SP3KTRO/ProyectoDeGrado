@@ -49,10 +49,11 @@ Para garantizar que los datos estén disponibles al instalar la aplicación, se 
 import boto3
 import sqlite3
 import os
+import json
 
 # Configuración de S3
-BUCKET_NAME = 'proyectogradobucket'
-DB_FILE = '/tmp/Proyecto_grado.db'
+BUCKET_NAME = 'proyectogradobucket'  # Nombre del bucket
+DB_FILE = '/tmp/Proyecto_grado.db'   # Ruta temporal para el archivo SQLite
 
 # Cliente de S3
 s3 = boto3.client('s3')
@@ -77,6 +78,142 @@ def upload_db():
     except Exception as e:
         print(f"Error al subir la base de datos: {str(e)}")
         raise e
+
+def lambda_handler(event, context):
+    """Maneja las solicitudes a la función Lambda."""
+    try:
+        print("Evento recibido:", json.dumps(event))
+        
+        http_method = event['httpMethod']
+        path = event['path']  # Ruta completa (por ejemplo, "/usuarios")
+        body = event.get('body', {})
+        
+        # Convertir el cuerpo de la solicitud a un diccionario (si es necesario)
+        if isinstance(body, str):
+            try:
+                body = json.loads(body)
+            except json.JSONDecodeError:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({'error': 'Invalid JSON body'})
+                }
+        
+        # Descargar la base de datos desde S3
+        download_db()
+        
+        # Conectar a la base de datos SQLite
+        conn = sqlite3.connect(DB_FILE)
+        cursor = conn.cursor()
+        
+        # Manejar las rutas y métodos HTTP
+        if path == '/usuarios':
+            if http_method == 'POST':
+                # Insertar un nuevo usuario
+                query = '''
+                INSERT INTO Usuarios (nombre, correo_electronico, contrasena, id_tipo_usuario)
+                VALUES (?, ?, ?, ?)
+                '''
+                cursor.execute(query, (body['nombre'], body['correo_electronico'], body['contrasena'], body['id_tipo_usuario']))
+                conn.commit()
+                return {
+                    'statusCode': 201,
+                    'body': json.dumps({'message': 'Usuario creado exitosamente'})
+                }
+            elif http_method == 'GET':
+                # Obtener todos los usuarios
+                query = 'SELECT * FROM Usuarios'
+                cursor.execute(query)
+                usuarios = cursor.fetchall()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps(usuarios)
+                }
+            elif http_method == 'PUT':
+                # Actualizar un usuario
+                query = '''
+                UPDATE Usuarios
+                SET nombre = ?, correo_electronico = ?, contrasena = ?, id_tipo_usuario = ?
+                WHERE id_usuario = ?
+                '''
+                cursor.execute(query, (body['nombre'], body['correo_electronico'], body['contrasena'], body['id_tipo_usuario'], body['id_usuario']))
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({'message': 'Usuario actualizado exitosamente'})
+                }
+            elif http_method == 'DELETE':
+                # Eliminar un usuario
+                query = 'DELETE FROM Usuarios WHERE id_usuario = ?'
+                cursor.execute(query, (body['id_usuario'],))
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({'message': 'Usuario eliminado exitosamente'})
+                }
+            else:
+                return {
+                    'statusCode': 405,
+                    'body': json.dumps({'error': 'Método no permitido'})
+                }
+        elif path == '/tipo_usuario':
+            if http_method == 'POST':
+                # Insertar un nuevo tipo de usuario
+                query = 'INSERT INTO Tipo_usuario (tipo) VALUES (?)'
+                cursor.execute(query, (body['tipo'],))
+                conn.commit()
+                return {
+                    'statusCode': 201,
+                    'body': json.dumps({'message': 'Tipo de usuario creado exitosamente'})
+                }
+            elif http_method == 'GET':
+                # Obtener todos los tipos de usuario
+                query = 'SELECT * FROM Tipo_usuario'
+                cursor.execute(query)
+                tipos_usuario = cursor.fetchall()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps(tipos_usuario)
+                }
+            elif http_method == 'PUT':
+                # Actualizar un tipo de usuario
+                query = 'UPDATE Tipo_usuario SET tipo = ? WHERE id_tipo_usuario = ?'
+                cursor.execute(query, (body['tipo'], body['id_tipo_usuario']))
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({'message': 'Tipo de usuario actualizado exitosamente'})
+                }
+            elif http_method == 'DELETE':
+                # Eliminar un tipo de usuario
+                query = 'DELETE FROM Tipo_usuario WHERE id_tipo_usuario = ?'
+                cursor.execute(query, (body['id_tipo_usuario'],))
+                conn.commit()
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({'message': 'Tipo de usuario eliminado exitosamente'})
+                }
+            else:
+                return {
+                    'statusCode': 405,
+                    'body': json.dumps({'error': 'Método no permitido'})
+                }
+        # Aquí puedes agregar más rutas para manejar otras tablas
+        else:
+            return {
+                'statusCode': 404,
+                'body': json.dumps({'error': 'Endpoint not found'})
+            }
+    except Exception as e:
+        print(f"Error en la función Lambda: {str(e)}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps({'error': str(e)})
+        }
+    finally:
+        # Cerrar la conexión y subir la base de datos actualizada a S3
+        if 'conn' in locals():
+            conn.close()
+        upload_db()
 ```
 
 ### API REST con AWS Lambda
