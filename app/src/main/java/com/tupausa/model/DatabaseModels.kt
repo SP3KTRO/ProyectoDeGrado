@@ -12,7 +12,7 @@ data class TipoUsuario(
 data class Usuario(
     @SerializedName("id_usuario") val idUsuario: Int,
     @SerializedName("nombre") val nombre: String,
-    @SerializedName("correo_electronico") val correoElectronico: String, // Mapea a "correo_electronico"
+    @SerializedName("correo_electronico") val correoElectronico: String,
     @SerializedName("contrasena") val contrasena: String,
     @SerializedName("id_tipo_usuario") val idTipoUsuario: Int
 )
@@ -60,11 +60,28 @@ data class NivelIntensidad(
 // Entidad Ejercicio
 data class Ejercicio(
     val idEjercicio: Int,
-    val idNombreEjer: Int,
-    val idDescripcion: Int,
-    val idTipoEjercicio: Int,
-    val idNivelIntensidad: Int
+    val nombre: String,
+    val descripcion: String,
+    val tipo: String,
+    val nivelIntensidad: String,
+    val duracionSegundos: Int,
+    val gifResource: String,
+    val instrucciones: String,
+    val beneficios: String
 )
+{
+    fun getTipoDisplayName(): String {
+        return this.tipo
+    }
+
+    fun getNivelDisplayName(): String {
+        return this.nivelIntensidad
+    }
+
+    fun getInstruccionesList(): List<String> {
+        return this.instrucciones.split("\n").filter { it.isNotBlank() }
+    }
+}
 
 // Entidad RegistroPausa
 data class RegistroPausa(

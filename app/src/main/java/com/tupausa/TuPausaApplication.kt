@@ -2,10 +2,26 @@ package com.tupausa
 
 import android.app.Application
 import com.tupausa.database.DatabaseHelper
-import com.tupausa.repository.TuPausaRepository
+import com.tupausa.database.RetrofitClient
+import com.tupausa.repository.UsuarioRepository
+import com.tupausa.repository.EjercicioRepository
+import com.tupausa.utils.PreferencesManager
 
 class TuPausaApplication : Application() {
 
-    val databaseHelper by lazy { DatabaseHelper(this) }
-    val repository by lazy { TuPausaRepository(databaseHelper) }
+    val database by lazy { DatabaseHelper(this) }
+    val preferencesManager by lazy { PreferencesManager(this) }
+
+
+    val usuarioRepository by lazy {
+        UsuarioRepository(database, RetrofitClient.instance)
+    }
+
+    val ejercicioRepository by lazy {
+        EjercicioRepository(database)
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+    }
 }

@@ -9,15 +9,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.tupausa.ui.theme.TuPausaTheme
-import com.tupausa.viewModel.TuPausaViewModel
+import com.tupausa.viewModel.EjercicioViewModel
+import com.tupausa.viewModel.LoginViewModel
+import com.tupausa.viewModel.UsuarioViewModel
 import com.tupausa.viewModel.appNavigation.AppNavigation
-import com.tupausa.viewmodel.TuPausaViewModelFactory
+import com.tupausa.viewmodel.UsuarioViewModelFactory
 
 class MainActivity : ComponentActivity() {
 
-    private val tuPausaViewModel: TuPausaViewModel by viewModels {
-        TuPausaViewModelFactory((application as TuPausaApplication).repository)
+    private val app by lazy { application as TuPausaApplication }
+
+    private val tupausaViewModel: UsuarioViewModel by viewModels {
+        UsuarioViewModelFactory(app.usuarioRepository)
     }
+
+    private val loginViewModel: LoginViewModel by viewModels()
+    private val ejercicioViewModel: EjercicioViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,7 +34,11 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AppNavigation(viewModel = tuPausaViewModel)
+                    AppNavigation(
+                        tupausaViewModel = tupausaViewModel,
+                        loginViewModel = loginViewModel,
+                        ejercicioViewModel = ejercicioViewModel
+                    )
                 }
             }
         }

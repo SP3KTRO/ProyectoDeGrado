@@ -1,4 +1,4 @@
-package com.tupausa.viewModel
+package com.tupausa.view
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tupausa.viewModel.RegisterViewModel
 
 @Composable
 fun RegisterScreen(
