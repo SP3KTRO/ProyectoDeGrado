@@ -1,4 +1,3 @@
-// Ruta: com/tupausa/view/LoginScreen.kt
 package com.tupausa.view
 
 import androidx.compose.foundation.layout.*
@@ -18,6 +17,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tupausa.ui.theme.MainColor
+import com.tupausa.ui.theme.SecondColor
 import com.tupausa.viewModel.LoginViewModel
 
 @Composable
@@ -61,13 +62,14 @@ fun LoginScreen(
             text = "TuPausa",
             fontSize = 32.sp,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
+            color = SecondColor
         )
 
         Text(
             text = "Inicia sesión",
             fontSize = 20.sp,
-            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+            modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
+            color = MainColor
         )
 
         // Campo de email

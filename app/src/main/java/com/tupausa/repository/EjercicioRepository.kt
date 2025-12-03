@@ -1,6 +1,8 @@
 package com.tupausa.repository
 
+import android.content.ContentValues
 import android.database.Cursor
+import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.tupausa.database.DatabaseHelper
 import com.tupausa.model.Ejercicio
@@ -12,20 +14,19 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
     companion object {
         private const val TAG = "EjercicioRepository"
     }
-    // OBTENER TODOS LOS EJERCICIOS
+
+    // ==========================================
+    // LECTURA (GET)
+    // ==========================================
 
     suspend fun getAllEjercicios(): List<Ejercicio> = withContext(Dispatchers.IO) {
         val ejercicios = mutableListOf<Ejercicio>()
         val db = dbHelper.readableDatabase
 
         val cursor = db.query(
-            "Ejercicios",
-            null,
-            null,
-            null,
-            null,
-            null,
-            "nombre ASC"
+            DatabaseHelper.TABLE_EJERCICIOS,
+            null, null, null, null, null,
+            "${DatabaseHelper.COL_NOMBRE_EJERCICIO} ASC"
         )
 
         if (cursor.moveToFirst()) {
@@ -33,112 +34,122 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
                 ejercicios.add(cursorToEjercicio(cursor))
             } while (cursor.moveToNext())
         }
-
         cursor.close()
         Log.d(TAG, "Ejercicios obtenidos: ${ejercicios.size}")
         return@withContext ejercicios
     }
 
-    // OBTENER EJERCICIO POR ID
-
     suspend fun getEjercicioById(id: Int): Ejercicio? = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
         val cursor = db.query(
-            "Ejercicios",
+            DatabaseHelper.TABLE_EJERCICIOS,
             null,
-            "id_ejercicio = ?",
+            "${DatabaseHelper.COL_ID_EJERCICIO} = ?",
             arrayOf(id.toString()),
             null, null, null
         )
 
-        val ejercicio = if (cursor.moveToFirst()) {
-            cursorToEjercicio(cursor)
-        } else null
-
+        val ejercicio = if (cursor.moveToFirst()) cursorToEjercicio(cursor) else null
         cursor.close()
         return@withContext ejercicio
     }
-
-    // FILTRAR POR TIPO
 
     suspend fun getEjerciciosByTipo(tipo: String): List<Ejercicio> = withContext(Dispatchers.IO) {
         val ejercicios = mutableListOf<Ejercicio>()
         val db = dbHelper.readableDatabase
-
         val cursor = db.query(
-            "Ejercicios",
+            DatabaseHelper.TABLE_EJERCICIOS,
             null,
-            "tipo = ?",
+            "${DatabaseHelper.COL_TIPO_EJERCICIO} = ?",
             arrayOf(tipo),
             null, null,
-            "nombre ASC"
+            "${DatabaseHelper.COL_NOMBRE_EJERCICIO} ASC"
         )
-
         if (cursor.moveToFirst()) {
             do {
                 ejercicios.add(cursorToEjercicio(cursor))
             } while (cursor.moveToNext())
         }
-
         cursor.close()
         return@withContext ejercicios
     }
-
-    // FILTRAR POR NIVEL
-
-    suspend fun getEjerciciosByNivel(nivel: String): List<Ejercicio> = withContext(Dispatchers.IO) {
-        val ejercicios = mutableListOf<Ejercicio>()
-        val db = dbHelper.readableDatabase
-
-        val cursor = db.query(
-            "Ejercicios",
-            null,
-            "nivel_intensidad = ?",
-            arrayOf(nivel),
-            null, null,
-            "nombre ASC"
-        )
-
-        if (cursor.moveToFirst()) {
-            do {
-                ejercicios.add(cursorToEjercicio(cursor))
-            } while (cursor.moveToNext())
-        }
-
-        cursor.close()
-        return@withContext ejercicios
-    }
-
-    // OBTENER EJERCICIO ALEATORIO
 
     suspend fun getEjercicioAleatorio(): Ejercicio? = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery(
-            "SELECT * FROM Ejercicios ORDER BY RANDOM() LIMIT 1",
-            null
-        )
-
-        val ejercicio = if (cursor.moveToFirst()) {
-            cursorToEjercicio(cursor)
-        } else null
-
+        val cursor = db.rawQuery("SELECT * FROM ${DatabaseHelper.TABLE_EJERCICIOS} ORDER BY RANDOM() LIMIT 1", null)
+        val ejercicio = if (cursor.moveToFirst()) cursorToEjercicio(cursor) else null
         cursor.close()
         return@withContext ejercicio
     }
 
-    // HELPER: Cursor a Ejercicio
+    // ==========================================
+    // ESCRITURA (POST / PUT / DELETE)
+    // ==========================================
 
+    suspend fun insertEjercicio(ejercicio: Ejercicio): Long = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DatabaseHelper.COL_NOMBRE_EJERCICIO, ejercicio.nombreEjercicio)
+            put(DatabaseHelper.COL_DESCRIPCION, ejercicio.descripcion)
+            put(DatabaseHelper.COL_TIPO_EJERCICIO, ejercicio.tipoEjercicio)
+            put(DatabaseHelper.COL_NIVEL_INTENSIDAD, ejercicio.nivelIntensidad)
+            put(DatabaseHelper.COL_URL_IMAGEN, ejercicio.urlImagenGuia)
+            put(DatabaseHelper.COL_DURACION, ejercicio.duracionSegundos)
+            put(DatabaseHelper.COL_INSTRUCCIONES, ejercicio.instrucciones)
+            put(DatabaseHelper.COL_BENEFICIOS, ejercicio.beneficios)
+        }
+        val id = db.insert(DatabaseHelper.TABLE_EJERCICIOS, null, values)
+        db.close()
+        return@withContext id
+    }
+
+    suspend fun updateEjercicio(ejercicio: Ejercicio): Int = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DatabaseHelper.COL_NOMBRE_EJERCICIO, ejercicio.nombreEjercicio)
+            put(DatabaseHelper.COL_DESCRIPCION, ejercicio.descripcion)
+            put(DatabaseHelper.COL_TIPO_EJERCICIO, ejercicio.tipoEjercicio)
+            put(DatabaseHelper.COL_NIVEL_INTENSIDAD, ejercicio.nivelIntensidad)
+            put(DatabaseHelper.COL_URL_IMAGEN, ejercicio.urlImagenGuia)
+            put(DatabaseHelper.COL_DURACION, ejercicio.duracionSegundos)
+            put(DatabaseHelper.COL_INSTRUCCIONES, ejercicio.instrucciones)
+            put(DatabaseHelper.COL_BENEFICIOS, ejercicio.beneficios)
+        }
+        val rows = db.update(
+            DatabaseHelper.TABLE_EJERCICIOS,
+            values,
+            "${DatabaseHelper.COL_ID_EJERCICIO} = ?",
+            arrayOf(ejercicio.idEjercicio.toString())
+        )
+        db.close()
+        return@withContext rows
+    }
+
+    suspend fun deleteEjercicio(id: Int): Int = withContext(Dispatchers.IO) {
+        val db = dbHelper.writableDatabase
+        val rows = db.delete(
+            DatabaseHelper.TABLE_EJERCICIOS,
+            "${DatabaseHelper.COL_ID_EJERCICIO} = ?",
+            arrayOf(id.toString())
+        )
+        db.close()
+        return@withContext rows
+    }
+
+    // ==========================================
+    // HELPER: Mapeo de columnas nuevas
+    // ==========================================
     private fun cursorToEjercicio(cursor: Cursor): Ejercicio {
         return Ejercicio(
-            idEjercicio = cursor.getInt(cursor.getColumnIndexOrThrow("id_ejercicio")),
-            nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
-            descripcion = cursor.getString(cursor.getColumnIndexOrThrow("descripcion")),
-            tipo = cursor.getString(cursor.getColumnIndexOrThrow("tipo")),
-            nivelIntensidad = cursor.getString(cursor.getColumnIndexOrThrow("nivel_intensidad")),
-            duracionSegundos = cursor.getInt(cursor.getColumnIndexOrThrow("duracion_segundos")),
-            gifResource = cursor.getString(cursor.getColumnIndexOrThrow("gif_resource")),
-            instrucciones = cursor.getString(cursor.getColumnIndexOrThrow("instrucciones")),
-            beneficios = cursor.getString(cursor.getColumnIndexOrThrow("beneficios"))
+            idEjercicio = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_EJERCICIO)),
+            nombreEjercicio = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NOMBRE_EJERCICIO)),
+            descripcion = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_DESCRIPCION)),
+            tipoEjercicio = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_TIPO_EJERCICIO)),
+            nivelIntensidad = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_NIVEL_INTENSIDAD)),
+            urlImagenGuia = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_URL_IMAGEN)),
+            duracionSegundos = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_DURACION)),
+            instrucciones = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_INSTRUCCIONES)),
+            beneficios = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_BENEFICIOS))
         )
     }
 }

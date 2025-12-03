@@ -1,4 +1,3 @@
-// Ruta: com/tupausa/view/admin/AdminEjerciciosScreen.kt
 package com.tupausa.view.admin
 
 import androidx.compose.foundation.layout.*
@@ -92,12 +91,12 @@ fun AdminEjercicioCard(ejercicio: Ejercicio) {
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = ejercicio.nombre,
+                        text = ejercicio.nombreEjercicio,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = ejercicio.tipo,
+                        text = ejercicio.tipoEjercicio,
                         fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.primary
                     )

@@ -9,12 +9,16 @@ import com.tupausa.utils.PreferencesManager
 
 class TuPausaApplication : Application() {
 
-    val database by lazy { DatabaseHelper(this) }
+    private val database by lazy { DatabaseHelper(this) }
     val preferencesManager by lazy { PreferencesManager(this) }
 
 
     val usuarioRepository by lazy {
-        UsuarioRepository(database, RetrofitClient.instance)
+        UsuarioRepository(
+            database,
+            RetrofitClient.instance,
+            preferencesManager
+        )
     }
 
     val ejercicioRepository by lazy {

@@ -26,7 +26,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     private val _loginSuccess = MutableLiveData<Usuario?>()
     val loginSuccess: LiveData<Usuario?> get() = _loginSuccess
 
-    // Método para iniciar sesión
+    // Metodo para iniciar sesión
     fun login(correoElectronico: String, contrasena: String) {
         // Validar campos vacíos
         if (correoElectronico.isEmpty() || contrasena.isEmpty()) {
@@ -76,14 +76,14 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     // ==========================================
-    // NUEVO: Método para cerrar sesión
+    // NUEVO: Metodo para cerrar sesión
     // ==========================================
     fun logout() {
-        preferencesManager.clearUserSession()
+        repository.logout()
         _loginSuccess.value = null
     }
 
-    // Método para limpiar el estado de error
+    // Metodo para limpiar el estado de error
     fun clearError() {
         _error.value = ""
     }

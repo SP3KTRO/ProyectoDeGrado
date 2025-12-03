@@ -1,5 +1,4 @@
-// Ruta: com/tupausa/view/user/UserAlarmasScreen.kt
-package com.tupausa.view
+package com.tupausa.view.user
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons

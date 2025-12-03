@@ -15,7 +15,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.model.Ejercicio
-import com.tupausa.view.UserEjercicioDetalleScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,7 +28,7 @@ fun UserEjerciciosListScreen(
 
     val filteredEjercicios = when (selectedFilter) {
         "TODOS" -> ejercicios
-        else -> ejercicios.filter { it.tipo == selectedFilter }
+        else -> ejercicios.filter { it.tipoEjercicio == selectedFilter }
     }
 
     Scaffold(
@@ -181,7 +180,7 @@ fun UserEjercicioCard(
             // Información
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = ejercicio.nombre,
+                    text = ejercicio.nombreEjercicio,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )

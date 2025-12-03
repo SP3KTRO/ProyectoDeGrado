@@ -1,185 +1,85 @@
 package com.tupausa.model
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
-// Entidad TipoUsuario
+// ==========================================
+// 1. MODELOS DE USUARIO
+// ==========================================
+
 data class TipoUsuario(
-    val idTipoUsuario: Int,
-    val tipo: String
-)
+    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int,
+    @SerializedName("tipo") val tipo: String
+) : Serializable
 
-// Entidad Usuario
 data class Usuario(
     @SerializedName("id_usuario") val idUsuario: Int,
     @SerializedName("nombre") val nombre: String,
     @SerializedName("correo_electronico") val correoElectronico: String,
     @SerializedName("contrasena") val contrasena: String,
-    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int
-)
+    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int, // Default: 1 (Estudiante)
+) : Serializable
 
-// Entidad EstadoPausa
-data class EstadoPausa(
-    val idEstadoPausa: Int,
-    val estado: String
-)
 
-// Entidad PausaActiva
-data class PausaActiva(
-    val idPausa: Int,
-    val idUsuario: Int,
-    val fecha: String,
-    val hora: String,
-    val duracion: Int,
-    val idEstadoPausa: Int
-)
+// ==========================================
+// 2. MODELOS DE NEGOCIO (OPTIMIZADOS)
+// ==========================================
 
-// Entidad NombreEjercicio
-data class NombreEjercicio(
-    val idNombreEjer: Int,
-    val nombreEjercicio: String
-)
-
-// Entidad DescripcionEjercicio
-data class DescripcionEjercicio(
-    val idDescripcion: Int,
-    val descripcion: String
-)
-
-// Entidad TipoEjercicio
-data class TipoEjercicio(
-    val idTipoEjercicio: Int,
-    val tipo: String
-)
-
-// Entidad NivelIntensidad
-data class NivelIntensidad(
-    val idNivelIntensidad: Int,
-    val nivel: String
-)
-
-// Entidad Ejercicio
 data class Ejercicio(
-    val idEjercicio: Int,
-    val nombre: String,
-    val descripcion: String,
-    val tipo: String,
-    val nivelIntensidad: String,
-    val duracionSegundos: Int,
-    val gifResource: String,
-    val instrucciones: String,
-    val beneficios: String
-)
-{
-    fun getTipoDisplayName(): String {
-        return this.tipo
-    }
-
-    fun getNivelDisplayName(): String {
-        return this.nivelIntensidad
-    }
+    @SerializedName("id_ejercicio") val idEjercicio: Int,
+    @SerializedName("nombre_ejercicio") val nombreEjercicio: String,
+    @SerializedName("descripcion") val descripcion: String,
+    @SerializedName("tipo_ejercicio") val tipoEjercicio: String,
+    @SerializedName("nivel_intensidad") val nivelIntensidad: String,
+    @SerializedName("url_imagen_guia") val urlImagenGuia: String?,
+    @SerializedName("duracion_segundos") val duracionSegundos: Int,
+    @SerializedName("instrucciones") val instrucciones: String?,
+    @SerializedName("beneficios") val beneficios: String?
+) : Serializable {
 
     fun getInstruccionesList(): List<String> {
-        return this.instrucciones.split("\n").filter { it.isNotBlank() }
+        return instrucciones?.split("|")?.filter { it.isNotBlank() } ?: emptyList()
     }
+
+    fun getTipoDisplayName(): String = tipoEjercicio
+    fun getNivelDisplayName(): String = nivelIntensidad
 }
 
-// Entidad RegistroPausa
-data class RegistroPausa(
-    val idRegistro: Int,
-    val idPausa: Int,
-    val fechaRealizacion: String,
-    val horaInicio: String,
-    val horaFin: String
-)
+data class Alarma(
+    @SerializedName("id_alarma") val idAlarma: Int,
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("hora_programada") val horaProgramada: String,
+    @SerializedName("dias_activos") val diasActivos: String,
+    @SerializedName("estado_alarma") val estadoAlarma: String,
+    @SerializedName("duracion_estimada") val duracionEstimada: Int?,
+    @SerializedName("etiqueta") val etiqueta: String?
+) : Serializable
 
-// Entidad TipoDeteccion
-data class TipoDeteccion(
-    val idTipoDeteccion: Int,
-    val tipo: String
-)
+data class ConfigNotificacion(
+    @SerializedName("id_notificacion") val idNotificacion: Int,
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("frecuencia_preferida") val frecuenciaPreferida: String?,
+    @SerializedName("horario_preferido") val horarioPreferido: String?,
+    @SerializedName("nombre_tono") val nombreTono: String?
+) : Serializable
 
-// Entidad DeteccionMovimientos
-data class DeteccionMovimientos(
-    val idMovimiento: Int,
-    val idRegistro: Int,
-    val fecha: String,
-    val idTipoDeteccion: Int,
-    val resultadoValidacion: String?,
-    val video: ByteArray?
-) {
-    // Sobrescribir equals()
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is DeteccionMovimientos) return false
+data class HistorialEjecucion(
+    @SerializedName("id_registro") val idRegistro: Int,
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("id_ejercicio") val idEjercicio: Int,
+    @SerializedName("fecha_realizacion") val fechaRealizacion: String,
+    @SerializedName("hora_inicio") val horaInicio: String,
+    @SerializedName("hora_fin") val horaFin: String,
+    @SerializedName("se_detecto_movimiento") val seDetectoMovimiento: Int,
+    @SerializedName("tipo_deteccion_usado") val tipoDeteccionUsado: String?,
+    @SerializedName("ruta_video_evidencia") val rutaVideoEvidencia: String?
+) : Serializable
 
-        // Comparar todas las propiedades
-        if (idMovimiento != other.idMovimiento) return false
-        if (idRegistro != other.idRegistro) return false
-        if (fecha != other.fecha) return false
-        if (idTipoDeteccion != other.idTipoDeteccion) return false
-        if (resultadoValidacion != other.resultadoValidacion) return false
-
-        // Comparar el contenido del ByteArray
-        if (video != null) {
-            if (other.video == null) return false
-            if (!video.contentEquals(other.video)) return false
-        } else if (other.video != null) return false
-
-        return true
-    }
-
-    // Sobrescribir hashCode()
-    override fun hashCode(): Int {
-        var result = idMovimiento
-        result = 31 * result + idRegistro
-        result = 31 * result + fecha.hashCode()
-        result = 31 * result + idTipoDeteccion
-        result = 31 * result + (resultadoValidacion?.hashCode() ?: 0)
-        result = 31 * result + (video?.contentHashCode() ?: 0)
-        return result
-    }
-}
-
-// Entidad HistorialPausas
-data class HistorialPausas(
-    val idHistorial: Int,
-    val idUsuario: Int,
-    val tiempoTotal: Int,
-    val idTipoDeteccion: Int
-)
-
-// Entidad EstadisticasGenerales
-data class EstadisticasGenerales(
-    val idEstadistica: Int,
-    val idUsuario: Int,
-    val frecuenciasPausas: String,
-    val idTipoDeteccion: Int,
-    val porcentajeCumplimiento: Double
-)
-
-// Entidad FrecuenciaNotificacion
-data class FrecuenciaNotificacion(
-    val idFrecuencia: Int,
-    val frecuencia: String
-)
-
-// Entidad HorarioNotificacion
-data class HorarioNotificacion(
-    val idHorario: Int,
-    val horario: String
-)
-
-// Entidad TonoNotificacion
-data class TonoNotificacion(
-    val idTono: Int,
-    val tono: String
-)
-
-// Entidad Notificacion
-data class Notificacion(
-    val idNotificacion: Int,
-    val idUsuario: Int,
-    val idFrecuencia: Int,
-    val idHorario: Int,
-    val idTono: Int
-)
+data class EstadisticasResumen(
+    @SerializedName("id_estadistica") val idEstadistica: Int,
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("total_pausas_realizadas") val totalPausas: Int,
+    @SerializedName("tiempo_total_minutos") val tiempoTotalMinutos: Double,
+    @SerializedName("racha_dias_consecutivos") val rachaDias: Int,
+    @SerializedName("porcentaje_cumplimiento") val porcentajeCumplimiento: Double
+) : Serializable

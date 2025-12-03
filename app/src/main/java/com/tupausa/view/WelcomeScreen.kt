@@ -18,11 +18,11 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun ScreenWelcome(onNavigateToLogin: () -> Unit) {
-    val imagePainter: Painter = painterResource(id = R.drawable.fondo)
+    val imagePainter: Painter = painterResource(id = R.drawable.welcome)
 
-    // Ejecutar la navegación automáticamente después de 3 segundos
+    // Ejecutar la navegación automáticamente
     LaunchedEffect(Unit) {
-        delay(3000)
+        delay(4000)
         onNavigateToLogin()
     }
 
@@ -36,13 +36,6 @@ fun ScreenWelcome(onNavigateToLogin: () -> Unit) {
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize()
-        )
-
-        // Logo en el centro
-        Image(
-            painter = painterResource(id = R.drawable.logo),
-            contentDescription = "LogoPlantSitter",
-            modifier = Modifier.size(300.dp)
         )
     }
 }

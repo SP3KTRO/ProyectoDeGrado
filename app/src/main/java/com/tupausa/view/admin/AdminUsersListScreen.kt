@@ -4,10 +4,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -21,8 +20,13 @@ import com.tupausa.utils.Constants
 fun AdminUsersListScreen(
     usuarios: List<Usuario>,
     isLoading: Boolean,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onEditUsuario: (Usuario) -> Unit,
+    onDeleteUsuario: (Usuario) -> Unit
 ) {
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var usuarioToDelete by remember { mutableStateOf<Usuario?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -59,17 +63,67 @@ fun AdminUsersListScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(usuarios) { usuario ->
-                            UsuarioCard(usuario)
+                            UsuarioCardWithActions(
+                                usuario = usuario,
+                                onEdit = { onEditUsuario(usuario) },
+                                onDelete = {
+                                    usuarioToDelete = usuario
+                                    showDeleteDialog = true
+                                }
+                            )
                         }
                     }
                 }
             }
         }
+
+        // Diálogo de confirmación para eliminar
+        if (showDeleteDialog && usuarioToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                icon = {
+                    Icon(
+                        Icons.Default.Warning,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                },
+                title = {
+                    Text("¿Eliminar usuario?")
+                },
+                text = {
+                    Text("¿Estás seguro de que deseas eliminar a ${usuarioToDelete?.nombre}? Esta acción no se puede deshacer.")
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            usuarioToDelete?.let { onDeleteUsuario(it) }
+                            showDeleteDialog = false
+                            usuarioToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text("Eliminar")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
     }
 }
 
 @Composable
-fun UsuarioCard(usuario: Usuario) {
+fun UsuarioCardWithActions(
+    usuario: Usuario,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -88,7 +142,7 @@ fun UsuarioCard(usuario: Usuario) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = usuario.nombre,
                     fontSize = 18.sp,
@@ -107,6 +161,39 @@ fun UsuarioCard(usuario: Usuario) {
                     else
                         MaterialTheme.colorScheme.secondary
                 )
+            }
+
+            // Botones de acción
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Botón Editar
+                IconButton(
+                    onClick = onEdit,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Editar"
+                    )
+                }
+
+                // Botón Eliminar (solo si no es admin)
+                if (usuario.idTipoUsuario != Constants.USER_TYPE_ADMIN) {
+                    IconButton(
+                        onClick = onDelete,
+                        colors = IconButtonDefaults.iconButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar"
+                        )
+                    }
+                }
             }
         }
     }

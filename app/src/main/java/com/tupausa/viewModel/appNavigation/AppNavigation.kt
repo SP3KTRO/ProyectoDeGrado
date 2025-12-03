@@ -4,12 +4,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tupausa.model.Usuario
 import com.tupausa.utils.Constants
 import com.tupausa.view.*
 import com.tupausa.view.admin.*
@@ -20,7 +24,7 @@ import com.tupausa.viewModel.UsuarioViewModel
 
 @Composable
 fun AppNavigation(
-    tupausaViewModel: UsuarioViewModel,
+    usuarioViewModel: UsuarioViewModel,
     loginViewModel: LoginViewModel = viewModel(),
     ejercicioViewModel: EjercicioViewModel = viewModel()
 ) {
@@ -95,6 +99,7 @@ fun AppNavigation(
                 onNavigateToUsersList = { navController.navigate(AppRoutes.ADMIN_USERS_LIST) },
                 onNavigateToEjercicios = { navController.navigate(AppRoutes.ADMIN_EJERCICIOS) },
                 onLogout = {
+                    loginViewModel.logout()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -103,18 +108,65 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.ADMIN_USERS_LIST) {
-            val usuarios by tupausaViewModel.usuarios.observeAsState(emptyList())
-            val isLoading by tupausaViewModel.isLoading.observeAsState(false)
+            val usuarios by usuarioViewModel.usuarios.observeAsState(emptyList())
+            val isLoading by usuarioViewModel.isLoading.observeAsState(false)
+            val error by usuarioViewModel.error.observeAsState()
+            val operationSuccess by usuarioViewModel.operationSuccess.observeAsState()
+
+            var showEditDialog by remember { mutableStateOf(false) }
+            var usuarioToEdit by remember { mutableStateOf<Usuario?>(null) }
 
             LaunchedEffect(Unit) {
-                tupausaViewModel.fetchUsuariosFromApi()
+                usuarioViewModel.fetchUsuariosFromApi()
+            }
+
+            // Mostrar Snackbar de éxito
+            LaunchedEffect(operationSuccess) {
+                operationSuccess?.let {
+                    if (it.isNotEmpty()) {
+                        // TODO: Mostrar Snackbar
+                        usuarioViewModel.clearOperationSuccess()
+                    }
+                }
+            }
+
+            // Mostrar Snackbar de error
+            LaunchedEffect(error) {
+                error?.let {
+                    if (it.isNotEmpty()) {
+                        // TODO: Mostrar Snackbar
+                        usuarioViewModel.clearError()
+                    }
+                }
             }
 
             AdminUsersListScreen(
                 usuarios = usuarios,
                 isLoading = isLoading,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                onEditUsuario = { usuario ->
+                    usuarioToEdit = usuario
+                    showEditDialog = true
+                },
+                onDeleteUsuario = { usuario ->
+                    usuarioViewModel.deleteUsuario(usuario.idUsuario)
+                }
             )
+
+            // Diálogo de edición
+            if (showEditDialog && usuarioToEdit != null) {
+                EditarUsuarioDialog(
+                    usuario = usuarioToEdit!!,
+                    onDismiss = { showEditDialog = false },
+                    onConfirm = { usuarioActualizado ->
+                        usuarioViewModel.updateUsuario(
+                            usuarioActualizado.idUsuario,
+                            usuarioActualizado
+                        )
+                        showEditDialog = false
+                    }
+                )
+            }
         }
 
         composable(AppRoutes.ADMIN_EJERCICIOS) {
@@ -142,6 +194,7 @@ fun AppNavigation(
                 onNavigateToAlarmas = { navController.navigate(AppRoutes.USER_ALARMAS) },
                 onNavigateToHistorial = { navController.navigate(AppRoutes.USER_HISTORIAL) },
                 onLogout = {
+                    loginViewModel.logout()
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }

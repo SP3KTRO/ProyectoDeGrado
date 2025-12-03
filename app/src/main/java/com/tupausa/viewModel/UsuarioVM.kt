@@ -1,16 +1,13 @@
+// Ruta: com/tupausa/viewModel/UsuarioViewModel.kt
 package com.tupausa.viewModel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.tupausa.database.RetrofitClient
 import com.tupausa.model.Usuario
 import com.tupausa.repository.UsuarioRepository
 import kotlinx.coroutines.launch
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 
 class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
 
@@ -26,60 +23,95 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
 
-    // Método para obtener usuarios desde la API
+    // LiveData para operaciones exitosas
+    private val _operationSuccess = MutableLiveData<String>()
+    val operationSuccess: LiveData<String> get() = _operationSuccess
+
+    // ==========================================
+    // OBTENER USUARIOS DESDE LA API
+    // ==========================================
+
     fun fetchUsuariosFromApi() {
         _isLoading.value = true
-        RetrofitClient.instance.getUsuarios().enqueue(object : Callback<List<List<Any>>> {
-            override fun onResponse(call: Call<List<List<Any>>>, response: Response<List<List<Any>>>) {
-                _isLoading.value = false
-                if (response.isSuccessful) {
-                    // Convierte la lista de listas en una lista de usuarios
-                    val usuarios = response.body()?.mapNotNull { subarray ->
-                        try {
-                            Usuario(
-                                idUsuario = (subarray[0] as Double).toInt(), // Convierte Double a Int
-                                nombre = subarray[1] as String,
-                                correoElectronico = subarray[2] as String,
-                                contrasena = subarray[3] as String,
-                                idTipoUsuario = (subarray[4] as Double).toInt() // Convierte Double a Int
-                            )
-                        } catch (e: Exception) {
-                            null // Si hay un error en el parsing, ignora este usuario
-                        }
-                    } ?: emptyList()
+        viewModelScope.launch {
+            try {
+                val result = repository.getAllUsuariosFromApi()
 
+                result.onSuccess { usuarios ->
                     _usuarios.value = usuarios
-                } else {
-                    // Maneja el error de la API
-                    val errorBody = response.errorBody()?.string()
-                    _error.value = "Error: ${response.message()}. Detalles: $errorBody"
+                    _isLoading.value = false
+                }.onFailure { exception ->
+                    _error.value = exception.message ?: "Error al cargar usuarios"
+                    _isLoading.value = false
                 }
-            }
-
-            override fun onFailure(call: Call<List<List<Any>>>, t: Throwable) {
+            } catch (e: Exception) {
+                _error.value = "Error de red: ${e.message}"
                 _isLoading.value = false
-                _error.value = "Error de red: ${t.message}"
             }
-        })
-    }
-
-    // Método para insertar un usuario en la base de datos local
-    fun insertUsuario(usuario: Usuario) {
-        viewModelScope.launch {
-            repository.saveUsuarioLocal(usuario)
         }
     }
 
-    // Método para cargar usuarios desde la base de datos local
-    fun loadUsuarios() {
+    // ==========================================
+    // ACTUALIZAR USUARIO
+    // ==========================================
+
+    fun updateUsuario(id: Int, usuario: Usuario) {
+        _isLoading.value = true
         viewModelScope.launch {
-            val usuarios = repository.getAllUsuariosLocal()
-            _usuarios.value = usuarios
+            try {
+                val result = repository.updateUsuario(id, usuario)
+
+                result.onSuccess {
+                    _operationSuccess.value = "Usuario actualizado correctamente"
+                    _isLoading.value = false
+                    // Recargar lista de usuarios
+                    fetchUsuariosFromApi()
+                }.onFailure { exception ->
+                    _error.value = exception.message ?: "Error al actualizar usuario"
+                    _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de red: ${e.message}"
+                _isLoading.value = false
+            }
         }
     }
 
-    // Método para limpiar el error
+    // ==========================================
+    // ELIMINAR USUARIO
+    // ==========================================
+
+    fun deleteUsuario(id: Int) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val result = repository.deleteUsuario(id)
+
+                result.onSuccess {
+                    _operationSuccess.value = "Usuario eliminado correctamente"
+                    _isLoading.value = false
+                    // Recargar lista de usuarios
+                    fetchUsuariosFromApi()
+                }.onFailure { exception ->
+                    _error.value = exception.message ?: "Error al eliminar usuario"
+                    _isLoading.value = false
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de red: ${e.message}"
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // ==========================================
+    // LIMPIAR ESTADOS
+    // ==========================================
+
     fun clearError() {
         _error.value = ""
+    }
+
+    fun clearOperationSuccess() {
+        _operationSuccess.value = ""
     }
 }

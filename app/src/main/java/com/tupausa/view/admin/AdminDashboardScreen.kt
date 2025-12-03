@@ -1,8 +1,11 @@
-package com.tupausa.view
+package com.tupausa.view.admin
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,7 +34,7 @@ fun AdminDashboardScreen(
                 title = { Text("Panel Administrador") },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión")
                     }
                 }
             )
@@ -62,7 +65,7 @@ fun AdminDashboardScreen(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AdminPanelSettings,
+                        imageVector = Icons.Filled.AdminPanelSettings,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
                         tint = MaterialTheme.colorScheme.primary
@@ -82,7 +85,7 @@ fun AdminDashboardScreen(
             AdminMenuCard(
                 title = "Ver Usuarios",
                 description = "Lista de todos los usuarios registrados",
-                icon = Icons.Default.Person,
+                icon = Icons.Filled.Person,
                 onClick = onNavigateToUsersList
             )
 
@@ -90,7 +93,7 @@ fun AdminDashboardScreen(
             AdminMenuCard(
                 title = "Ejercicios",
                 description = "Ver lista de ejercicios disponibles",
-                icon = Icons.Default.FitnessCenter,
+                icon = Icons.Filled.FitnessCenter,
                 onClick = onNavigateToEjercicios
             )
         }

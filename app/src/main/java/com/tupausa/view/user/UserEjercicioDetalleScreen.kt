@@ -1,5 +1,4 @@
-// Ruta: com/tupausa/view/user/UserEjercicioDetalleScreen.kt
-package com.tupausa.view
+package com.tupausa.view.user
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -64,7 +63,7 @@ fun UserEjercicioDetalleScreen(
 
             // Título
             Text(
-                text = ejercicio.nombre,
+                text = ejercicio.nombreEjercicio,
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold
             )

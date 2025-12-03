@@ -1,4 +1,4 @@
-package com.tupausa.viewmodel
+package com.tupausa.viewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider

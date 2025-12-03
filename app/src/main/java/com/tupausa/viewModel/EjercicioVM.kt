@@ -11,23 +11,32 @@ import kotlinx.coroutines.launch
 
 class EjercicioViewModel(application: Application) : AndroidViewModel(application) {
 
+    // Acceso al repositorio a través de la clase Application
     private val repository = (application as TuPausaApplication).ejercicioRepository
 
     // LiveData para la lista de ejercicios
     private val _ejercicios = MutableLiveData<List<Ejercicio>>()
     val ejercicios: LiveData<List<Ejercicio>> get() = _ejercicios
 
-    // LiveData para un ejercicio específico
+    // LiveData para un ejercicio específico (Detalle)
     private val _ejercicioSeleccionado = MutableLiveData<Ejercicio?>()
     val ejercicioSeleccionado: LiveData<Ejercicio?> get() = _ejercicioSeleccionado
 
-    // LiveData para el estado de carga
+    // LiveData para el estado de carga (ProgressBar)
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
 
-    // LiveData para manejar errores
-    private val _error = MutableLiveData<String>()
-    val error: LiveData<String> get() = _error
+    // LiveData para manejar errores (Toast o Snackbar de error)
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> get() = _error
+
+    // LiveData para mensajes de éxito (Toast de confirmación)
+    private val _mensaje = MutableLiveData<String?>()
+    val mensaje: LiveData<String?> get() = _mensaje
+
+    // ==========================================
+    // MÉTODOS DE LECTURA (GET)
+    // ==========================================
 
     // CARGAR TODOS LOS EJERCICIOS
     fun loadEjercicios() {
@@ -36,9 +45,9 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val ejerciciosList = repository.getAllEjercicios()
                 _ejercicios.value = ejerciciosList
-                _isLoading.value = false
             } catch (e: Exception) {
                 _error.value = "Error al cargar ejercicios: ${e.message}"
+            } finally {
                 _isLoading.value = false
             }
         }
@@ -51,9 +60,9 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val ejercicio = repository.getEjercicioById(id)
                 _ejercicioSeleccionado.value = ejercicio
-                _isLoading.value = false
             } catch (e: Exception) {
-                _error.value = "Error al cargar ejercicio: ${e.message}"
+                _error.value = "Error al cargar el ejercicio: ${e.message}"
+            } finally {
                 _isLoading.value = false
             }
         }
@@ -66,9 +75,9 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val ejerciciosList = repository.getEjerciciosByTipo(tipo)
                 _ejercicios.value = ejerciciosList
-                _isLoading.value = false
             } catch (e: Exception) {
                 _error.value = "Error al filtrar ejercicios: ${e.message}"
+            } finally {
                 _isLoading.value = false
             }
         }
@@ -81,16 +90,65 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
             try {
                 val ejercicio = repository.getEjercicioAleatorio()
                 _ejercicioSeleccionado.value = ejercicio
-                _isLoading.value = false
             } catch (e: Exception) {
-                _error.value = "Error al obtener ejercicio: ${e.message}"
+                _error.value = "Error al obtener ejercicio aleatorio: ${e.message}"
+            } finally {
                 _isLoading.value = false
             }
         }
     }
 
-    // Método para limpiar el error
+    // ==========================================
+    // MÉTODOS DE ESCRITURA (POST / DELETE)
+    // ==========================================
+
+    fun agregarEjercicio(ejercicio: Ejercicio) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val id = repository.insertEjercicio(ejercicio)
+                if (id > -1) {
+                    _mensaje.value = "Ejercicio guardado correctamente"
+                    loadEjercicios() // Recargamos la lista para ver el cambio
+                } else {
+                    _error.value = "No se pudo guardar el ejercicio"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error al guardar: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun eliminarEjercicio(id: Int) {
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val rows = repository.deleteEjercicio(id)
+                if (rows > 0) {
+                    _mensaje.value = "Ejercicio eliminado"
+                    loadEjercicios() // Recargamos la lista
+                } else {
+                    _error.value = "No se encontró el ejercicio a eliminar"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error al eliminar: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    // ==========================================
+    // LIMPIEZA DE ESTADOS
+    // ==========================================
+
     fun clearError() {
-        _error.value = ""
+        _error.value = null
+    }
+
+    fun clearMensaje() {
+        _mensaje.value = null
     }
 }

@@ -1,11 +1,11 @@
-package com.tupausa.view
+package com.tupausa.view.user
 
-import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -13,6 +13,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.TuPausaApplication
+import com.tupausa.ui.theme.SecondColor
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -28,6 +29,7 @@ fun UserDashboardScreen(
     val userName = app.preferencesManager.getUserName()
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text("TuPausa") },
@@ -56,7 +58,7 @@ fun UserDashboardScreen(
             Text(
                 text = "Cuida tu salud mientras programas",
                 fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = SecondColor
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -100,6 +102,7 @@ fun UserMenuCard(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp),
+            //colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
         onClick = onClick
     ) {
         Row(
