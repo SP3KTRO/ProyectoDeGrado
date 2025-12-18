@@ -1,19 +1,26 @@
 package com.tupausa.view.user
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tupausa.R
 import com.tupausa.TuPausaApplication
-import com.tupausa.ui.theme.SecondColor
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,7 +39,14 @@ fun UserDashboardScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("TuPausa") },
+                title = { Image(
+                    painter = painterResource(id = R.drawable.logo_white),
+                    contentDescription = "Logo de TuPausa",
+                    modifier = Modifier
+                        .size(130.dp)
+                        .padding(bottom = 10.dp),
+                    contentScale = ContentScale.Fit
+                ) },
                 actions = {
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
@@ -50,15 +64,16 @@ fun UserDashboardScreen(
         ) {
             // Saludo personalizado
             Text(
-                text = "¡Hola ${userName}! Toma tu pausa activa",
+                text = "¡Hola ${userName}!\nToma tu pausa activa",
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = ArenaOnPrimaryContainer
             )
 
             Text(
                 text = "Cuida tu salud mientras programas",
                 fontSize = 16.sp,
-                color = SecondColor
+                color = ArenaPrimary
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -67,7 +82,8 @@ fun UserDashboardScreen(
             UserMenuCard(
                 title = "Ejercicios",
                 description = "Explora ejercicios de pausas activas",
-                icon = Icons.Default.FitnessCenter,
+                icon = painterResource(id = R.drawable.exercise),
+                iconTint = Color.Unspecified,
                 onClick = onNavigateToEjercicios
             )
 
@@ -75,7 +91,8 @@ fun UserDashboardScreen(
             UserMenuCard(
                 title = "Mis Alarmas",
                 description = "Programa tus pausas activas",
-                icon = Icons.Default.Notifications,
+                icon = painterResource(id = R.drawable.reloj),
+                iconTint = Color.Unspecified,
                 onClick = onNavigateToAlarmas
             )
 
@@ -83,7 +100,8 @@ fun UserDashboardScreen(
             UserMenuCard(
                 title = "Mi Historial",
                 description = "Revisa tu progreso y estadísticas",
-                icon = Icons.Default.Timeline,
+                icon = painterResource(id = R.drawable.historial),
+                iconTint = Color.Unspecified,
                 onClick = onNavigateToHistorial
             )
         }
@@ -95,14 +113,18 @@ fun UserDashboardScreen(
 fun UserMenuCard(
     title: String,
     description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Painter,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(100.dp),
-            //colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = onClick
     ) {
         Row(
@@ -112,20 +134,23 @@ fun UserMenuCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
+                painter = icon,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = iconTint
             )
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
+                // Título
                 Text(
                     text = title,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
+                // Descripción
                 Text(
                     text = description,
                     fontSize = 14.sp,

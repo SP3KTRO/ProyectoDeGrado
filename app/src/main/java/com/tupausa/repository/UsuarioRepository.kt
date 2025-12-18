@@ -49,7 +49,7 @@ class UsuarioRepository(
                     preferencesManager.saveUserSession(usuario) // <--- 2. GUARDAR SESIÓN EN PREFS
                     Result.success(usuario)
                 } else {
-                    Result.failure(Exception("Credenciales incorrectas"))
+                    Result.failure(Exception("Correo o Contraseña incorrectos"))
                 }
             } else {
                 Result.failure(Exception("Error al conectar: ${response.message()}"))

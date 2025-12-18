@@ -11,9 +11,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,6 +30,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.viewModel.RegisterViewModel
 
 @Composable
@@ -91,7 +95,11 @@ fun RegisterScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Registro", style = MaterialTheme.typography.headlineMedium)
+        Text(
+            text = "Registro",
+            style = MaterialTheme.typography.headlineMedium,
+            color = ArenaOnPrimaryContainer
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -107,14 +115,29 @@ fun RegisterScreen(
                 }
             },
             label = { Text("Nombre") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
         )
 
         // Mostrar alerta de nombre
         if (nombreError.isNotEmpty()) {
             Text(
                 text = nombreError,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -134,14 +157,29 @@ fun RegisterScreen(
             },
             label = { Text("Correo Electrónico") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = MaterialTheme.shapes.medium
         )
 
         // Mostrar alerta de correo electrónico
         if (correoError.isNotEmpty()) {
             Text(
                 text = correoError,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -162,14 +200,29 @@ fun RegisterScreen(
             label = { Text("Contraseña") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = MaterialTheme.shapes.medium
         )
 
         // Mostrar alerta de contraseña
         if (contrasenaError.isNotEmpty()) {
             Text(
                 text = contrasenaError,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -190,14 +243,29 @@ fun RegisterScreen(
             label = { Text("Confirmar Contraseña") },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             visualTransformation = PasswordVisualTransformation(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = MaterialTheme.shapes.medium
         )
 
         // Mostrar alerta de confirmar contraseña
         if (confirmarContrasenaError.isNotEmpty()) {
             Text(
                 text = confirmarContrasenaError,
-                color = MaterialTheme.colorScheme.error,
+                color = MaterialTheme.colorScheme.onError,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -215,13 +283,13 @@ fun RegisterScreen(
 
                 // Validar el correo electrónico
                 if (!isValidEmail(correoElectronico)) {
-                    correoError = "El correo electrónico debe tener un formato válido (ejemplo@dominio.com o ejemplo@dominio.co)."
+                    correoError = "El correo electrónico debe tener un formato válido (ejemplo@dominio.com)."
                     return@Button
                 }
 
                 // Validar la contraseña
                 if (!isValidPassword(contrasena)) {
-                    contrasenaError = "La contraseña debe tener al menos 8 caracteres y no puede contener caracteres especiales."
+                    contrasenaError = "La contraseña debe tener al menos 8 carácteres y no puede contener carácteres especiales."
                     return@Button
                 }
 
@@ -231,7 +299,7 @@ fun RegisterScreen(
                     return@Button
                 }
 
-                // Llamar al método register si las validaciones son exitosas
+                // Llamar al metodo register si las validaciones son exitosas
                 viewModel.register(nombre, correoElectronico, contrasena, confirmarContrasena)
             },
             modifier = Modifier.fillMaxWidth(),
@@ -247,7 +315,12 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(8.dp))
 
         // Botón para navegar al inicio de sesión
-        TextButton(onClick = onNavigateToLogin) {
+        TextButton(
+            onClick = onNavigateToLogin,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = ArenaPrimary
+            )
+            ) {
             Text("¿Ya tienes una cuenta? Inicia sesión")
         }
 

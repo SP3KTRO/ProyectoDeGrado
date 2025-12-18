@@ -11,7 +11,7 @@ class PreferencesManager(context: Context) {
         Context.MODE_PRIVATE
     )
 
-    // GUARDAR SESIÓN
+    // Guardar sesion
     fun saveUserSession(usuario: Usuario) {
         prefs.edit().apply {
             putInt(Constants.PREF_USER_ID, usuario.idUsuario)
@@ -23,12 +23,12 @@ class PreferencesManager(context: Context) {
         }
     }
 
-    // LIMPIAR SESIÓN (LOGOUT)
+    // Logout
     fun clearUserSession() {
         prefs.edit().clear().apply()
     }
 
-    // OBTENER DATOS DE SESIÓN
+    // Obtener datos y sesion
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean(Constants.PREF_IS_LOGGED_IN, false)
     }

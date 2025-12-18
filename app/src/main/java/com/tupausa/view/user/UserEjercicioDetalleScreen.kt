@@ -5,6 +5,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -13,6 +14,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.model.Ejercicio
+import android.os.Build.VERSION.SDK_INT
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,15 +33,37 @@ fun UserEjercicioDetalleScreen(
     ejercicio: Ejercicio,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
+
+    // OBTENER ID DEL GIF Y CONFIGURAR COIL
+    val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components {
+                if (SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+            }
+            .build()
+    }
+
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del Ejercicio") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, "Volver")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = ArenaOnPrimaryContainer,
+                    navigationIconContentColor = ArenaOnPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -40,127 +75,169 @@ fun UserEjercicioDetalleScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header con icono grande
-            Surface(
+            // 3. HEADER CON GIF ANIMADO
+            Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
+                    .height(250.dp), // Un poco más alto para apreciar el GIF
                 shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.primaryContainer
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                )
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.FitnessCenter,
-                        contentDescription = null,
-                        modifier = Modifier.size(100.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-
-            // Título
-            Text(
-                text = ejercicio.nombreEjercicio,
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            // Badges de información
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                InfoBadge(
-                    icon = Icons.Default.Category,
-                    text = ejercicio.getTipoDisplayName()
-                )
-                InfoBadge(
-                    icon = Icons.Default.Timer,
-                    text = "${ejercicio.duracionSegundos}s"
-                )
-                InfoBadge(
-                    icon = Icons.Default.TrendingUp,
-                    text = ejercicio.getNivelDisplayName()
-                )
-            }
-
-            Divider()
-
-            // Descripción
-            SectionTitle("Descripción")
-            Text(
-                text = ejercicio.descripcion,
-                fontSize = 16.sp,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Divider()
-
-            // Instrucciones
-            SectionTitle("Cómo realizarlo")
-            val instrucciones = ejercicio.getInstruccionesList()
-            instrucciones.forEachIndexed { index, instruccion ->
-                InstruccionItem(
-                    numero = index + 1,
-                    texto = instruccion
-                )
-            }
-
-            Divider()
-
-            // Beneficios
-            if (!ejercicio.beneficios.isNullOrEmpty()) {
-                SectionTitle("Beneficios")
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    )
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.FavoriteBorder,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiaryContainer
+                    if (drawableId != 0) {
+                        AsyncImage(
+                            model = ImageRequest.Builder(context)
+                                .data(drawableId)
+                                .crossfade(true)
+                                .build(),
+                            imageLoader = imageLoader,
+                            contentDescription = ejercicio.nombreEjercicio,
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.fillMaxSize()
                         )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = ejercicio.beneficios,
-                            fontSize = 14.sp,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
+                    } else {
+                        // Fallback si no hay GIF
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Icon(
+                                imageVector = Icons.Default.FitnessCenter,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text("Vista previa no disponible")
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            // 4. CONTENEDOR DE INFORMACIÓN (Para legibilidad sobre el fondo)
+            // Envolvemos el texto en una Card semi-transparente o sólida para que se lea bien
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    // Ajusta el alpha (0.9f) según qué tanto quieres ver el fondo
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Título
+                    Text(
+                        text = ejercicio.nombreEjercicio,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
-            // Botón de acción
+                    // Badges
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        InfoBadge(
+                            icon = Icons.Default.Category,
+                            text = ejercicio.getTipoDisplayName()
+                        )
+                        InfoBadge(
+                            icon = Icons.Default.Timer,
+                            text = "${ejercicio.duracionSegundos}s"
+                        )
+                        InfoBadge(
+                            icon = Icons.Default.TrendingUp,
+                            text = ejercicio.getNivelDisplayName()
+                        )
+                    }
+
+                    Divider()
+
+                    // Descripción
+                    SectionTitle("Descripción")
+                    Text(
+                        text = ejercicio.descripcion,
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Divider()
+
+                    // Instrucciones
+                    SectionTitle("Cómo realizarlo")
+                    val instrucciones = ejercicio.getInstruccionesList()
+                    instrucciones.forEachIndexed { index, instruccion ->
+                        InstruccionItem(
+                            numero = index + 1,
+                            texto = instruccion
+                        )
+                    }
+
+                    // Beneficios (Solo si existen)
+                    if (!ejercicio.beneficios.isNullOrEmpty()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                            )
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.HealthAndSafety,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    text = ejercicio.beneficios,
+                                    fontSize = 14.sp,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Botón de acción (Fuera de la card de texto para que destaque)
             Button(
-                onClick = { /* TODO: Iniciar ejercicio */ },
+                onClick = { /* TODO: Logica de temporizador o iniciar */ },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Iniciar Ejercicio", fontSize = 18.sp)
+                Text("Comenzar Ejercicio", fontSize = 18.sp)
             }
+
+            // Espacio extra al final para el scroll
+            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }
+
+// COMPONENTES AUXILIARES
 
 @Composable
 fun SectionTitle(text: String) {
     Text(
         text = text,
-        fontSize = 20.sp,
-        fontWeight = FontWeight.Bold
+        fontSize = 18.sp,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.primary
     )
 }
 
@@ -170,24 +247,25 @@ fun InfoBadge(
     text: String
 ) {
     Surface(
-        shape = MaterialTheme.shapes.medium,
+        shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.secondaryContainer
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
             Text(
                 text = text,
-                fontSize = 14.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer
+                fontSize = 12.sp,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                fontWeight = FontWeight.Medium
             )
         }
     }
@@ -201,11 +279,12 @@ fun InstruccionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp)
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.Top // Alineación Top por si el texto es largo
     ) {
         Surface(
-            modifier = Modifier.size(32.dp),
-            shape = MaterialTheme.shapes.small,
+            modifier = Modifier.size(24.dp),
+            shape = MaterialTheme.shapes.medium, // Circular se ve mejor para pasos****************************
             color = MaterialTheme.colorScheme.primary
         ) {
             Box(
@@ -215,7 +294,8 @@ fun InstruccionItem(
                 Text(
                     text = numero.toString(),
                     color = MaterialTheme.colorScheme.onPrimary,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
                 )
             }
         }
@@ -225,7 +305,8 @@ fun InstruccionItem(
         Text(
             text = texto,
             fontSize = 15.sp,
-            modifier = Modifier.weight(1f)
+            modifier = Modifier.weight(1f),
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }

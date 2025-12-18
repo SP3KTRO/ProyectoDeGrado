@@ -7,9 +7,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -17,6 +20,7 @@ fun UserHistorialScreen(
     onBack: () -> Unit
 ) {
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text("Mi Historial") },
@@ -24,7 +28,12 @@ fun UserHistorialScreen(
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = ArenaOnPrimaryContainer,
+                    navigationIconContentColor = ArenaOnPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -50,7 +59,7 @@ fun UserHistorialScreen(
                     text = "Aquí verás tu historial de pausas\ny estadísticas de progreso",
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = ArenaPrimary
                 )
             }
         }

@@ -3,6 +3,7 @@ package com.tupausa.view.admin
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
@@ -25,6 +26,7 @@ fun EditarUsuarioDialog(
     var emailError by remember { mutableStateOf(false) }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
         onDismissRequest = onDismiss,
         title = {
             Text("Editar Usuario")

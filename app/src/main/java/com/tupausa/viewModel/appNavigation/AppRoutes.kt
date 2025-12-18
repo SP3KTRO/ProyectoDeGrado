@@ -10,6 +10,8 @@ object AppRoutes {
     const val ADMIN_DASHBOARD = "admin_dashboard"
     const val ADMIN_USERS_LIST = "admin_users_list"
     const val ADMIN_EJERCICIOS = "admin_ejercicios"
+    const val ADMIN_EJERCICIO_DETALLE = "admin_ejercicio_detalle/{ejercicioId}"
+
 
     // Usuario
     const val USER_DASHBOARD = "user_dashboard"
@@ -20,4 +22,5 @@ object AppRoutes {
 
     // Helper para rutas con parámetros
     fun userEjercicioDetalle(ejercicioId: Int) = "user_ejercicio_detalle/$ejercicioId"
+    fun adminEjercicioDetalle(ejercicioId: Int) = "admin_ejercicio_detalle/$ejercicioId"
 }

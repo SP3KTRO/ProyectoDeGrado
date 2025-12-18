@@ -85,8 +85,8 @@ dependencies {
     implementation ("androidx.navigation:navigation-compose:2.8.9")
     implementation ("androidx.recyclerview:recyclerview:1.3.2")
 
-    // Coil
-    implementation("io.coil-kt:coil-compose:2.5.0")
-    implementation("io.coil-kt:coil-gif:2.5.0")
+    // Coil (para los gifs)
+    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("io.coil-kt:coil-gif:2.6.0")
 
 }

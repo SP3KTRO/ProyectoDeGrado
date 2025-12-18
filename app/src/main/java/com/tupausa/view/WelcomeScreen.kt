@@ -22,7 +22,7 @@ fun ScreenWelcome(onNavigateToLogin: () -> Unit) {
 
     // Ejecutar la navegación automáticamente
     LaunchedEffect(Unit) {
-        delay(4000)
+        delay(3700)
         onNavigateToLogin()
     }
 
@@ -34,7 +34,7 @@ fun ScreenWelcome(onNavigateToLogin: () -> Unit) {
         Image(
             painter = imagePainter,
             contentDescription = null,
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
         )
     }

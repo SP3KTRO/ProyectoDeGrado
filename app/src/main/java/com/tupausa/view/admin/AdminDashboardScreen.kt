@@ -1,20 +1,27 @@
 package com.tupausa.view.admin
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AdminPanelSettings
-import androidx.compose.material.icons.filled.FitnessCenter
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tupausa.R
 import com.tupausa.TuPausaApplication
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaSurface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,9 +36,17 @@ fun AdminDashboardScreen(
     val userName = app.preferencesManager.getUserName()
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Panel Administrador") },
+                title = { Image(
+                    painter = painterResource(id = R.drawable.logo_white),
+                    contentDescription = "Logo de TuPausa",
+                    modifier = Modifier
+                        .size(130.dp)
+                        .padding(bottom = 10.dp),
+                    contentScale = ContentScale.Fit
+                )},
                 actions = {
                     IconButton(onClick = onLogout) {
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión")
@@ -47,11 +62,11 @@ fun AdminDashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Saludo personalizado para admin
             Text(
                 text = "¡Hola ${userName}!",
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                color = ArenaOnPrimaryContainer
             )
 
             // Badge de Administrador
@@ -74,7 +89,7 @@ fun AdminDashboardScreen(
                         text = "Administrador",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                        color = ArenaSurface
                     )
                 }
             }
@@ -85,7 +100,8 @@ fun AdminDashboardScreen(
             AdminMenuCard(
                 title = "Ver Usuarios",
                 description = "Lista de todos los usuarios registrados",
-                icon = Icons.Filled.Person,
+                icon = painterResource(id = R.drawable.user),
+                iconTint = Color.Unspecified,
                 onClick = onNavigateToUsersList
             )
 
@@ -93,7 +109,8 @@ fun AdminDashboardScreen(
             AdminMenuCard(
                 title = "Ejercicios",
                 description = "Ver lista de ejercicios disponibles",
-                icon = Icons.Filled.FitnessCenter,
+                icon = painterResource(id = R.drawable.exercise),
+                iconTint = Color.Unspecified,
                 onClick = onNavigateToEjercicios
             )
         }
@@ -104,13 +121,18 @@ fun AdminDashboardScreen(
 fun AdminMenuCard(
     title: String,
     description: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: Painter,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
     onClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = onClick
     ) {
         Row(
@@ -120,10 +142,10 @@ fun AdminMenuCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = icon,
+                painter = icon,
                 contentDescription = null,
                 modifier = Modifier.size(48.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = iconTint
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -132,7 +154,8 @@ fun AdminMenuCard(
                 Text(
                     text = title,
                     fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = description,

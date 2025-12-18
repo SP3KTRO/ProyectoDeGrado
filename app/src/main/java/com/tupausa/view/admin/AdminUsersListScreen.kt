@@ -9,10 +9,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tupausa.R
 import com.tupausa.model.Usuario
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,14 +33,21 @@ fun AdminUsersListScreen(
     var usuarioToDelete by remember { mutableStateOf<Usuario?>(null) }
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
                 title = { Text("Lista de Usuarios") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.Default.ArrowBack, "Volver")
+
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = ArenaOnPrimaryContainer,
+                    navigationIconContentColor = ArenaOnPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -63,9 +75,12 @@ fun AdminUsersListScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(usuarios) { usuario ->
+                            //Acciones para cada usuario
                             UsuarioCardWithActions(
                                 usuario = usuario,
                                 onEdit = { onEditUsuario(usuario) },
+                                icon = painterResource(id = R.drawable.user),
+                                iconTint = Color.Unspecified,
                                 onDelete = {
                                     usuarioToDelete = usuario
                                     showDeleteDialog = true
@@ -121,11 +136,18 @@ fun AdminUsersListScreen(
 @Composable
 fun UsuarioCardWithActions(
     usuario: Usuario,
+    icon: Painter,
+    iconTint: Color = MaterialTheme.colorScheme.primary,
     onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier
+            .fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
         Row(
             modifier = Modifier
@@ -134,10 +156,10 @@ fun UsuarioCardWithActions(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                imageVector = Icons.Default.Person,
+                painter = icon,
                 contentDescription = null,
                 modifier = Modifier.size(40.dp),
-                tint = MaterialTheme.colorScheme.primary
+                tint = iconTint
             )
 
             Spacer(modifier = Modifier.width(16.dp))
@@ -146,7 +168,8 @@ fun UsuarioCardWithActions(
                 Text(
                     text = usuario.nombre,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
                     text = usuario.correoElectronico,
@@ -180,7 +203,7 @@ fun UsuarioCardWithActions(
                     )
                 }
 
-                // Botón Eliminar (solo si no es admin)
+                // Botón Eliminar
                 if (usuario.idTipoUsuario != Constants.USER_TYPE_ADMIN) {
                     IconButton(
                         onClick = onDelete,

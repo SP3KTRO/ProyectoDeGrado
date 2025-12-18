@@ -165,7 +165,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Estudiante')")
         db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Administrador')")
 
-        // 2. Ejercicios Predeterminados (Tus datos intactos)
+        // 2. Ejercicios Predeterminados
         val ejercicios = listOf(
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Rotación de Cuello")
@@ -184,7 +184,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 45)
                 put(COL_URL_IMAGEN, "gif_munecas")
-                put(COL_INSTRUCCIONES, "Extiende el brazo frente a ti con la palma hacia arriba|Con la otra mano, tira suavemente de los dedos hacia atrás|Mantén el estiramiento 10 segundos|Cambia de mano|Realiza 3 series en cada mano")
+                put(COL_INSTRUCCIONES, "Extiende el brazo frente a ti con la palma hacia arriba|Con la otra mano, tira suavemente de los dedos hacia atrás|Mantén el estiramiento 10 segundos|Haz lo mismo con la palma hacia abajo|Cambia de mano|Realiza 3 series en cada mano")
                 put(COL_BENEFICIOS, "Previene lesiones por movimientos repetitivos, alivia dolor en muñecas")
             },
             ContentValues().apply {
@@ -233,7 +233,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_TIPO_EJERCICIO, "PIERNAS")
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 90)
-                put(COL_URL_IMAGEN, "gif_piernas")
+                put(COL_URL_IMAGEN, "gif_sentadilla")
                 put(COL_INSTRUCCIONES, "De pie, separa los pies al ancho de hombros|Baja como si fueras a sentarte|Mantén espalda recta|Sube lentamente|Realiza 10-15 repeticiones")
                 put(COL_BENEFICIOS, "Mejora circulación, fortalece piernas, activa metabolismo")
             },
@@ -266,6 +266,26 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_URL_IMAGEN, "gif_dedos")
                 put(COL_INSTRUCCIONES, "Abre y cierra las manos 10 veces|Toca cada dedo con el pulgar|Haz círculos con las muñecas|Sacude las manos 10 segundos|Repite 2 veces")
                 put(COL_BENEFICIOS, "Previene calambres, mejora destreza, aumenta circulación")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Marcha en el Sitio")
+                put(COL_DESCRIPCION, "Reactiva tu circulación sanguínea y eleva tu energía")
+                put(COL_TIPO_EJERCICIO, "CARDIO_SUAVE")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_marcha")
+                put(COL_INSTRUCCIONES, "Ponte de pie con espacio suficiente|Levanta las rodillas alternadamente como si marcharas|Mueve los brazos al ritmo de las piernas|Mantén un ritmo constante|Respira fluidamente por la nariz")
+                put(COL_BENEFICIOS, "Mejora el retorno venoso, despierta el cerebro, aumenta la energía")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Rotación de Tobillos")
+                put(COL_DESCRIPCION, "Mejora la circulación en los pies y previene hinchazón")
+                put(COL_TIPO_EJERCICIO, "PIES")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_tobillos")
+                put(COL_INSTRUCCIONES, "Siéntate y levanta un pie del suelo|Dibuja círculos grandes con la punta del pie|Haz 10 círculos hacia la derecha|Haz 10 círculos hacia la izquierda|Repite con el otro pie")
+                put(COL_BENEFICIOS, "Previene la retención de líquidos, fortalece tobillos, evita calambres")
             }
         )
 

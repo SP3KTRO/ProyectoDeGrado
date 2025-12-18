@@ -2,15 +2,21 @@ package com.tupausa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+//Paleta de colores (Sand)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// EL FONDO
+val ArenaBackground = Color(0xFFFFDDB3) // Tu color arena saturado
 
-val MainColor = Color(0xFF181717)
-var SecondColor = Color(0xFF4D392E)
+// ELEMENTOS PRINCIPALES (Botones, Títulos)
+val ArenaPrimary = Color(0xFF7A5928)
+val ArenaOnPrimary = Color(0xFFFFFFFF) // Texto blanco dentro de botones marrones
+val ArenaPrimaryContainer = Color(0xFFFFF0DF) // Un tono muy pálido para contenedores suaves
+val ArenaOnPrimaryContainer = Color(0xFF2B1D08)
 
-var White = Color(0xFFFFFFFF)
+// SUPERFICIES (Cards, Inputs, Fondos de texto)
+val ArenaSurface = Color(0xFFFFFBF6) // Blanco Hueso (Muy claro)
+val ArenaOnSurface = Color(0xFF422C0E) // Café muy oscuro para leer bien
+val ArenaOnSurfaceVariant = Color(0xFF684F2D) // Café medio para textos secundarios
+
+// BORDES (Outlines)
+val ArenaOutline = Color(0xFF8C7352) // Color para los bordes de los inputs

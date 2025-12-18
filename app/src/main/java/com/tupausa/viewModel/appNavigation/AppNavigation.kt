@@ -53,7 +53,11 @@ fun AppNavigation(
         // AUTENTICACIÓN
         composable(AppRoutes.WELCOME) {
             ScreenWelcome(
-                onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) }
+                onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) {
+                    popUpTo(AppRoutes.WELCOME) {
+                        inclusive = true }
+                    }
+                }
             )
         }
 
@@ -86,7 +90,9 @@ fun AppNavigation(
 
         composable(AppRoutes.REGISTER) {
             RegisterScreen(
-                onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) }
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                }
             )
         }
 
@@ -172,16 +178,35 @@ fun AppNavigation(
         composable(AppRoutes.ADMIN_EJERCICIOS) {
             val ejercicios by ejercicioViewModel.ejercicios.observeAsState(emptyList())
             val isLoading by ejercicioViewModel.isLoading.observeAsState(false)
-
-            LaunchedEffect(Unit) {
-                ejercicioViewModel.loadEjercicios()
-            }
+            LaunchedEffect(Unit) { ejercicioViewModel.loadEjercicios() }
 
             AdminEjerciciosScreen(
                 ejercicios = ejercicios,
                 isLoading = isLoading,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                // AHORA CONECTAMOS EL CLICK:
+                onEjercicioClick = { ejercicio ->
+                    navController.navigate(AppRoutes.adminEjercicioDetalle(ejercicio.idEjercicio))
+                }
             )
+        }
+        composable(
+            route = AppRoutes.ADMIN_EJERCICIO_DETALLE, // Asegúrate de tener esta ruta definida
+            arguments = listOf(navArgument("ejercicioId") { type = NavType.IntType })
+        ) { backStackEntry ->
+            val ejercicioId = backStackEntry.arguments?.getInt("ejercicioId") ?: 0
+            val ejercicio by ejercicioViewModel.ejercicioSeleccionado.observeAsState()
+
+            LaunchedEffect(ejercicioId) {
+                ejercicioViewModel.loadEjercicioById(ejercicioId)
+            }
+
+            ejercicio?.let {
+                AdminEjercicioDetalleScreen(
+                    ejercicio = it,
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
 
         // ==========================================

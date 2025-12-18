@@ -10,15 +10,19 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tupausa.ui.theme.MainColor
-import com.tupausa.ui.theme.SecondColor
+import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import com.tupausa.R
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaOnSurface
+import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.viewModel.LoginViewModel
 
 @Composable
@@ -58,18 +62,20 @@ fun LoginScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text(
-            text = "TuPausa",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = SecondColor
+        Image(
+            painter = painterResource(id = R.drawable.logo),
+            contentDescription = "Logo de TuPausa",
+            modifier = Modifier
+                .size(200.dp)
+                .padding(bottom = 32.dp),
+            contentScale = ContentScale.Fit
         )
 
         Text(
-            text = "Inicia sesión",
+            text = "Iniciar sesión",
             fontSize = 20.sp,
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
-            color = MainColor
+            color = ArenaOnPrimaryContainer
         )
 
         // Campo de email
@@ -80,7 +86,22 @@ fun LoginScreen(
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            enabled = !isLoading
+            enabled = !isLoading,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        shape = MaterialTheme.shapes.medium
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -94,6 +115,21 @@ fun LoginScreen(
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                // Bordes: Bronce (para delimitar bien)
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                // Texto: Café Oscuro (para leer bien)
+                focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                // Label (Etiqueta): Café
+                focusedLabelColor = ArenaOnPrimaryContainer,
+                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+            ),
+            shape = MaterialTheme.shapes.medium,
             trailingIcon = {
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
@@ -132,7 +168,10 @@ fun LoginScreen(
         // Botón para ir a registro
         TextButton(
             onClick = onNavigateToRegister,
-            enabled = !isLoading
+            enabled = !isLoading,
+            colors = ButtonDefaults.textButtonColors(
+                contentColor = ArenaPrimary
+            )
         ) {
             Text("¿No tienes cuenta? Regístrate")
         }
