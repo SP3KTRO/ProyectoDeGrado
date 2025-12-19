@@ -99,7 +99,7 @@ fun LoginScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -127,7 +127,7 @@ fun LoginScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
             ),
             shape = MaterialTheme.shapes.medium,
             trailingIcon = {

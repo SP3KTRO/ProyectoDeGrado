@@ -47,7 +47,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_DIAS_ACTIVOS = "dias_activos"
         const val COL_ESTADO_ALARMA = "estado_alarma"
         const val COL_DURACION_ESTIMADA = "duracion_estimada"
-        const val COL_ETIQUETA = "etiqueta" // Faltaba esta columna
+        const val COL_ETIQUETA = "etiqueta"
 
         // Tabla Config_Notificaciones
         const val TABLE_CONFIG_NOTIF = "Config_Notificaciones"
@@ -180,7 +180,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Estiramiento de Muñecas")
                 put(COL_DESCRIPCION, "Previene el síndrome del túnel carpiano y alivia tensión en manos")
-                put(COL_TIPO_EJERCICIO, "MUNECAS")
+                put(COL_TIPO_EJERCICIO, "MUÑECAS")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 45)
                 put(COL_URL_IMAGEN, "gif_munecas")
@@ -210,7 +210,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Respiración Profunda 4-4-6")
                 put(COL_DESCRIPCION, "Reduce el estrés mediante respiración controlada")
-                put(COL_TIPO_EJERCICIO, "RESPIRACION")
+                put(COL_TIPO_EJERCICIO, "RESPIRACIÓN")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 120)
                 put(COL_URL_IMAGEN, "gif_respiracion")
@@ -224,7 +224,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_hombros")
-                put(COL_INSTRUCCIONES, "Cruza el brazo derecho sobre el pecho|Con la mano izquierda, presiona suavemente el codo derecho|Mantén 15 segundos|Cambia de brazo|Haz círculos con los hombros 10 veces")
+                put(COL_INSTRUCCIONES, "Cruza el brazo derecho sobre el pecho|Con la mano izquierda, presiona suavemente el codo derecho|Mantén 15 segundos|Haz círculos con los hombros 10 veces|Cambia de brazo")
                 put(COL_BENEFICIOS, "Alivia tensión en hombros, mejora movilidad")
             },
             ContentValues().apply {
@@ -250,7 +250,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Estiramiento de Pectorales")
                 put(COL_DESCRIPCION, "Contrarresta la postura encorvada del escritorio")
-                put(COL_TIPO_EJERCICIO, "ESTIRAMIENTO_GENERAL")
+                put(COL_TIPO_EJERCICIO, "GENERAL")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_pectorales")
@@ -270,7 +270,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Marcha en el Sitio")
                 put(COL_DESCRIPCION, "Reactiva tu circulación sanguínea y eleva tu energía")
-                put(COL_TIPO_EJERCICIO, "CARDIO_SUAVE")
+                put(COL_TIPO_EJERCICIO, "CARDIO SUAVE")
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_marcha")

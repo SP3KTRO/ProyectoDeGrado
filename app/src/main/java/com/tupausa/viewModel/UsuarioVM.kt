@@ -1,9 +1,9 @@
-// Ruta: com/tupausa/viewModel/UsuarioViewModel.kt
 package com.tupausa.viewModel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.tupausa.model.Usuario
 import com.tupausa.repository.UsuarioRepository
@@ -113,5 +113,15 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
 
     fun clearOperationSuccess() {
         _operationSuccess.value = ""
+    }
+}
+class UsuarioViewModelFactory(private val repository: UsuarioRepository) : ViewModelProvider.Factory {
+
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(UsuarioViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return UsuarioViewModel(repository) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

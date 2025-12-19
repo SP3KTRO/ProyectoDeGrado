@@ -1,4 +1,3 @@
-// Ruta: com/tupausa/viewModel/RegisterViewModel.kt
 package com.tupausa.viewModel
 
 import android.app.Application
@@ -28,22 +27,22 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
     private val _registerSuccess = MutableLiveData<Boolean>()
     val registerSuccess: LiveData<Boolean> get() = _registerSuccess
 
-    // Método para validar el nombre
+    // Metodo para validar el nombre
     private fun isValidNombre(nombre: String): Boolean {
         return nombre.matches(Constants.NAME_REGEX.toRegex())
     }
 
-    // Método para validar el correo electrónico
+    // Metodo para validar el correo electrónico
     private fun isValidEmail(email: String): Boolean {
         return email.matches(Constants.EMAIL_REGEX.toRegex())
     }
 
-    // Método para validar la contraseña
+    // Metodo para validar la contraseña
     private fun isValidContrasena(contrasena: String): Boolean {
         return contrasena.matches(Constants.PASSWORD_REGEX.toRegex())
     }
 
-    // Método para registrar un nuevo usuario
+    // Metodo para registrar un nuevo usuario
     fun register(nombre: String, correoElectronico: String, contrasena: String, confirmarContrasena: String) {
         _isLoading.value = true
 
@@ -88,7 +87,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
             nombre = nombre,
             correoElectronico = correoElectronico,
             contrasena = contrasena,
-            idTipoUsuario = Constants.USER_TYPE_REGULAR // Siempre usuario regular
+            idTipoUsuario = Constants.USER_TYPE_REGULAR
         )
 
         // Registrar usuario
@@ -110,7 +109,7 @@ class RegisterViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
-    // Método para limpiar el mensaje de error
+    // Metodo para limpiar el mensaje de error
     fun clearError() {
         _error.value = ""
     }

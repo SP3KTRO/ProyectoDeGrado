@@ -128,7 +128,7 @@ fun RegisterScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -150,7 +150,7 @@ fun RegisterScreen(
             onValueChange = { newValue ->
                 correoElectronico = filterEmail(newValue) // Filtrar caracteres no permitidos
                 correoError = if (!isValidEmail(correoElectronico)) {
-                    "El correo electrónico debe tener un formato válido (ejemplo@dominio.com o ejemplo@dominio.co)."
+                    "El correo electrónico debe tener un formato válido (ejemplo@dominio.com)."
                 } else {
                     ""
                 }
@@ -170,7 +170,7 @@ fun RegisterScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -213,7 +213,7 @@ fun RegisterScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -256,7 +256,7 @@ fun RegisterScreen(
                 unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant
+                unfocusedLabelColor = ArenaPrimary
             ),
             shape = MaterialTheme.shapes.medium
         )

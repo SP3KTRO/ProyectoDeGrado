@@ -6,13 +6,20 @@ import com.tupausa.database.RetrofitClient
 import com.tupausa.repository.UsuarioRepository
 import com.tupausa.repository.EjercicioRepository
 import com.tupausa.utils.PreferencesManager
+import com.tupausa.repository.AlarmaRepository
+import com.tupausa.model.data.AppDatabase
 
 class TuPausaApplication : Application() {
 
+    // Base de datos SQLITE
     private val database by lazy { DatabaseHelper(this) }
+
+    //Base de Datos (Room)
+    val roomDatabase by lazy { AppDatabase.getDatabase(this) }
+
     val preferencesManager by lazy { PreferencesManager(this) }
 
-
+    //Repositorios
     val usuarioRepository by lazy {
         UsuarioRepository(
             database,
@@ -23,6 +30,11 @@ class TuPausaApplication : Application() {
 
     val ejercicioRepository by lazy {
         EjercicioRepository(database)
+    }
+
+    //Repositorio de Alarmas
+    val alarmaRepository by lazy {
+        AlarmaRepository(roomDatabase.alarmaDao())
     }
 
     override fun onCreate() {

@@ -22,7 +22,6 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -132,14 +131,14 @@ fun FilterChips(
         "TODOS",
         "CUELLO",
         "HOMBROS",
-        "MUNECAS",
+        "MUÑECAS",
         "ESPALDA",
         "PIERNAS",
         "PIES",
         "OJOS",
-        "RESPIRACION",
-        "CARDIO_SUAVE",
-        "ESTIRAMIENTO_GENERAL"
+        "RESPIRACIÓN",
+        "CARDIO SUAVE",
+        "GENERAL"
     )
 
     LazyRow(
@@ -160,13 +159,13 @@ fun FilterChips(
                             "CUELLO" -> "Cuello"
                             "ESPALDA" -> "Espalda"
                             "HOMBROS" -> "Hombros"
-                            "MUNECAS" -> "Muñecas"
+                            "MUÑECAS" -> "Muñecas"
                             "OJOS" -> "Ojos"
                             "PIERNAS" -> "Piernas"
                             "PIES" -> "Pies"
-                            "RESPIRACION" -> "Respiración"
-                            "CARDIO_SUAVE" -> "Cardio"
-                            "ESTIRAMIENTO_GENERAL" -> "General"
+                            "RESPIRACIÓN" -> "Respiración"
+                            "CARDIO SUAVE" -> "Cardio"
+                            "GENERAL" -> "General"
                             else -> filter
                         }
                     )

@@ -1,6 +1,7 @@
 package com.tupausa.database
 
 import com.tupausa.model.*
+import com.tupausa.model.data.Alarma
 import retrofit2.Response
 import retrofit2.http.*
 
