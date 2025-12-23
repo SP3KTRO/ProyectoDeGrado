@@ -6,8 +6,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -29,6 +31,7 @@ import com.tupausa.utils.rememberDrawableId
 import com.tupausa.view.user.InfoBadge
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
+import com.tupausa.alarm.AlarmActivity
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -141,10 +144,10 @@ fun AdminEjercicioDetalleScreen(
                     ) {
                         InfoBadge(icon = Icons.Default.Category, text = ejercicio.getTipoDisplayName())
                         InfoBadge(icon = Icons.Default.Timer, text = "${ejercicio.duracionSegundos}s")
-                        InfoBadge(icon = Icons.Default.TrendingUp, text = ejercicio.getNivelDisplayName())
+                        InfoBadge(icon = Icons.AutoMirrored.Filled.TrendingUp, text = ejercicio.getNivelDisplayName())
                     }
 
-                    Divider()
+                    HorizontalDivider()
 
                     SectionTitle("Descripción")
                     Text(
@@ -153,7 +156,7 @@ fun AdminEjercicioDetalleScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    Divider()
+                    HorizontalDivider()
 
                     SectionTitle("Instrucciones")
                     ejercicio.getInstruccionesList().forEachIndexed { index, instruccion ->
@@ -188,6 +191,32 @@ fun AdminEjercicioDetalleScreen(
                     }
                 }
             }
+
+            // --- NUEVO: BOTÓN DE COMENZAR EJERCICIO ---
+            Button(
+                onClick = {
+                    val intent = Intent(context, AlarmActivity::class.java).apply {
+                        putExtra("IS_MANUAL", true)
+                        putExtra("ALARM_NOMBRE", ejercicio.nombreEjercicio)
+                        putExtra("ALARM_TIPO", ejercicio.tipoEjercicio)
+                        putExtra("ALARM_DURACION", ejercicio.duracionSegundos)
+                        putExtra("ALARM_ID", ejercicio.idEjercicio)
+                    }
+                    context.startActivity(intent)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = MaterialTheme.shapes.large,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Comenzar Ejercicio", fontSize = 18.sp)
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

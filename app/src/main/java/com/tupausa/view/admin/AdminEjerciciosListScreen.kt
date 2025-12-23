@@ -106,7 +106,7 @@ fun AdminEjercicioCard(
         onClick = onClick,
         // 2. Color CREMA (Surface) con un toque de transparencia
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f) //
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

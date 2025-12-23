@@ -53,7 +53,7 @@ fun AlarmaCard(
 
                 // Nombre y tipo
                 Text(
-                    text = "${alarma.etiqueta} • ${alarma.tipoEjercicio}",
+                    text = "${alarma.etiqueta}\n${alarma.tipoEjercicio}",
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

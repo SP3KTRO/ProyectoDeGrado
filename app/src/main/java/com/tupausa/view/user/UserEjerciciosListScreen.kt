@@ -149,8 +149,9 @@ fun FilterChips(
     ) {
         items(filters.size) { index ->
             val filter = filters[index]
+            val isSelected = selectedFilter == filter
             FilterChip(
-                selected = selectedFilter == filter,
+                selected = isSelected,
                 onClick = { onFilterSelected(filter) },
                 label = {
                     Text(
@@ -177,6 +178,8 @@ fun FilterChips(
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                 ),
                 border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
                     borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                     selectedBorderColor = Color.Transparent,
                     borderWidth = 1.dp

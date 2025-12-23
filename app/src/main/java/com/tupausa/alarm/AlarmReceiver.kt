@@ -58,7 +58,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
         // 4. Construir la Notificación "Disruptiva"
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.logo_white) // Asegúrate de usar un icono blanco/transparente válido
+            .setSmallIcon(R.drawable.logo_white)
             .setContentTitle("¡Es hora de tu Pausa!")
             .setContentText(alarmName)
             .setPriority(NotificationCompat.PRIORITY_MAX)

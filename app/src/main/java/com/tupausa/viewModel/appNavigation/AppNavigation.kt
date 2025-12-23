@@ -41,7 +41,8 @@ fun AppNavigation(
                 AppRoutes.USER_DASHBOARD
             }
             navController.navigate(destination) {
-                popUpTo(AppRoutes.WELCOME) { inclusive = true }
+                popUpTo(0)
+                { inclusive = true }
             }
         }
     }
@@ -54,8 +55,9 @@ fun AppNavigation(
         composable(AppRoutes.WELCOME) {
             ScreenWelcome(
                 onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) {
-                    popUpTo(AppRoutes.WELCOME) {
-                        inclusive = true }
+                        popUpTo(AppRoutes.WELCOME) {
+                            inclusive = true
+                        }
                     }
                 }
             )
@@ -68,9 +70,8 @@ fun AppNavigation(
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(AppRoutes.REGISTER) },
                 onLoginSuccess = { },
-                loginViewModel = loginViewModel  // ← Agregar esto
+                loginViewModel = loginViewModel
             )
-
             // Observar login exitoso
             LaunchedEffect(loginSuccess) {
                 loginSuccess?.let { usuario ->
@@ -82,9 +83,9 @@ fun AppNavigation(
                     }
 
                     navController.navigate(destination) {
-                        popUpTo(AppRoutes.WELCOME) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
+                        }
                     }
-                }
             }
         }
 

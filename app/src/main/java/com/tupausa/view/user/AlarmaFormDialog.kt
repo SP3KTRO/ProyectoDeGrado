@@ -25,7 +25,6 @@ import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
 import com.tupausa.utils.rememberDrawableId
 
-// Enum para saber qué vista mostrar dentro del dialog
 private enum class DialogStep {
     FORMULARIO,
     SELECCION_EJERCICIO
@@ -34,11 +33,11 @@ private enum class DialogStep {
 @Composable
 fun AlarmaFormDialog(
     alarmaAEditar: Alarma? = null,
-    listaEjercicios: List<Ejercicio>, // <--- VOLVEMOS A RECIBIR LA LISTA COMPLETA AQUÍ
+    listaEjercicios: List<Ejercicio>,
     onDismiss: () -> Unit,
     onConfirm: (Int, Int, List<Int>, String, String, String) -> Unit
 ) {
-    // ESTADOS DEL FORMULARIO (Se mantienen vivos aunque cambiemos de vista)
+    // ESTADOS DEL FORMULARIO
     val timeState = rememberTimePickerState(
         initialHour = alarmaAEditar?.hora ?: 8,
         initialMinute = alarmaAEditar?.minuto ?: 0
@@ -62,8 +61,9 @@ fun AlarmaFormDialog(
     var currentStep by remember { mutableStateOf(DialogStep.FORMULARIO) }
 
     AlertDialog(
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
         onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxWidth(0.95f).heightIn(max = 600.dp), // Limitamos altura
+        modifier = Modifier.fillMaxWidth(0.95f).heightIn(max = 600.dp),
         confirmButton = {
             // Solo mostramos el botón de Guardar si estamos en el Formulario
             if (currentStep == DialogStep.FORMULARIO) {
@@ -102,7 +102,6 @@ fun AlarmaFormDialog(
             )
         },
         text = {
-            // AQUÍ ESTÁ LA MAGIA: Crossfade cambia suavemente entre las dos vistas
             Crossfade(targetState = currentStep, label = "dialog_transition") { step ->
                 when (step) {
                     DialogStep.FORMULARIO -> {

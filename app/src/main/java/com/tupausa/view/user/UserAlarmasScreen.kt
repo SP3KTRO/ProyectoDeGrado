@@ -27,6 +27,7 @@ import com.tupausa.TuPausaApplication
 import com.tupausa.alarm.AlarmScheduler
 import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
 
@@ -87,8 +88,8 @@ fun UserAlarmasScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                    titleContentColor = ArenaOnPrimaryContainer,
+                    navigationIconContentColor = ArenaOnPrimaryContainer
                 )
             )
         },
@@ -109,12 +110,12 @@ fun UserAlarmasScreen(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("🔔", fontSize = 64.sp)
+                    Text("⏰", fontSize = 64.sp)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "No tienes alarmas",
                         fontSize = 20.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = ArenaOnPrimaryContainer
                     )
                 }
             } else {

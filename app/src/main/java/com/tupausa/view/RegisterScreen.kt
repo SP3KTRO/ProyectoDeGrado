@@ -96,7 +96,7 @@ fun RegisterScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = "Registro",
+            text = "Regístrate",
             style = MaterialTheme.typography.headlineMedium,
             color = ArenaOnPrimaryContainer
         )

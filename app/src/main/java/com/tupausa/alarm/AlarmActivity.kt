@@ -1,63 +1,91 @@
 package com.tupausa.alarm
 
 import android.app.KeyguardManager
-import android.content.Context
 import android.media.AudioAttributes
 import android.media.Ringtone
 import android.media.RingtoneManager
+import android.os.Build.VERSION.SDK_INT
 import android.os.Build
 import android.os.Bundle
-import android.os.VibrationEffect
-import android.os.Vibrator
-import android.os.VibratorManager
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
+import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.ImageLoader
+import coil.compose.AsyncImage
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
+import coil.request.ImageRequest
+import com.tupausa.TuPausaApplication
 import com.tupausa.R
+import com.tupausa.model.Ejercicio
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.utils.rememberDrawableId
+import com.tupausa.view.user.InstruccionItem
+import com.tupausa.view.user.SectionTitle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 class AlarmActivity : ComponentActivity() {
 
     private var ringtone: Ringtone? = null
-    private var vibrator: Vibrator? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Lógica para despertar la pantalla y mostrarse sobre el bloqueo
-        encenderPantalla()
+        // 1. Verificar si es inicio manual
+        val isManual = intent.getBooleanExtra("IS_MANUAL", false)
 
-        // 2. Obtener datos de la alarma
+        // 2. Solo encendemos pantalla si NO es manual
+        if (!isManual) {
+            encenderPantalla()
+        }
+
         val nombreAlarma = intent.getStringExtra("ALARM_NOMBRE") ?: "Pausa Activa"
+        val tipoEjercicio = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
 
-        // 3. Iniciar Sonido y Vibración
-        iniciarAlerta()
+        val app = application as TuPausaApplication
+        val repository = app.ejercicioRepository
+
+        // 3. Solo iniciamos sonido si NO es manual
+        if (!isManual) {
+            iniciarSonido()
+        }
 
         setContent {
-            // Usamos un tema oscuro forzado o tu tema normal para que resalte en la noche
-            MaterialTheme {
+            com.tupausa.ui.theme.TuPausaTheme(
+                //darkTheme = false
+                dynamicColor = false
+            ){
                 AlarmScreen(
-                    nombreAlarma = nombreAlarma,
+                    nombreAlarma = if(isManual) " " else nombreAlarma,
+                    tipoObjetivo = tipoEjercicio,
+                    repository = repository,
                     onDismiss = {
-                        detenerAlerta()
-                        finish() // Cierra la actividad
+                        if (!isManual) detenerSonido()
+                        finish()
                     }
                 )
             }
@@ -66,14 +94,14 @@ class AlarmActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        detenerAlerta()
+        detenerSonido()
     }
 
     private fun encenderPantalla() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+        if (SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
-            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            val keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
             keyguardManager.requestDismissKeyguard(this, null)
         } else {
             @Suppress("DEPRECATION")
@@ -86,9 +114,8 @@ class AlarmActivity : ComponentActivity() {
         }
     }
 
-    private fun iniciarAlerta() {
+    private fun iniciarSonido() {
         try {
-            // Sonido de Alarma
             val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
@@ -99,126 +126,231 @@ class AlarmActivity : ComponentActivity() {
                     .build()
                 play()
             }
-
-            // Vibración
-            vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vibratorManager.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
-
-            // Patrón de vibración: 0ms espera, 1000ms vibra, 1000ms para...
-            val pattern = longArrayOf(0, 1000, 1000)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0)) // 0 = repetir indefinidamente
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator?.vibrate(pattern, 0)
-            }
-
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    private fun detenerAlerta() {
+    private fun detenerSonido() {
         ringtone?.stop()
-        vibrator?.cancel()
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(
     nombreAlarma: String,
+    tipoObjetivo: String,
+    repository: com.tupausa.repository.EjercicioRepository,
     onDismiss: () -> Unit
 ) {
-    // Un temporizador simple para mostrar (ej: 60 segundos)
-    var timeLeft by remember { mutableIntStateOf(60) }
+    var ejercicioActual by remember { mutableStateOf<Ejercicio?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    val context = LocalContext.current
+    val activity = context as? android.app.Activity
+    val targetId = activity?.intent?.getIntExtra("ALARM_ID", -1) ?: -1
 
-    LaunchedEffect(key1 = timeLeft) {
-        if (timeLeft > 0) {
-            delay(1000L)
-            timeLeft--
+    // CONFIGURACIÓN DEL CARGADOR DE IMÁGENES PARA GIFS
+    val imageLoader = remember {
+        ImageLoader.Builder(context)
+            .components {
+                if (SDK_INT >= 28) {
+                    add(ImageDecoderDecoder.Factory())
+                } else {
+                    add(GifDecoder.Factory())
+                }
+            }
+            .build()
+    }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            val todos = repository.getAllEjercicios()
+            val ejercicioEncontrado = if (targetId != -1) {
+                todos.find { it.idEjercicio == targetId }
+            } else if (tipoObjetivo != "ALEATORIO") {
+                todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
+            } else {
+                // 3. FALLBACK: Totalmente aleatorio
+                todos.randomOrNull()
+            }
+
+            // Si por alguna razón no encontró el ID (ej: borrado), busca uno random de respaldo
+            ejercicioActual = ejercicioEncontrado ?: todos.randomOrNull()
+            isLoading = false
         }
     }
 
-    // Fondo: Usamos una imagen de fondo o un color sólido
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black) // Fondo oscuro para contraste, o usa tu imagen de arena
-    ) {
-        // Imagen de Fondo (Opcional, si tienes la de welcome)
-        Image(
-            painter = painterResource(id = R.drawable.welcome), // O usa tu fondo de arena
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().alpha(0.5f), // Un poco oscura para leer texto
-            contentScale = ContentScale.Crop
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+    if (isLoading || ejercicioActual == null) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            // Título
-            Text(
-                text = "¡Es hora de tu Pausa!",
-                style = MaterialTheme.typography.headlineLarge,
-                color = Color.White,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+    } else {
+        val ejercicio = ejercicioActual!!
+        val duracionTotal = ejercicio.duracionSegundos
+        var timeLeft by remember { mutableFloatStateOf(duracionTotal.toFloat()) }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Nombre del Ejercicio / Alarma
-            Text(
-                text = nombreAlarma,
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary, // Color Bronce/Dorado
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(48.dp))
-
-            // Círculo con Temporizador (Simulando el ejercicio)
-            Box(contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(
-                    progress = timeLeft / 60f, // Progreso basado en 60s (valor Float)
-                    modifier = Modifier.size(200.dp),
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 12.dp,
-                    trackColor = Color.White.copy(alpha = 0.3f),
-                )
-                Text(
-                    text = "$timeLeft",
-                    fontSize = 64.sp,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
+        LaunchedEffect(Unit) {
+            while (timeLeft > 0) {
+                delay(100L)
+                timeLeft -= 0.1f
             }
+        }
 
-            Spacer(modifier = Modifier.height(64.dp))
+        val progreso = timeLeft / duracionTotal
 
-            // Botón para detener
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Red.copy(alpha = 0.8f) // Rojo para llamar la atención de "Parar"
-                )
-            ) {
-                Icon(Icons.Default.Stop, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("TERMINAR PAUSA", fontSize = 18.sp)
+        Box(
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            // 1. IMAGEN DE FONDO
+            Image(
+                painter = painterResource(id = R.drawable.fondo),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+
+            // 2. CAPA OSCURA (Para legibilidad)
+            Box(
+                modifier = Modifier.fillMaxSize()
+            )
+
+            Scaffold(
+                containerColor = Color.Transparent,
+                topBar = {
+                    LinearProgressIndicator(
+                        progress = { transformProgress(progreso) },
+                        modifier = Modifier.fillMaxWidth().height(8.dp),
+                        color = ArenaOnPrimaryContainer,
+                        trackColor = MaterialTheme.colorScheme.onSurface
+                    )
+                },
+                bottomBar = {
+                    Button(
+                        onClick = onDismiss,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Icon(Icons.Default.Stop, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("TERMINAR EJERCICIO", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            ) { padding ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = nombreAlarma,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = ejercicio.nombreEjercicio,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontSize = 24.sp,
+                        color = ArenaPrimary,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+
+                    Text(
+                        text = "${timeLeft.toInt()} s",
+                        fontSize = 48.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ArenaOnPrimaryContainer
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // GIF ANIMADO
+                    val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
+                    // Card imagen
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .height(280.dp),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            )
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                            ) {
+                            if (drawableId != 0) {
+                                AsyncImage(
+                                    model = ImageRequest.Builder(context)
+                                        .data(drawableId)
+                                        .crossfade(true)
+                                        .build(),
+                                    imageLoader = imageLoader,
+                                    contentDescription = "Guía del ejercicio",
+                                    contentScale = ContentScale.Fit,
+                                    modifier = Modifier.fillMaxSize()
+                                )
+                            } else {
+                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    Text("Imagen no disponible", color = Color.Gray)
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // INSTRUCCIONES
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth(0.95f)
+                            .padding(bottom = 24.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                        )
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            SectionTitle("Cómo realizarlo")
+                            Text(
+                                text = ejercicio.descripcion,
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            val instrucciones = ejercicio.getInstruccionesList()
+                            instrucciones.forEachIndexed { index, instruccion ->
+                                InstruccionItem(
+                                    numero = index + 1,
+                                    texto = instruccion
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "Intensidad: ${ejercicio.nivelIntensidad}",
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+                }
             }
         }
     }
+}
+
+fun transformProgress(value: Float): Float {
+    return value.coerceIn(0f, 1f)
 }

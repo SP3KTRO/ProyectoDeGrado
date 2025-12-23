@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.TuPausaApplication
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.ui.theme.ArenaSurface
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,7 +73,7 @@ fun AdminDashboardScreen(
             // Badge de Administrador
             Surface(
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.primaryContainer
+                color = ArenaPrimary
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),

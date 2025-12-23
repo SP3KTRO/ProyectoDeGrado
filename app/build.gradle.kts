@@ -68,8 +68,8 @@ dependencies {
     implementation("com.squareup.okhttp3:logging-interceptor:4.9.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.4.0")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.4.0")
     implementation ("androidx.activity:activity-compose:1.7.0")
+    implementation(libs.androidx.compose.foundation)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -77,14 +77,19 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.compose.material:material-icons-extended:1.7.8")
 
     // Compose
-    implementation ("androidx.compose.ui:ui:1.7.8")
-    implementation ("androidx.compose.material:material:1.7.8")
-    implementation ("androidx.compose.runtime:runtime-livedata:1.7.8")
-    implementation ("androidx.navigation:navigation-compose:2.8.9")
-    implementation ("androidx.recyclerview:recyclerview:1.3.2")
+    // BOM (El Jefe de Versiones)
+    implementation(platform("androidx.compose:compose-bom:2024.09.00"))
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-graphics")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    //
+    implementation("androidx.navigation:navigation-compose:2.8.0")
+    implementation("androidx.activity:activity-compose:1.9.2") // Necesario para setContent
 
     // Coil (para los gifs)
     implementation("io.coil-kt:coil-compose:2.6.0")

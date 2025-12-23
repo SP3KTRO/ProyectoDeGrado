@@ -13,6 +13,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
+import androidx.compose.runtime.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tupausa.model.Ejercicio
 import android.os.Build.VERSION.SDK_INT
 import androidx.compose.runtime.remember
@@ -26,16 +29,46 @@ import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
+import com.tupausa.TuPausaApplication
+import com.tupausa.alarm.AlarmActivity
+import com.tupausa.alarm.AlarmScheduler
+import com.tupausa.model.data.Alarma
+import com.tupausa.view.user.AlarmaFormDialog
+import com.tupausa.viewModel.AlarmasViewModel
+import com.tupausa.viewModel.AlarmasViewModelFactory
+import kotlinx.coroutines.launch
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserEjercicioDetalleScreen(
     ejercicio: Ejercicio,
     onBack: () -> Unit
+    // Ya no necesitamos pasar callbacks vacíos porque implementaremos la lógica aquí dentro
 ) {
     val context = LocalContext.current
 
-    // OBTENER ID DEL GIF Y CONFIGURAR COIL
+    // 1. CONFIGURACIÓN DEL VIEWMODEL Y SCHEDULER (Necesarios para guardar la alarma)
+    val app = context.applicationContext as TuPausaApplication
+    val scheduler = remember { AlarmScheduler(context) }
+
+    val viewModel: AlarmasViewModel = viewModel(
+        factory = AlarmasViewModelFactory(
+            app.alarmaRepository,
+            scheduler,
+            app.ejercicioRepository
+        )
+    )
+
+    // 2. ESTADOS
+    // Controla si se muestra el diálogo de programar alarma
+    var showAlarmaDialog by remember { mutableStateOf(false) }
+    // Obtenemos la lista de ejercicios para que el Dialog funcione correctamente
+    val listaEjercicios by viewModel.ejerciciosReales.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // 3. CONFIGURACIÓN DE COIL (GIFs)
     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
     val imageLoader = remember {
         ImageLoader.Builder(context)
@@ -51,6 +84,9 @@ fun UserEjercicioDetalleScreen(
 
     Scaffold(
         containerColor = Color.Transparent,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             TopAppBar(
                 title = { Text("Detalle del Ejercicio") },
@@ -67,6 +103,7 @@ fun UserEjercicioDetalleScreen(
             )
         }
     ) { padding ->
+        // Contenedor principal con Scroll
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -75,11 +112,11 @@ fun UserEjercicioDetalleScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 3. HEADER CON GIF ANIMADO
+            // HEADER CON GIF ANIMADO
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp), // Un poco más alto para apreciar el GIF
+                    .height(250.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
@@ -101,7 +138,6 @@ fun UserEjercicioDetalleScreen(
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        // Fallback si no hay GIF
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Icon(
                                 imageVector = Icons.Default.FitnessCenter,
@@ -115,12 +151,10 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // 4. CONTENEDOR DE INFORMACIÓN (Para legibilidad sobre el fondo)
-            // Envolvemos el texto en una Card semi-transparente o sólida para que se lea bien
+            // CONTENEDOR DE INFORMACIÓN
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    // Ajusta el alpha (0.9f) según qué tanto quieres ver el fondo
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                 )
             ) {
@@ -177,7 +211,7 @@ fun UserEjercicioDetalleScreen(
                         )
                     }
 
-                    // Beneficios (Solo si existen)
+                    // Beneficios
                     if (!ejercicio.beneficios.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Card(
@@ -208,29 +242,98 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // Botón de acción (Fuera de la card de texto para que destaque)
-            Button(
-                onClick = { /* TODO: Logica de temporizador o iniciar */ },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
+            // --- ZONA DE BOTONES ---
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Comenzar Ejercicio", fontSize = 18.sp)
+                // BOTÓN 1: PROGRAMAR ALARMA ⏰
+                FilledTonalButton(
+                    onClick = { showAlarmaDialog = true }, // Abrir Dialog
+                    modifier = Modifier.height(56.dp),
+                    shape = MaterialTheme.shapes.large
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Alarm,
+                        contentDescription = "Programar Alarma"
+                    )
+                }
+
+                // BOTÓN 2: COMENZAR EJERCICIO ▶️
+                Button(
+                    onClick = {
+                        val intent = Intent(context, AlarmActivity::class.java).apply {
+                            putExtra("IS_MANUAL", true)
+                            putExtra("ALARM_NOMBRE", ejercicio.nombreEjercicio)
+                            putExtra("ALARM_TIPO", ejercicio.tipoEjercicio)
+                            putExtra("ALARM_DURACION", ejercicio.duracionSegundos)
+
+                            // --- AGREGA ESTA LÍNEA ---
+                            putExtra("ALARM_ID", ejercicio.idEjercicio)
+                        }
+                        context.startActivity(intent)
+                    },
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(56.dp),
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Comenzar Ejercicio", fontSize = 18.sp)
+                }
             }
 
-            // Espacio extra al final para el scroll
             Spacer(modifier = Modifier.height(16.dp))
+        }
+
+        // --- LÓGICA DEL DIÁLOGO FLOTANTE ---
+        if (showAlarmaDialog) {
+            // Creamos una alarma "ficticia" con los datos del ejercicio actual
+            // Esto sirve para pre-llenar el formulario
+            val preAlarma = Alarma(
+                hora = 8,
+                minuto = 0,
+                diasRepeticion = emptyList(),
+                etiqueta = ejercicio.nombreEjercicio, // Nombre del ejercicio actual
+                tipoEjercicio = ejercicio.tipoEjercicio, // Tipo del ejercicio actual
+                activa = true
+            )
+
+            AlarmaFormDialog(
+                alarmaAEditar = preAlarma, // Pasamos la alarma ficticia para editar
+                listaEjercicios = listaEjercicios, // Lista completa por si quiere cambiar
+                onDismiss = { showAlarmaDialog = false },
+                onConfirm = { hora, min, dias, etiqueta, tipo, tono ->
+                    // Guardamos la nueva alarma
+                    val nuevaAlarma = Alarma(
+                        hora = hora,
+                        minuto = min,
+                        diasRepeticion = dias,
+                        etiqueta = etiqueta,
+                        tipoEjercicio = tipo,
+                        activa = true
+                        // tono = tono (Si ya lo implementaste en el modelo)
+                    )
+                    viewModel.guardarAlarma(nuevaAlarma)
+                    showAlarmaDialog = false
+
+                    scope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "¡Alarma programada con éxito!",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            )
         }
     }
 }
 
-// COMPONENTES AUXILIARES
-
+// ... TUS COMPONENTES AUXILIARES (SectionTitle, InfoBadge, InstruccionItem) SIGUEN IGUAL ...
 @Composable
 fun SectionTitle(text: String) {
     Text(
@@ -280,11 +383,11 @@ fun InstruccionItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.Top // Alineación Top por si el texto es largo
+        verticalAlignment = Alignment.Top
     ) {
         Surface(
             modifier = Modifier.size(24.dp),
-            shape = MaterialTheme.shapes.medium, // Circular se ve mejor para pasos****************************
+            shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.primary
         ) {
             Box(
