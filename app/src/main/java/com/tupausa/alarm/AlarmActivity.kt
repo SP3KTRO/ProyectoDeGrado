@@ -11,7 +11,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,8 +43,11 @@ import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.utils.rememberDrawableId
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
+import com.tupausa.utils.PreferencesManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class AlarmActivity : ComponentActivity() {
@@ -66,8 +68,17 @@ class AlarmActivity : ComponentActivity() {
         val nombreAlarma = intent.getStringExtra("ALARM_NOMBRE") ?: "Pausa Activa"
         val tipoEjercicio = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
 
+        // CAPTURAR DATOS PARA EL HISTORIAL
+        val alarmId = intent.getIntExtra("ALARM_ID", -1) 
+        val alarmDuracion = intent.getIntExtra("ALARM_DURACION", 60)
+
+        // INSTANCIAR PREFS PARA EL ID DE USUARIO
+        val prefs = PreferencesManager(this)
+        val userId = prefs.getUserId()
+
         val app = application as TuPausaApplication
         val repository = app.ejercicioRepository
+        val historialRepository = app.historialRepository
 
         // 3. Solo iniciamos sonido si NO es manual
         if (!isManual) {
@@ -76,7 +87,6 @@ class AlarmActivity : ComponentActivity() {
 
         setContent {
             com.tupausa.ui.theme.TuPausaTheme(
-                //darkTheme = false
                 dynamicColor = false
             ){
                 AlarmScreen(
@@ -84,8 +94,21 @@ class AlarmActivity : ComponentActivity() {
                     tipoObjetivo = tipoEjercicio,
                     repository = repository,
                     onDismiss = {
-                        if (!isManual) detenerSonido()
-                        finish()
+                        // --- AQUÍ GUARDAMOS EL HISTORIAL ---
+                        if (userId != -1 && alarmId != -1) {
+                            CoroutineScope(Dispatchers.IO).launch {
+                                historialRepository.insertarHistorial(
+                                    idUsuario = userId,
+                                    idEjercicio = alarmId,
+                                    duracion = alarmDuracion,
+                                    tipo = "MANUAL"
+                                )
+                            }
+                        }
+                    // -----------------------------------
+
+                    if (!isManual) detenerSonido()
+                            finish()
                     }
                 )
             }
@@ -150,7 +173,7 @@ fun AlarmScreen(
     val activity = context as? android.app.Activity
     val targetId = activity?.intent?.getIntExtra("ALARM_ID", -1) ?: -1
 
-    // CONFIGURACIÓN DEL CARGADOR DE IMÁGENES PARA GIFS
+    // CONFIGURACIÓN DEL CARGADOR DE IMAGENES PARA GIFS
     val imageLoader = remember {
         ImageLoader.Builder(context)
             .components {
@@ -171,11 +194,8 @@ fun AlarmScreen(
             } else if (tipoObjetivo != "ALEATORIO") {
                 todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
             } else {
-                // 3. FALLBACK: Totalmente aleatorio
                 todos.randomOrNull()
             }
-
-            // Si por alguna razón no encontró el ID (ej: borrado), busca uno random de respaldo
             ejercicioActual = ejercicioEncontrado ?: todos.randomOrNull()
             isLoading = false
         }
@@ -205,7 +225,6 @@ fun AlarmScreen(
         Box(
             modifier = Modifier.fillMaxSize(),
         ) {
-            // 1. IMAGEN DE FONDO
             Image(
                 painter = painterResource(id = R.drawable.fondo),
                 contentDescription = null,
@@ -213,7 +232,6 @@ fun AlarmScreen(
                 modifier = Modifier.fillMaxSize()
             )
 
-            // 2. CAPA OSCURA (Para legibilidad)
             Box(
                 modifier = Modifier.fillMaxSize()
             )
@@ -270,14 +288,12 @@ fun AlarmScreen(
                         text = "${timeLeft.toInt()} s",
                         fontSize = 48.sp,
                         fontWeight = FontWeight.Bold,
-                        color = ArenaOnPrimaryContainer
+                        color = MaterialTheme.colorScheme.errorContainer
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // GIF ANIMADO
                     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
-                    // Card imagen
                     Card(
                         shape = RoundedCornerShape(16.dp),
                         modifier = Modifier
@@ -312,7 +328,6 @@ fun AlarmScreen(
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // INSTRUCCIONES
                     Card(
                         modifier = Modifier
                             .fillMaxWidth(0.95f)

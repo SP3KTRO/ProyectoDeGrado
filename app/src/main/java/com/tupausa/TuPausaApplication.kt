@@ -7,6 +7,7 @@ import com.tupausa.repository.UsuarioRepository
 import com.tupausa.repository.EjercicioRepository
 import com.tupausa.utils.PreferencesManager
 import com.tupausa.repository.AlarmaRepository
+import com.tupausa.repository.HistorialRepository
 import com.tupausa.model.data.AppDatabase
 
 class TuPausaApplication : Application() {
@@ -35,6 +36,11 @@ class TuPausaApplication : Application() {
     //Repositorio de Alarmas
     val alarmaRepository by lazy {
         AlarmaRepository(roomDatabase.alarmaDao())
+    }
+
+    //Repositorio de Historial
+    val historialRepository by lazy {
+        HistorialRepository(database)
     }
 
     override fun onCreate() {

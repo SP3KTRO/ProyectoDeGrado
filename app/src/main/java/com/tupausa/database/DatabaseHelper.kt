@@ -2,6 +2,7 @@ package com.tupausa.database
 
 import android.content.ContentValues
 import android.content.Context
+import com.tupausa.model.HistorialRegistro
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 
@@ -11,9 +12,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         private const val DATABASE_NAME = "tupausa_database.db"
         private const val DATABASE_VERSION = 2
 
-        // ==========================================
-        // DEFINICIÓN DE TABLAS Y COLUMNAS
-        // ==========================================
+        // DEFINICION DE TABLAS Y COLUMNAS
 
         // Tabla Tipo_usuario
         const val TABLE_TIPO_USUARIO = "Tipo_usuario"
@@ -40,52 +39,31 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_INSTRUCCIONES = "instrucciones"
         const val COL_BENEFICIOS = "beneficios"
 
-        // Tabla Alarmas
-        const val TABLE_ALARMAS = "Alarmas"
-        const val COL_ID_ALARMA = "id_alarma"
-        const val COL_HORA_PROGRAMADA = "hora_programada"
-        const val COL_DIAS_ACTIVOS = "dias_activos"
-        const val COL_ESTADO_ALARMA = "estado_alarma"
-        const val COL_DURACION_ESTIMADA = "duracion_estimada"
-        const val COL_ETIQUETA = "etiqueta"
-
         // Tabla Config_Notificaciones
         const val TABLE_CONFIG_NOTIF = "Config_Notificaciones"
         const val COL_ID_NOTIF = "id_notificacion"
-        const val COL_FRECUENCIA = "frecuencia_preferida"
-        const val COL_HORARIO_PREF = "horario_preferido"
         const val COL_TONO = "nombre_tono"
 
         // Tabla Historial_Ejecucion
         const val TABLE_HISTORIAL = "Historial_Ejecucion"
         const val COL_ID_REGISTRO = "id_registro"
         const val COL_FECHA_REALIZACION = "fecha_realizacion"
-        const val COL_HORA_INICIO = "hora_inicio"
-        const val COL_HORA_FIN = "hora_fin"
+        const val COL_DURACION_REAL_SEG = "duracion_real_seg"
         const val COL_SE_DETECTO_MOV = "se_detecto_movimiento"
         const val COL_TIPO_DETECCION = "tipo_deteccion_usado"
-        const val COL_RUTA_VIDEO = "ruta_video_evidencia"
-
-        // Tabla Estadisticas_Resumen
-        const val TABLE_ESTADISTICAS = "Estadisticas_Resumen"
-        const val COL_ID_ESTADISTICA = "id_estadistica"
-        const val COL_TOTAL_PAUSAS = "total_pausas_realizadas"
-        const val COL_TIEMPO_TOTAL = "tiempo_total_minutos"
-        const val COL_PORCENTAJE = "porcentaje_cumplimiento"
+        const val COL_SINCRONIZADO = "sincronizado"
     }
 
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
-        // Activar soporte para claves foráneas (Foreign Keys)
         db.setForeignKeyConstraintsEnabled(true)
     }
 
     override fun onCreate(db: SQLiteDatabase) {
-        // 1. Crear Tipo_usuario
+        // Crear Tipo_usuario
         db.execSQL("CREATE TABLE $TABLE_TIPO_USUARIO ($COL_ID_TIPO_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, $COL_TIPO TEXT)")
 
-        // 2. Crear Usuarios
-        // Se agrega soporte para preferencias y se mantiene FK.
+        // Crear Usuarios
         val createUsuarios = ("CREATE TABLE $TABLE_USUARIOS ("
                 + "$COL_ID_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "$COL_NOMBRE TEXT NOT NULL, "
@@ -95,7 +73,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "FOREIGN KEY($COL_FK_TIPO_USUARIO) REFERENCES $TABLE_TIPO_USUARIO($COL_ID_TIPO_USUARIO))")
         db.execSQL(createUsuarios)
 
-        // 3. Crear Ejercicios
+        // Crear Ejercicios
         val createEjercicios = ("CREATE TABLE $TABLE_EJERCICIOS ("
                 + "$COL_ID_EJERCICIO INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "$COL_NOMBRE_EJERCICIO TEXT NOT NULL, "
@@ -108,64 +86,35 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "$COL_BENEFICIOS TEXT)")
         db.execSQL(createEjercicios)
 
-        // 4. Crear Alarmas
-        // Se agrega ON DELETE CASCADE para limpieza automática
-        val createAlarmas = ("CREATE TABLE $TABLE_ALARMAS ("
-                + "$COL_ID_ALARMA INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "$COL_ID_USUARIO INTEGER, "
-                + "$COL_HORA_PROGRAMADA TEXT NOT NULL, "
-                + "$COL_DIAS_ACTIVOS TEXT, "
-                + "$COL_ESTADO_ALARMA TEXT DEFAULT 'ACTIVA', "
-                + "$COL_ETIQUETA TEXT, "
-                + "$COL_DURACION_ESTIMADA INTEGER, "
-                + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE)")
-        db.execSQL(createAlarmas)
-
-        // 5. Crear Config_Notificaciones
-        val createConfig = ("CREATE TABLE $TABLE_CONFIG_NOTIF ("
-                + "$COL_ID_NOTIF INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "$COL_ID_USUARIO INTEGER, "
-                + "$COL_FRECUENCIA TEXT, "
-                + "$COL_HORARIO_PREF TEXT, "
-                + "$COL_TONO TEXT, "
-                + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE)")
-        db.execSQL(createConfig)
-
-        // 6. Crear Historial_Ejecucion
+        // Crear Historial_Ejecucion
         val createHistorial = ("CREATE TABLE $TABLE_HISTORIAL ("
                 + "$COL_ID_REGISTRO INTEGER PRIMARY KEY AUTOINCREMENT, "
                 + "$COL_ID_USUARIO INTEGER, "
                 + "$COL_ID_EJERCICIO INTEGER, "
-                + "$COL_FECHA_REALIZACION TEXT NOT NULL, "
-                + "$COL_HORA_INICIO TEXT NOT NULL, "
-                + "$COL_HORA_FIN TEXT NOT NULL, "
+                + "$COL_FECHA_REALIZACION INTEGER, "
+                + "$COL_DURACION_REAL_SEG INTEGER, "
                 + "$COL_SE_DETECTO_MOV INTEGER DEFAULT 0, "
                 + "$COL_TIPO_DETECCION TEXT, "
-                + "$COL_RUTA_VIDEO TEXT, "
+                + "$COL_SINCRONIZADO INTEGER DEFAULT 0, "
                 + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE, "
                 + "FOREIGN KEY($COL_ID_EJERCICIO) REFERENCES $TABLE_EJERCICIOS($COL_ID_EJERCICIO))")
         db.execSQL(createHistorial)
 
-        // 7. Crear Estadisticas_Resumen
-        val createStats = ("CREATE TABLE $TABLE_ESTADISTICAS ("
-                + "$COL_ID_ESTADISTICA INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "$COL_ID_USUARIO INTEGER UNIQUE, "
-                + "$COL_TOTAL_PAUSAS INTEGER DEFAULT 0, "
-                + "$COL_TIEMPO_TOTAL REAL DEFAULT 0, "
-                + "$COL_PORCENTAJE REAL DEFAULT 0, "
+        // Crear Config_Notificaciones
+        val createConfig = ("CREATE TABLE $TABLE_CONFIG_NOTIF ("
+                + "$COL_ID_NOTIF INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "$COL_ID_USUARIO INTEGER, "
+                + "$COL_TONO TEXT, "
                 + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE)")
-        db.execSQL(createStats)
+        db.execSQL(createConfig)
 
-        // INYECCIÓN DE DATOS SEMILLA
         insertarDatosIniciales(db)
     }
 
     private fun insertarDatosIniciales(db: SQLiteDatabase) {
-        // 1. Tipos de Usuario
         db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Estudiante')")
         db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Administrador')")
 
-        // 2. Ejercicios Predeterminados
         val ejercicios = listOf(
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Rotación de Cuello")
@@ -294,12 +243,125 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    fun obtenerTotalPausas(userId: Int): Int {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?", arrayOf(userId.toString()))
+        var total = 0
+        if (cursor.moveToFirst()) {
+            total = cursor.getInt(0)
+        }
+        cursor.close()
+        return total
+    }
+
+    fun obtenerTiempoTotalMinutos(userId: Int): Int {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT SUM($COL_DURACION_REAL_SEG) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?", arrayOf(userId.toString()))
+        var totalSegundos = 0
+        if (cursor.moveToFirst()) {
+            totalSegundos = cursor.getInt(0)
+        }
+        cursor.close()
+        return totalSegundos / 60
+    }
+
+    fun insertarHistorial(
+        idUsuario: Int,
+        idEjercicio: Int,
+        duracionSegundos: Int,
+        tipoDeteccion: String = "MANUAL"
+    ): Long {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COL_ID_USUARIO, idUsuario)
+            put(COL_ID_EJERCICIO, idEjercicio)
+            put(COL_FECHA_REALIZACION, System.currentTimeMillis())
+            put(COL_DURACION_REAL_SEG, duracionSegundos)
+            put(COL_SE_DETECTO_MOV, 0)
+            put(COL_TIPO_DETECCION, tipoDeteccion)
+            put(COL_SINCRONIZADO, 0)
+        }
+
+        val id = db.insert(TABLE_HISTORIAL, null, values)
+        db.close()
+        return id
+    }
+
+    fun obtenerHistorialPorUsuario(userId: Int): List<HistorialRegistro> {
+        val lista = ArrayList<HistorialRegistro>()
+        val db = this.readableDatabase
+
+        val query = """
+        SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION
+        FROM $TABLE_HISTORIAL h
+        INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
+        WHERE h.$COL_ID_USUARIO = ?
+        ORDER BY h.$COL_FECHA_REALIZACION DESC
+    """
+
+        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+
+        if (cursor.moveToFirst()) {
+            do {
+                val item = HistorialRegistro(
+                    id = cursor.getInt(0),
+                    fecha = cursor.getLong(1),
+                    nombreEjercicio = cursor.getString(2),
+                    idEjercicio = cursor.getInt(3),
+                    duracionSegundos = cursor.getInt(4),
+                    tipoDeteccion = cursor.getString(5)
+                )
+                lista.add(item)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
+    }
+
+    fun obtenerHistorialNoSincronizado(userId: Int): List<HistorialRegistro> {
+        val lista = ArrayList<HistorialRegistro>()
+        val db = this.readableDatabase
+
+        val query = """
+        SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION
+        FROM $TABLE_HISTORIAL h
+        INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
+        WHERE h.$COL_ID_USUARIO = ? AND h.$COL_SINCRONIZADO = 0
+    """
+
+        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+
+        if (cursor.moveToFirst()) {
+            do {
+                val item = HistorialRegistro(
+                    id = cursor.getInt(0),
+                    fecha = cursor.getLong(1),
+                    nombreEjercicio = cursor.getString(2),
+                    idEjercicio = cursor.getInt(3),
+                    duracionSegundos = cursor.getInt(4),
+                    tipoDeteccion = cursor.getString(5)
+                )
+                lista.add(item)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
+    }
+
+    fun marcarComoSincronizado(idRegistro: Int) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COL_SINCRONIZADO, 1)
+        }
+        db.update(TABLE_HISTORIAL, values, "$COL_ID_REGISTRO = ?", arrayOf(idRegistro.toString()))
+        db.close()
+    }
+
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        // En desarrollo: limpieza total para aplicar la nueva estructura
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ESTADISTICAS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_HISTORIAL")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_CONFIG_NOTIF")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_ALARMAS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_EJERCICIOS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USUARIOS")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_TIPO_USUARIO")

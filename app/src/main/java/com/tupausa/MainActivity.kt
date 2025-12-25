@@ -13,6 +13,13 @@ import androidx.compose.ui.res.painterResource
 import com.tupausa.ui.theme.TuPausaTheme
 import com.tupausa.viewModel.*
 import com.tupausa.viewModel.appNavigation.*
+import com.tupausa.utils.SyncWorker
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
 
 
 class MainActivity : ComponentActivity() {
@@ -21,6 +28,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 1. PROGRAMAR LA TAREA DE FONDO (WORKER)
+        // Esto iniciará el ciclo para subir datos a S3 cuando haya internet
+        programarSincronizacion()
+
         setContent {
             TuPausaTheme {
                 Box(
@@ -49,5 +61,26 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    // --- FUNCIÓN PARA CONFIGURAR LA SINCRONIZACIÓN ---
+    private fun programarSincronizacion() {
+        // Restricción: Solo ejecutar si hay conexión a Internet
+        val restricciones = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        // Configurar: Ejecutar cada 1 hora (Intervalo mínimo permitido por Android es 15 min)
+        val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
+            .setConstraints(restricciones)
+            .build()
+
+        // Encolar: Usamos 'KEEP' para que si ya existe una tarea programada,
+        // no la duplique ni la reinicie, simplemente mantenga la existente.
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "SincronizacionHistorial",
+            ExistingPeriodicWorkPolicy.KEEP,
+            syncRequest
+        )
     }
 }

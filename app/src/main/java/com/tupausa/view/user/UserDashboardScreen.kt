@@ -72,7 +72,7 @@ fun UserDashboardScreen(
 
             Text(
                 text = "Cuida tu salud mientras programas",
-                fontSize = 16.sp,
+                fontSize = 17.sp,
                 color = ArenaPrimary
             )
 

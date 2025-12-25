@@ -3,9 +3,7 @@ package com.tupausa.model
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-// ==========================================
-// 1. MODELOS DE USUARIO
-// ==========================================
+// MODELOS DE USUARIO
 
 data class TipoUsuario(
     @SerializedName("id_tipo_usuario") val idTipoUsuario: Int,
@@ -17,13 +15,10 @@ data class Usuario(
     @SerializedName("nombre") val nombre: String,
     @SerializedName("correo_electronico") val correoElectronico: String,
     @SerializedName("contrasena") val contrasena: String,
-    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int, // Default: 1 (Estudiante)
+    @SerializedName("id_tipo_usuario") val idTipoUsuario: Int, // Default 1 (Estudiante)
 ) : Serializable
 
-
-// ==========================================
-// 2. MODELOS DE NEGOCIO (OPTIMIZADOS)
-// ==========================================
+// MODELOS DE NEGOCIO
 
 data class Ejercicio(
     @SerializedName("id_ejercicio") val idEjercicio: Int,
@@ -45,7 +40,7 @@ data class Ejercicio(
     fun getNivelDisplayName(): String = nivelIntensidad
 }
 
-data class Alarma(
+/*data class Alarma(
     @SerializedName("id_alarma") val idAlarma: Int,
     @SerializedName("id_usuario") val idUsuario: Int,
     @SerializedName("hora_programada") val horaProgramada: String,
@@ -53,33 +48,35 @@ data class Alarma(
     @SerializedName("estado_alarma") val estadoAlarma: String,
     @SerializedName("duracion_estimada") val duracionEstimada: Int?,
     @SerializedName("etiqueta") val etiqueta: String?
-) : Serializable
+) : Serializable*/
 
 data class ConfigNotificacion(
     @SerializedName("id_notificacion") val idNotificacion: Int,
     @SerializedName("id_usuario") val idUsuario: Int,
-    @SerializedName("frecuencia_preferida") val frecuenciaPreferida: String?,
-    @SerializedName("horario_preferido") val horarioPreferido: String?,
-    @SerializedName("nombre_tono") val nombreTono: String?
+    @SerializedName("nombre_tono") val nombreTono: String?,
+    @SerializedName("usuario") val usuario: Usuario?
 ) : Serializable
 
 data class HistorialEjecucion(
     @SerializedName("id_registro") val idRegistro: Int,
     @SerializedName("id_usuario") val idUsuario: Int,
     @SerializedName("id_ejercicio") val idEjercicio: Int,
-    @SerializedName("fecha_realizacion") val fechaRealizacion: String,
-    @SerializedName("hora_inicio") val horaInicio: String,
-    @SerializedName("hora_fin") val horaFin: String,
+    @SerializedName("fecha_realizacion") val fechaRealizacion: Int,
+    @SerializedName("hora_inicio") val horaInicio: String = "",
+    @SerializedName("hora_fin") val horaFin: String = "",
+    @SerializedName("duracion_real_seg") val duracionRaalSeg: Int,
     @SerializedName("se_detecto_movimiento") val seDetectoMovimiento: Int,
     @SerializedName("tipo_deteccion_usado") val tipoDeteccionUsado: String?,
-    @SerializedName("ruta_video_evidencia") val rutaVideoEvidencia: String?
+    @SerializedName("sincronizado") val sincronizado: Int,
+    @SerializedName("ejercicio") val ejercicio: Ejercicio?,
+    @SerializedName("usuario") val usuario: Usuario?
 ) : Serializable
 
-data class EstadisticasResumen(
+/*data class EstadisticasResumen(
     @SerializedName("id_estadistica") val idEstadistica: Int,
     @SerializedName("id_usuario") val idUsuario: Int,
     @SerializedName("total_pausas_realizadas") val totalPausas: Int,
     @SerializedName("tiempo_total_minutos") val tiempoTotalMinutos: Double,
     @SerializedName("racha_dias_consecutivos") val rachaDias: Int,
     @SerializedName("porcentaje_cumplimiento") val porcentajeCumplimiento: Double
-) : Serializable
+) : Serializable*/

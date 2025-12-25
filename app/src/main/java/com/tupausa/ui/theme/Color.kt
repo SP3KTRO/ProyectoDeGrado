@@ -19,4 +19,4 @@ val ArenaOnSurface = Color(0xFF422C0E) // Café muy oscuro para leer bien
 val ArenaOnSurfaceVariant = Color(0xFF684F2D) // Café medio para textos secundarios
 
 // BORDES (Outlines)
-val ArenaOutline = Color(0xFF8C7352) // Color para los bordes de los inputs
+val ArenaOutline = Color(0xFFA18667) // Color para los bordes de los inputs
