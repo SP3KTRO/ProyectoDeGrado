@@ -28,33 +28,38 @@ class SyncWorker(
         val pendientes = dbHelper.obtenerHistorialNoSincronizado(userId)
 
         if (pendientes.isEmpty()) {
-            return Result.success() // Todo al día
+            return Result.success()
         }
 
         var errores = 0
-        val sdf = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
         // 2. Iterar y subir uno por uno
         pendientes.forEach { registroLocal ->
             try {
-                val horaStr = sdf.format(Date(registroLocal.fecha))
-                
-                // 3. Mapear datos LOCALES -> Modelo API (HistorialEjecucion)
-                val fechaEnSegundos = (registroLocal.fecha / 1000).toInt()
+                // 1. CONVERSIÓN DE FECHAS (Timestamp -> String)
+                val sdfFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val sdfHora = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
+                val dateObj = Date(registroLocal.fecha) // Tu fecha local es Long (milisegundos)
+
+                val fechaStr = sdfFecha.format(dateObj)      // Ej: "2025-12-25"
+                val horaInicioStr = sdfHora.format(dateObj)  // Ej: "18:30:00"
+
+                // Calculamos hora fin sumando la duración
+                val finDateObj = Date(registroLocal.fecha + (registroLocal.duracionSegundos * 1000))
+                val horaFinStr = sdfHora.format(finDateObj)
+
+                // 2. CREAR EL PAYLOAD CORREGIDO
                 val payload = HistorialEjecucion(
                     idRegistro = 0,
                     idUsuario = userId,
                     idEjercicio = registroLocal.idEjercicio,
-                    fechaRealizacion = fechaEnSegundos,
-                    duracionRaalSeg = registroLocal.duracionSegundos,
-                    horaInicio = horaStr,
-                    horaFin = horaStr,
-                    seDetectoMovimiento = if (registroLocal.tipoDeteccion == "SENSOR") 1 else 0,
-                    tipoDeteccionUsado = registroLocal.tipoDeteccion,
-                    sincronizado = 1,
-                    ejercicio = null,
-                    usuario = null
+                    fecha = fechaStr,
+                    horaInicio = horaInicioStr,
+                    horaFin = horaFinStr,
+                    detectado = if (registroLocal.tipoDeteccion == "SENSOR") 1 else 0,
+                    metodoDeteccion = registroLocal.tipoDeteccion,
+                    duracion = registroLocal.duracionSegundos
                 )
 
                 // 4. Llamada a Retrofit

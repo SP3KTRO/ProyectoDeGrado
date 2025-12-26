@@ -243,6 +243,24 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
+    fun obtenerIdEjercicioDeHistorial(idRegistro: Int): Int {
+        val db = this.readableDatabase
+        var idEncontrado = 0 // Valor por defecto si no se encuentra
+
+        // Consultamos solo la columna ID_EJERCICIO filtrando por el ID del registro
+        val cursor = db.rawQuery(
+            "SELECT $COL_ID_EJERCICIO FROM $TABLE_HISTORIAL WHERE $COL_ID_REGISTRO = ?",
+            arrayOf(idRegistro.toString())
+        )
+
+        if (cursor.moveToFirst()) {
+            // La columna 0 es COL_ID_EJERCICIO porque es la única que pedimos en el SELECT
+            idEncontrado = cursor.getInt(0)
+        }
+
+        cursor.close()
+        return idEncontrado
+    }
     fun obtenerTotalPausas(userId: Int): Int {
         val db = this.readableDatabase
         val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?", arrayOf(userId.toString()))
