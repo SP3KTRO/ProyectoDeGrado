@@ -295,6 +295,7 @@ fun UserEjercicioDetalleScreen(
             // Creamos una alarma "ficticia" con los datos del ejercicio actual
             // Esto sirve para pre-llenar el formulario
             val preAlarma = Alarma(
+                idEjercicio = ejercicio.idEjercicio,
                 hora = 8,
                 minuto = 0,
                 diasRepeticion = emptyList(),
@@ -307,16 +308,16 @@ fun UserEjercicioDetalleScreen(
                 alarmaAEditar = preAlarma, // Pasamos la alarma ficticia para editar
                 listaEjercicios = listaEjercicios, // Lista completa por si quiere cambiar
                 onDismiss = { showAlarmaDialog = false },
-                onConfirm = { hora, min, dias, etiqueta, tipo, tono ->
+                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idEjercicio ->
                     // Guardamos la nueva alarma
                     val nuevaAlarma = Alarma(
+                        idEjercicio = idEjercicio,
                         hora = hora,
                         minuto = min,
                         diasRepeticion = dias,
                         etiqueta = etiqueta,
                         tipoEjercicio = tipo,
                         activa = true
-                        // tono = tono (Si ya lo implementaste en el modelo)
                     )
                     viewModel.guardarAlarma(nuevaAlarma)
                     showAlarmaDialog = false

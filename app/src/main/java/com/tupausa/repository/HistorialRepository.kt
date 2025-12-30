@@ -8,8 +8,8 @@ import kotlinx.coroutines.withContext
 class HistorialRepository(private val dbHelper: DatabaseHelper) {
 
     // 1. Guardar
-    suspend fun insertarHistorial(idUsuario: Int, idEjercicio: Int, duracion: Int, tipo: String = "MANUAL") = withContext(Dispatchers.IO) {
-        dbHelper.insertarHistorial(idUsuario, idEjercicio, duracion, tipo)
+    suspend fun insertarHistorial(idUsuario: Int, idEjercicio: Int, duracion: Int, tipo: String = "MANUAL", rutaEvidencia: String? = null) = withContext(Dispatchers.IO) {
+        dbHelper.insertarHistorial(idUsuario, idEjercicio, duracion, tipo, rutaEvidencia)
     }
 
     // 2. Leer Lista

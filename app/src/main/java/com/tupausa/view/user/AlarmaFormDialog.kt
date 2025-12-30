@@ -35,7 +35,7 @@ fun AlarmaFormDialog(
     alarmaAEditar: Alarma? = null,
     listaEjercicios: List<Ejercicio>,
     onDismiss: () -> Unit,
-    onConfirm: (Int, Int, List<Int>, String, String, String) -> Unit
+    onConfirm: (Int, Int, List<Int>, String, String, String, Int) -> Unit
 ) {
     // ESTADOS DEL FORMULARIO
     val timeState = rememberTimePickerState(
@@ -54,7 +54,7 @@ fun AlarmaFormDialog(
 
     // Ejercicio Seleccionado
     var ejercicioSeleccionado: Ejercicio? by remember { mutableStateOf(
-        if (alarmaAEditar != null) listaEjercicios.find { it.tipoEjercicio == alarmaAEditar.tipoEjercicio } else null
+        if (alarmaAEditar != null) listaEjercicios.find { it.idEjercicio == alarmaAEditar.idEjercicio } else null
     )}
 
     // ESTADO PARA CONTROLAR LA VISTA INTERNA
@@ -76,7 +76,8 @@ fun AlarmaFormDialog(
                             selectedDays.toList(),
                             etiqueta.ifEmpty { ejercicioSeleccionado?.nombreEjercicio ?: "Pausa Activa" },
                             ejercicioSeleccionado?.tipoEjercicio ?: "ALEATORIO",
-                            tonoSeleccionado
+                            tonoSeleccionado,
+                            ejercicioSeleccionado?.idEjercicio ?: -1
                         )
                     }
                 ) { Text(if (alarmaAEditar == null) "Crear" else "Guardar") }

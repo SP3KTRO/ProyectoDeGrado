@@ -142,18 +142,18 @@ fun UserAlarmasScreen(
                     showCreateDialog = false
                     alarmaAEditar = null
                 },
-                onConfirm = { hora, min, dias, etiqueta, tipo, tono ->
+                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idEjercicio ->
                     // Preservamos el ID si es edición, si no es 0
                     val idFinal = alarmaAEditar?.id ?: 0
                     val nuevaAlarma = Alarma(
                         id = idFinal,
+                        idEjercicio = idEjercicio,
                         hora = hora,
                         minuto = min,
                         diasRepeticion = dias,
                         etiqueta = etiqueta,
                         tipoEjercicio = tipo,
                         activa = true
-                        // Si agregaste campo de tono en tu modelo Alarma, pásalo aquí
                     )
                     viewModel.guardarAlarma(nuevaAlarma)
                     showCreateDialog = false

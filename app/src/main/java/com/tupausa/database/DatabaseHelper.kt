@@ -10,7 +10,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     companion object {
         private const val DATABASE_NAME = "tupausa_database.db"
-        private const val DATABASE_VERSION = 2
+        private const val DATABASE_VERSION = 3
 
         // DEFINICION DE TABLAS Y COLUMNAS
 
@@ -52,6 +52,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_SE_DETECTO_MOV = "se_detecto_movimiento"
         const val COL_TIPO_DETECCION = "tipo_deteccion_usado"
         const val COL_SINCRONIZADO = "sincronizado"
+        const val COL_RUTA_EVIDENCIA = "ruta_evidencia"
     }
 
     override fun onConfigure(db: SQLiteDatabase) {
@@ -96,6 +97,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "$COL_SE_DETECTO_MOV INTEGER DEFAULT 0, "
                 + "$COL_TIPO_DETECCION TEXT, "
                 + "$COL_SINCRONIZADO INTEGER DEFAULT 0, "
+                + "$COL_RUTA_EVIDENCIA TEXT, "
                 + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE, "
                 + "FOREIGN KEY($COL_ID_EJERCICIO) REFERENCES $TABLE_EJERCICIOS($COL_ID_EJERCICIO))")
         db.execSQL(createHistorial)
@@ -287,7 +289,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         idUsuario: Int,
         idEjercicio: Int,
         duracionSegundos: Int,
-        tipoDeteccion: String = "MANUAL"
+        tipoDeteccion: String = "MANUAL",
+        rutaEvidencia: String? = null
     ): Long {
         val db = this.writableDatabase
         val values = ContentValues().apply {
@@ -298,6 +301,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put(COL_SE_DETECTO_MOV, 0)
             put(COL_TIPO_DETECCION, tipoDeteccion)
             put(COL_SINCRONIZADO, 0)
+            put(COL_RUTA_EVIDENCIA, rutaEvidencia)
         }
 
         val id = db.insert(TABLE_HISTORIAL, null, values)
@@ -311,7 +315,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         val query = """
         SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
-               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION, h.$COL_RUTA_EVIDENCIA
         FROM $TABLE_HISTORIAL h
         INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
         WHERE h.$COL_ID_USUARIO = ?
@@ -328,7 +332,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     nombreEjercicio = cursor.getString(2),
                     idEjercicio = cursor.getInt(3),
                     duracionSegundos = cursor.getInt(4),
-                    tipoDeteccion = cursor.getString(5)
+                    tipoDeteccion = cursor.getString(5),
+                    rutaEvidencia = cursor.getString(6)
                 )
                 lista.add(item)
             } while (cursor.moveToNext())
@@ -343,7 +348,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         val query = """
         SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
-               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION, h.$COL_RUTA_EVIDENCIA
         FROM $TABLE_HISTORIAL h
         INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
         WHERE h.$COL_ID_USUARIO = ? AND h.$COL_SINCRONIZADO = 0
@@ -359,7 +364,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     nombreEjercicio = cursor.getString(2),
                     idEjercicio = cursor.getInt(3),
                     duracionSegundos = cursor.getInt(4),
-                    tipoDeteccion = cursor.getString(5)
+                    tipoDeteccion = cursor.getString(5),
+                    rutaEvidencia = cursor.getString(6)
                 )
                 lista.add(item)
             } while (cursor.moveToNext())

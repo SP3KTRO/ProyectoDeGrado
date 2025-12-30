@@ -49,77 +49,277 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material.icons.filled.Snooze
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.core.content.ContextCompat
+import com.tupausa.utils.CameraHelper
+import com.tupausa.utils.FlipDetector
+import com.tupausa.utils.ShakeDetector
+import kotlin.random.Random
+
+// Enumeración de los retos disponibles
+enum class TipoReto { SHAKE, TAP, SWIPE_UP, FLIP }
 
 class AlarmActivity : ComponentActivity() {
 
     private var ringtone: Ringtone? = null
 
+    // --- NUEVAS VARIABLES PARA SENSORES Y CAMARA ---
+    private lateinit var shakeDetector: ShakeDetector
+    private lateinit var flipDetector: FlipDetector
+    private lateinit var cameraHelper: CameraHelper
+    private var rutaFotoEvidencia: String = ""
+
+    // Estado del reto actual
+    private var retoActual by mutableStateOf(TipoReto.SHAKE)
+    private var metaRepeticiones by mutableIntStateOf(5)
+    private var repeticionesActuales by mutableIntStateOf(0)
+
+    private var ejercicioRealCargado by mutableStateOf<Ejercicio?>(null)
+
+    // Launcher de permisos para la cámara
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            iniciarCamaraYTomarFoto()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Verificar si es inicio manual
+        // 1. Configuración Inicial
         val isManual = intent.getBooleanExtra("IS_MANUAL", false)
-
-        // 2. Solo encendemos pantalla si NO es manual
-        if (!isManual) {
-            encenderPantalla()
-        }
-
-        val nombreAlarma = intent.getStringExtra("ALARM_NOMBRE") ?: "Pausa Activa"
-        val tipoEjercicio = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
-
-        // CAPTURAR DATOS PARA EL HISTORIAL
-        val alarmId = intent.getIntExtra("ALARM_ID", -1) 
-        val alarmDuracion = intent.getIntExtra("ALARM_DURACION", 60)
-
-        // INSTANCIAR PREFS PARA EL ID DE USUARIO
-        val prefs = PreferencesManager(this)
-        val userId = prefs.getUserId()
+        if (!isManual) encenderPantalla()
 
         val app = application as TuPausaApplication
         val repository = app.ejercicioRepository
-        val historialRepository = app.historialRepository
 
-        // 3. Solo iniciamos sonido si NO es manual
+        // 2. Cargar el Ejercicio (ARREGLO #1: Lo cargamos aquí en el Activity)
+        val targetId = intent.getIntExtra("ALARM_ID", -1)
+        val tipoObjetivo = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val todos = repository.getAllEjercicios()
+            val encontrado = if (targetId != -1) {
+                todos.find { it.idEjercicio == targetId }
+            } else if (tipoObjetivo != "ALEATORIO") {
+                todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
+            } else {
+                todos.randomOrNull()
+            }
+            // Actualizamos la variable global
+            ejercicioRealCargado = encontrado ?: todos.randomOrNull()
+        }
+
+        // 3. Inicializar Sensores y Retos (Solo si es alarma real)
         if (!isManual) {
+            elegirRetoAleatorio()
+            inicializarSensores()
+            inicializarCamara()
             iniciarSonido()
+        } else {
+            // Si es manual, desactivamos la complejidad
+            retoActual = TipoReto.TAP
+            metaRepeticiones = 1
         }
 
         setContent {
-            com.tupausa.ui.theme.TuPausaTheme(
-                dynamicColor = false
-            ){
-                AlarmScreen(
-                    nombreAlarma = if(isManual) " " else nombreAlarma,
-                    tipoObjetivo = tipoEjercicio,
-                    repository = repository,
-                    onDismiss = {
-                        // --- AQUÍ GUARDAMOS EL HISTORIAL ---
-                        if (userId != -1 && alarmId != -1) {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                historialRepository.insertarHistorial(
-                                    idUsuario = userId,
-                                    idEjercicio = alarmId,
-                                    duracion = alarmDuracion,
-                                    tipo = "MANUAL"
-                                )
+            com.tupausa.ui.theme.TuPausaTheme(dynamicColor = false) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(Unit) {
+                            detectTapGestures(onTap = { verificarProgreso(TipoReto.TAP) })
+                        }
+                        .pointerInput(Unit) {
+                            detectDragGestures { _, dragAmount ->
+                                if (dragAmount.y < -20) verificarProgreso(TipoReto.SWIPE_UP)
                             }
                         }
-                    // -----------------------------------
+                ) {
+                    AlarmScreen(
+                        ejercicio = ejercicioRealCargado, // Pasamos el ejercicio ya cargado
+                        infoReto = if(!isManual) "Reto: ${obtenerTextoReto(retoActual)} ($repeticionesActuales/$metaRepeticiones)" else "",
+                        isManual = isManual,
+                        onDismiss = {
+                            // ARREGLO #2: Lógica para el botón MANUAL "Terminar Ejercicio"
+                            terminarEjercicio(isManualMode = true)
+                        },
+                        onPosponer = { posponerAlarma() }
+                    )
+                }
+            }
+        }
+    }
 
-                    if (!isManual) detenerSonido()
-                            finish()
-                    }
+    // --- LÓGICA DE RETOS ---
+// Esta función maneja tanto el fin por sensores como el fin manual
+    private fun terminarEjercicio(isManualMode: Boolean = false) {
+        detenerSonido()
+
+        // Mensaje diferente según modo
+        if (!isManualMode) {
+            Toast.makeText(this, "¡Reto Completado!", Toast.LENGTH_SHORT).show()
+        }
+
+        val prefs = PreferencesManager(this)
+        val userId = prefs.getUserId()
+        val app = application as TuPausaApplication
+
+        // ARREGLO #1 (Continuación): Usamos los datos del 'ejercicioRealCargado'
+        val ejercicioFinal = ejercicioRealCargado
+
+        if (userId != -1 && ejercicioFinal != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                app.historialRepository.insertarHistorial(
+                    idUsuario = userId,
+                    idEjercicio = ejercicioFinal.idEjercicio, // ID Real
+                    duracion = ejercicioFinal.duracionSegundos, // Duración Real (20s, 45s, etc)
+                    tipo = if (isManualMode) "MANUAL" else "SENSOR",
+                    rutaEvidencia = rutaFotoEvidencia
                 )
             }
         }
+
+        finish() // Cerramos la actividad
+    }
+
+    private fun verificarProgreso(tipoEjecutado: TipoReto) {
+        val isManual = intent.getBooleanExtra("IS_MANUAL", false)
+        if (isManual) return // En manual no validamos retos
+
+        if (tipoEjecutado == retoActual) {
+            repeticionesActuales++
+            if (repeticionesActuales >= metaRepeticiones) {
+                terminarEjercicio(isManualMode = false)
+            }
+        }
+    }
+
+    // --- EL RESTO DE FUNCIONES SIGUE IGUAL ---
+
+    private fun elegirRetoAleatorio() {
+        val valores = TipoReto.values()
+        retoActual = valores[Random.nextInt(valores.size)]
+
+        metaRepeticiones = when(retoActual) {
+            TipoReto.SHAKE -> 5  // Sacudir 5 veces
+            TipoReto.TAP -> 8    // Tocar 8 veces
+            TipoReto.SWIPE_UP -> 5 // Deslizar 5 veces
+            TipoReto.FLIP -> 1   // Voltear 1 vez
+        }
+        repeticionesActuales = 0
+    }
+
+    private fun obtenerTextoReto(reto: TipoReto): String {
+        return when(reto) {
+            TipoReto.SHAKE -> "¡Sacude el celular!"
+            TipoReto.TAP -> "¡Toca la pantalla!"
+            TipoReto.SWIPE_UP -> "¡Desliza hacia arriba!"
+            TipoReto.FLIP -> "¡Voltea el celular!"
+        }
+    }
+
+    private fun inicializarSensores() {
+        shakeDetector = ShakeDetector(this)
+        flipDetector = FlipDetector(this)
+
+        if (retoActual == TipoReto.SHAKE) {
+            shakeDetector.setOnShakeListener(object : ShakeDetector.OnShakeListener {
+                override fun onShake(count: Int) {
+                    verificarProgreso(TipoReto.SHAKE)
+                }
+            })
+            shakeDetector.start()
+        }
+
+        if (retoActual == TipoReto.FLIP) {
+            flipDetector.start {
+                verificarProgreso(TipoReto.FLIP)
+            }
+        }
+    }
+
+    private fun inicializarCamara() {
+        cameraHelper = CameraHelper(
+            context = this,
+            owner = this,
+            onPhotoTaken = { file ->
+                rutaFotoEvidencia = file.absolutePath
+                android.util.Log.d("AlarmActivity", "Evidencia guardada: ${file.absolutePath}")
+            },
+            onError = { e -> e.printStackTrace() }
+        )
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            iniciarCamaraYTomarFoto()
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
+        }
+    }
+
+    private fun iniciarCamaraYTomarFoto() {
+        cameraHelper.startCamera()
+        // Tomamos la foto a los 2 segundos de abrir la app
+        window.decorView.postDelayed({ cameraHelper.takePhoto() }, 2000)
+    }
+
+    private fun posponerAlarma() {
+        detenerSonido()
+        val context = applicationContext
+        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as? android.app.AlarmManager
+
+        // Recuperamos datos para reprogramar
+        val alarmId = intent.getIntExtra("ALARM_ID", -1) // ID Ejercicio
+        val alarmRecordId = intent.getIntExtra("ALARM_RECORD_ID", 0) // ID Registro Alarma
+        val alarmNombre = intent.getStringExtra("ALARM_NOMBRE")
+        val alarmDuracion = intent.getIntExtra("ALARM_DURACION", 60)
+        val alarmTipo = intent.getStringExtra("ALARM_TIPO")
+
+        val intentReceiver = android.content.Intent(context, com.tupausa.alarm.AlarmReceiver::class.java).apply {
+            putExtra("ALARM_ID", alarmId)
+            putExtra("ALARM_RECORD_ID", alarmRecordId)
+            putExtra("ALARM_NOMBRE", alarmNombre)
+            putExtra("ALARM_DURACION", alarmDuracion)
+            putExtra("ALARM_TIPO", alarmTipo)
+        }
+
+        val uniqueId = System.currentTimeMillis().toInt()
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            context, uniqueId, intentReceiver,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val triggerTime = System.currentTimeMillis() + 5 * 60 * 1000 // 5 minutos
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarmManager?.canScheduleExactAlarms() == true) {
+            alarmManager.setExactAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        } else {
+            alarmManager?.setExact(android.app.AlarmManager.RTC_WAKEUP, triggerTime, pendingIntent)
+        }
+
+        Toast.makeText(this, "Pospuesto 5 minutos", Toast.LENGTH_SHORT).show()
+        finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
         detenerSonido()
+        if (::shakeDetector.isInitialized) shakeDetector.stop()
+        if (::flipDetector.isInitialized) flipDetector.stop()
     }
 
+    // ... Funciones de Sonido y Pantalla (iguales a tu código original) ...
     private fun encenderPantalla() {
         if (SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -162,169 +362,143 @@ class AlarmActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(
-    nombreAlarma: String,
-    tipoObjetivo: String,
-    repository: com.tupausa.repository.EjercicioRepository,
-    onDismiss: () -> Unit
+    ejercicio: Ejercicio?, // AHORA RECIBE EL EJERCICIO DIRECTAMENTE
+    infoReto: String,
+    isManual: Boolean,
+    onDismiss: () -> Unit,
+    onPosponer: () -> Unit
 ) {
-    var ejercicioActual by remember { mutableStateOf<Ejercicio?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
-    val targetId = activity?.intent?.getIntExtra("ALARM_ID", -1) ?: -1
+
+    // Si aún no carga el ejercicio, mostramos Loading
+    if (ejercicio == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+        }
+        return
+    }
 
     // CONFIGURACIÓN DEL CARGADOR DE IMAGENES PARA GIFS
     val imageLoader = remember {
         ImageLoader.Builder(context)
             .components {
-                if (SDK_INT >= 28) {
-                    add(ImageDecoderDecoder.Factory())
-                } else {
-                    add(GifDecoder.Factory())
-                }
+                if (SDK_INT >= 28) add(ImageDecoderDecoder.Factory()) else add(GifDecoder.Factory())
             }
             .build()
     }
 
+    val duracionTotal = ejercicio.duracionSegundos
+    var timeLeft by remember { mutableFloatStateOf(duracionTotal.toFloat()) }
+
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            val todos = repository.getAllEjercicios()
-            val ejercicioEncontrado = if (targetId != -1) {
-                todos.find { it.idEjercicio == targetId }
-            } else if (tipoObjetivo != "ALEATORIO") {
-                todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
-            } else {
-                todos.randomOrNull()
-            }
-            ejercicioActual = ejercicioEncontrado ?: todos.randomOrNull()
-            isLoading = false
+        while (timeLeft > 0) {
+            delay(100L)
+            timeLeft -= 0.1f
         }
     }
 
-    if (isLoading || ejercicioActual == null) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        }
-    } else {
-        val ejercicio = ejercicioActual!!
-        val duracionTotal = ejercicio.duracionSegundos
-        var timeLeft by remember { mutableFloatStateOf(duracionTotal.toFloat()) }
+    val progreso = timeLeft / duracionTotal
 
-        LaunchedEffect(Unit) {
-            while (timeLeft > 0) {
-                delay(100L)
-                timeLeft -= 0.1f
-            }
-        }
-
-        val progreso = timeLeft / duracionTotal
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-
-            Box(
-                modifier = Modifier.fillMaxSize()
-            )
-
-            Scaffold(
-                containerColor = Color.Transparent,
-                topBar = {
-                    LinearProgressIndicator(
-                        progress = { transformProgress(progreso) },
-                        modifier = Modifier.fillMaxWidth().height(8.dp),
-                        color = ArenaOnPrimaryContainer,
-                        trackColor = MaterialTheme.colorScheme.onSurface
+    Box(modifier = Modifier.fillMaxSize()) {
+        Image(
+            painter = painterResource(id = R.drawable.fondo),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+        Scaffold(
+            containerColor = Color.Transparent,
+            topBar = {
+                LinearProgressIndicator(
+                    progress = { transformProgress(progreso) },
+                    modifier = Modifier.fillMaxWidth().height(8.dp),
+                    color = ArenaOnPrimaryContainer,
+                    trackColor = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            bottomBar = {
+                Button(
+                    onClick = if (isManual) onDismiss else onPosponer, // AQUÍ SE ACTIVA EL BOTÓN MANUAL
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if(isManual) MaterialTheme.colorScheme.primary else Color.Gray
                     )
-                },
-                bottomBar = {
-                    Button(
-                        onClick = onDismiss,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        )
-                    ) {
-                        Icon(Icons.Default.Stop, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("TERMINAR EJERCICIO", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .verticalScroll(rememberScrollState()),
-                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(16.dp))
-
+                    Icon(if(isManual) Icons.Default.Stop else Icons.Default.Snooze, contentDescription = null)
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
-                        text = nombreAlarma,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        text = if(isManual) "TERMINAR EJERCICIO" else "POSPONER 5 MIN",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
+                }
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState()),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = if(isManual) "Modo Manual" else "¡Es hora de tu Pausa!",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = ejercicio.nombreEjercicio,
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontSize = 24.sp,
+                    color = ArenaPrimary,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+
+                Text(
+                    text = "${timeLeft.toInt()} s",
+                    fontSize = 48.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.errorContainer
+                )
+
+                if (infoReto.isNotEmpty()) {
                     Text(
-                        text = ejercicio.nombreEjercicio,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontSize = 24.sp,
-                        color = ArenaPrimary,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Text(
-                        text = "${timeLeft.toInt()} s",
-                        fontSize = 48.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.errorContainer
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
-                    Card(
-                        shape = RoundedCornerShape(16.dp),
+                        text = infoReto,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(280.dp),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            .padding(vertical = 8.dp)
+                            .background(Color.White.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
+                            .padding(horizontal = 16.dp, vertical = 4.dp)
+                    )
+                }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
+                Card(
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth(0.9f).height(280.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
+                ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        if (drawableId != 0) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(context).data(drawableId).crossfade(true).build(),
+                                imageLoader = imageLoader,
+                                contentDescription = "Guía",
+                                contentScale = ContentScale.Fit,
+                                modifier = Modifier.fillMaxSize()
                             )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                            ) {
-                            if (drawableId != 0) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context)
-                                        .data(drawableId)
-                                        .crossfade(true)
-                                        .build(),
-                                    imageLoader = imageLoader,
-                                    contentDescription = "Guía del ejercicio",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            } else {
-                                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                    Text("Imagen no disponible", color = Color.Gray)
-                                }
-                            }
+                        } else {
+                            Text("Imagen no disponible", color = Color.Gray)
                         }
                     }
+                }
 
                     Spacer(modifier = Modifier.height(16.dp))
 
@@ -364,8 +538,7 @@ fun AlarmScreen(
             }
         }
     }
-}
 
-fun transformProgress(value: Float): Float {
-    return value.coerceIn(0f, 1f)
+
+fun transformProgress(value: Float): Float { return value.coerceIn(0f, 1f)
 }

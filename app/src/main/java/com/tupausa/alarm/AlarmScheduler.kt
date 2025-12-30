@@ -14,43 +14,47 @@ class AlarmScheduler(private val context: Context) {
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun programar(alarma: Alarma) {
-        if (!alarma.activa) return // Si está apagada, no hacemos nada}
+        if (!alarma.activa) return
 
-        // 1. Crear el Intent: "Cuando suene, llama a AlarmReceiver"
-        // NOTA: Saldrá en ROJO 'AlarmReceiver' hasta que lo creemos en el siguiente paso.
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            putExtra("ALARM_ID", alarma.id)
+            // --- CORRECCIÓN CRÍTICA AQUÍ ---
+
+            // 1. Enviamos el ID de la ALARMA con un nombre específico (para la notificación)
+            putExtra("ALARM_RECORD_ID", alarma.id)
+
+            // 2. Enviamos el ID del EJERCICIO bajo el nombre "ALARM_ID"
+            // Esto es lo que la AlarmActivity espera para buscar el ejercicio correcto.
+            // NOTA: Asegúrate de que tu objeto 'alarma' tenga la propiedad 'idEjercicio'.
+            // Si es una alarma aleatoria, puedes enviar -1.
+            putExtra("ALARM_ID", alarma.idEjercicio)
+
             putExtra("ALARM_NOMBRE", alarma.etiqueta)
-            // --- NUEVOS DATOS ---
             putExtra("ALARM_TIPO", alarma.tipoEjercicio)
             putExtra("ALARM_DURACION", alarma.duracionSegundos)
         }
-        // 2. Crear el PendingIntent (Es como un ticket que le damos a Android)
+
+        // El PendingIntent SÍ debe usar el ID de la ALARMA para ser único en el sistema
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarma.id, // ID Único para que no se sobrescriban entre ellas
+            alarma.id, // ID Único de la alarma
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // 3. Calcular cuándo debe sonar (La parte matemática)
         val tiempoDisparo = calcularProximoDisparo(alarma)
 
-        // 4. Agendar la alarma
-        // Usamos setAlarmClock para que sea precisa y salga el iconito en la barra de estado
         if (tiempoDisparo != null) {
             val alarmClockInfo = AlarmManager.AlarmClockInfo(
                 tiempoDisparo,
-                pendingIntent // Esto lanza la app si tocan el icono de alarma (opcional)
+                pendingIntent
             )
 
-            // Verificamos permisos en Android 12+ (API 31)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 if (alarmManager.canScheduleExactAlarms()) {
                     alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
-                    Log.d("TuPausa", "Alarma programada para: $tiempoDisparo (ID: ${alarma.id})")
+                    android.util.Log.d("TuPausa", "Alarma programada: $tiempoDisparo")
                 } else {
-                    Log.e("TuPausa", "No tienes permiso para alarmas exactas")
+                    android.util.Log.e("TuPausa", "Sin permiso alarmas exactas")
                 }
             } else {
                 alarmManager.setAlarmClock(alarmClockInfo, pendingIntent)
@@ -62,51 +66,39 @@ class AlarmScheduler(private val context: Context) {
         val intent = Intent(context, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarma.id,
+            alarma.id, // Usamos el ID de la alarma para encontrar la correcta a cancelar
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
-        Log.d("TuPausa", "Alarma cancelada: ${alarma.id}")
     }
 
-    // --- LÓGICA DE CALENDARIO ---
-    // Esta función busca cuándo es la próxima vez que debe sonar
     private fun calcularProximoDisparo(alarma: Alarma): Long? {
-        val ahora = Calendar.getInstance()
-        val calendarAlarma = Calendar.getInstance().apply {
-            set(Calendar.HOUR_OF_DAY, alarma.hora)
-            set(Calendar.MINUTE, alarma.minuto)
-            set(Calendar.SECOND, 0)
-            set(Calendar.MILLISECOND, 0)
+        val ahora = java.util.Calendar.getInstance()
+        val calendarAlarma = java.util.Calendar.getInstance().apply {
+            set(java.util.Calendar.HOUR_OF_DAY, alarma.hora)
+            set(java.util.Calendar.MINUTE, alarma.minuto)
+            set(java.util.Calendar.SECOND, 0)
+            set(java.util.Calendar.MILLISECOND, 0)
         }
 
-        // Si la alarma es para hoy pero ya pasó la hora, o si hoy no es un día activo:
-        // Buscamos el siguiente día válido.
-
-        // Si no tiene días repetidos, es una alarma única
         if (alarma.diasRepeticion.isEmpty()) {
             if (calendarAlarma.before(ahora)) {
-                calendarAlarma.add(Calendar.DAY_OF_YEAR, 1) // Mañana a esta hora
+                calendarAlarma.add(java.util.Calendar.DAY_OF_YEAR, 1)
             }
             return calendarAlarma.timeInMillis
         }
 
-        // Si TIENE días repetidos (ej: Lunes, Miércoles)
-        // Buscamos el próximo día válido en los próximos 7 días
         for (i in 0..7) {
-            val diaSemanaHoy = calendarAlarma.get(Calendar.DAY_OF_WEEK) // 1=Domingo, 2=Lunes...
-
-            // Si el día actual del calendario está en la lista Y (es futuro O es hoy pero más tarde)
+            val diaSemanaHoy = calendarAlarma.get(java.util.Calendar.DAY_OF_WEEK)
             if (alarma.diasRepeticion.contains(diaSemanaHoy)) {
                 if (i == 0 && calendarAlarma.after(ahora)) {
-                    return calendarAlarma.timeInMillis // Es hoy más tarde
+                    return calendarAlarma.timeInMillis
                 } else if (i > 0) {
-                    return calendarAlarma.timeInMillis // Es otro día
+                    return calendarAlarma.timeInMillis
                 }
             }
-            // Si no coincide, sumamos 1 día y probamos de nuevo
-            calendarAlarma.add(Calendar.DAY_OF_YEAR, 1)
+            calendarAlarma.add(java.util.Calendar.DAY_OF_YEAR, 1)
         }
         return null
     }

@@ -6,11 +6,12 @@ data class HistorialRegistro(
     val nombreEjercicio: String,
     val idEjercicio: Int,
     val duracionSegundos: Int,
-    val tipoDeteccion: String
+    val tipoDeteccion: String,
+    val rutaEvidencia: String? = null
 )
 
 data class ResumenEstadistico(
     val totalPausas: Int,
     val tiempoTotalMinutos: Int,
-    val rachaDias: Int // Opcional por ahora
+    val rachaDias: Int
 )

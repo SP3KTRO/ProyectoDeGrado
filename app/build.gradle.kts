@@ -104,6 +104,13 @@ dependencies {
     // Room Database
     val room_version = "2.6.1"
 
+    // CameraX (Para la foto de evidencia)
+    val camerax_version = "1.3.0" // O la versión más reciente
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-view:${camerax_version}")
+
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
