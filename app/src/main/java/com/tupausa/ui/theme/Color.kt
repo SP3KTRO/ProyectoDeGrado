@@ -5,18 +5,19 @@ import androidx.compose.ui.graphics.Color
 //Paleta de colores (Sand)
 
 // EL FONDO
-val ArenaBackground = Color(0xFFFFDDB3) // Tu color arena saturado
+val ArenaBackground = Color(0xFFFFDAC9)
 
 // ELEMENTOS PRINCIPALES (Botones, Títulos)
-val ArenaPrimary = Color(0xFF7A5928)
-val ArenaOnPrimary = Color(0xFFFFFFFF) // Texto blanco dentro de botones marrones
-val ArenaPrimaryContainer = Color(0xFFFFF0DF) // Un tono muy pálido para contenedores suaves
-val ArenaOnPrimaryContainer = Color(0xFF2B1D08)
+val ArenaPrimary = Color(0xFF9C3328)
+val ArenaOnPrimary = Color(0xFFFFFFFF)
+val ArenaPrimaryContainer = Color(0xFFFFEDEA)
+val ArenaOnPrimaryContainer = Color(0xFF410002)
 
 // SUPERFICIES (Cards, Inputs, Fondos de texto)
-val ArenaSurface = Color(0xFFFFFBF6) // Blanco Hueso (Muy claro)
-val ArenaOnSurface = Color(0xFF422C0E) // Café muy oscuro para leer bien
-val ArenaOnSurfaceVariant = Color(0xFF684F2D) // Café medio para textos secundarios
+val ArenaSurface = Color(0xFFFFF8F6)
+val ArenaOnSurface = Color(0xFF2E1514)
+val ArenaOnSurfaceVariant = Color(0xFF5D403E)
 
 // BORDES (Outlines)
-val ArenaOutline = Color(0xFFA18667) // Color para los bordes de los inputs
+val ArenaOutline = Color(0xFFA87E7A)
+

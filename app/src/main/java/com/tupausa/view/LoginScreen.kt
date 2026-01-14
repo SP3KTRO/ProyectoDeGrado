@@ -22,7 +22,10 @@ import androidx.compose.ui.layout.ContentScale
 import com.tupausa.R
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.ui.theme.ArenaOnSurface
+import com.tupausa.ui.theme.ArenaOnSurfaceVariant
+import com.tupausa.ui.theme.ArenaOutline
 import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.viewModel.LoginViewModel
 
 @Composable
@@ -96,10 +99,10 @@ fun LoginScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -124,10 +127,10 @@ fun LoginScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium,
             trailingIcon = {
@@ -151,15 +154,18 @@ fun LoginScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(50.dp),
-            enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty()
+            enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ArenaPrimary // Cambia el color de fondo
+            )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = MaterialTheme.colorScheme.onPrimary
+                    modifier = Modifier.size(24.dp)
                 )
             } else {
-                Text("Iniciar sesión", fontSize = 16.sp)
+                Text("Iniciar sesión", fontSize = 16.sp,
+                    color = ArenaPrimaryContainer)
             }
         }
 

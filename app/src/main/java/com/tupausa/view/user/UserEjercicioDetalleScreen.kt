@@ -33,6 +33,8 @@ import com.tupausa.TuPausaApplication
 import com.tupausa.alarm.AlarmActivity
 import com.tupausa.alarm.AlarmScheduler
 import com.tupausa.model.data.Alarma
+import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.view.user.AlarmaFormDialog
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
@@ -259,7 +261,7 @@ fun UserEjercicioDetalleScreen(
                     )
                 }
 
-                // BOTÓN 2: COMENZAR EJERCICIO ▶️
+                // BOTÓN 2: COMENZAR EJERCICIO
                 Button(
                     onClick = {
                         val intent = Intent(context, AlarmActivity::class.java).apply {
@@ -267,8 +269,6 @@ fun UserEjercicioDetalleScreen(
                             putExtra("ALARM_NOMBRE", ejercicio.nombreEjercicio)
                             putExtra("ALARM_TIPO", ejercicio.tipoEjercicio)
                             putExtra("ALARM_DURACION", ejercicio.duracionSegundos)
-
-                            // --- AGREGA ESTA LÍNEA ---
                             putExtra("ALARM_ID", ejercicio.idEjercicio)
                         }
                         context.startActivity(intent)
@@ -278,12 +278,15 @@ fun UserEjercicioDetalleScreen(
                         .height(56.dp),
                     shape = MaterialTheme.shapes.large,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
+                        containerColor = ArenaPrimary
                     )
                 ) {
-                    Icon(Icons.Default.PlayArrow, contentDescription = null)
+                    Icon(Icons.Default.PlayArrow, contentDescription = null,
+                        tint = ArenaPrimaryContainer)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Comenzar Ejercicio", fontSize = 18.sp)
+                    Text("Comenzar Ejercicio",
+                        fontSize = 18.sp,
+                        color = ArenaPrimaryContainer)
                 }
             }
 

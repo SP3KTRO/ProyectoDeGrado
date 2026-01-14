@@ -23,6 +23,9 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
+import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 
 private enum class DialogStep {
@@ -79,8 +82,13 @@ fun AlarmaFormDialog(
                             tonoSeleccionado,
                             ejercicioSeleccionado?.idEjercicio ?: -1
                         )
-                    }
-                ) { Text(if (alarmaAEditar == null) "Crear" else "Guardar") }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ArenaPrimary
+                    )
+                ) { Text(if (alarmaAEditar == null) "Crear" else "Guardar",
+                        color = ArenaPrimaryContainer
+                ) }
             }
         },
         dismissButton = {
@@ -92,7 +100,8 @@ fun AlarmaFormDialog(
                     onDismiss() // Cerrar dialog
                 }
             }) {
-                Text(if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar")
+                Text(if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar",
+                        color = ArenaPrimaryContainer)
             }
         },
         title = {

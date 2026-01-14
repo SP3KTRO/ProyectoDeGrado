@@ -64,16 +64,16 @@ fun UserDashboardScreen(
         ) {
             // Saludo personalizado
             Text(
-                text = "¡Hola ${userName}!\nToma tu pausa activa",
+                text = "¡Hola ${userName}!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = ArenaOnPrimaryContainer
             )
-
             Text(
-                text = "Cuida tu salud mientras programas",
-                fontSize = 17.sp,
-                color = ArenaPrimary
+                text = "Cuídate mientras estudias 💻",
+                fontSize = 22.sp,
+                fontWeight = FontWeight.Medium,
+                color = ArenaOnPrimaryContainer
             )
 
             Spacer(modifier = Modifier.height(16.dp))

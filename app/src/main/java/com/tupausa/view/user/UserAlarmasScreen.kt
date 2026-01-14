@@ -28,6 +28,7 @@ import com.tupausa.alarm.AlarmScheduler
 import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
 
@@ -95,8 +96,8 @@ fun UserAlarmasScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { showCreateDialog = true }, // ESTO PONE LA VARIABLE EN TRUE
-                containerColor = MaterialTheme.colorScheme.primary
+                onClick = { showCreateDialog = true },
+                containerColor = ArenaPrimary
             ) {
                 Icon(Icons.Default.Add, "Crear Alarma", tint = Color.White)
             }

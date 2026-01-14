@@ -60,6 +60,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.content.ContextCompat
+import com.tupausa.ui.theme.ArenaOnSurface
+import com.tupausa.ui.theme.ArenaOnSurfaceVariant
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.CameraHelper
 import com.tupausa.utils.FlipDetector
 import com.tupausa.utils.ShakeDetector
@@ -373,7 +376,7 @@ fun AlarmScreen(
     // Si aún no carga el ejercicio, mostramos Loading
     if (ejercicio == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
+            CircularProgressIndicator(color = ArenaPrimary)
         }
         return
     }
@@ -421,13 +424,15 @@ fun AlarmScreen(
                     onClick = if (isManual) onDismiss else onPosponer, // AQUÍ SE ACTIVA EL BOTÓN MANUAL
                     modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if(isManual) MaterialTheme.colorScheme.primary else Color.Gray
+                        containerColor = if(isManual) ArenaPrimary else ArenaOnPrimaryContainer
                     )
                 ) {
-                    Icon(if(isManual) Icons.Default.Stop else Icons.Default.Snooze, contentDescription = null)
+                    Icon(if(isManual) Icons.Default.Stop else Icons.Default.Snooze, contentDescription = null,
+                        tint = ArenaPrimaryContainer)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if(isManual) "TERMINAR EJERCICIO" else "POSPONER 5 MIN",
+                        color = ArenaPrimaryContainer,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -446,13 +451,13 @@ fun AlarmScreen(
                 Text(
                     text = if(isManual) "Modo Manual" else "¡Es hora de tu Pausa!",
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = ArenaOnSurfaceVariant
                 )
                 Text(
                     text = ejercicio.nombreEjercicio,
                     style = MaterialTheme.typography.headlineMedium,
                     fontSize = 24.sp,
-                    color = ArenaPrimary,
+                    color = ArenaOnSurface,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 16.dp)
@@ -462,7 +467,7 @@ fun AlarmScreen(
                     text = "${timeLeft.toInt()} s",
                     fontSize = 48.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.errorContainer
+                    color = ArenaPrimary
                 )
 
                 if (infoReto.isNotEmpty()) {

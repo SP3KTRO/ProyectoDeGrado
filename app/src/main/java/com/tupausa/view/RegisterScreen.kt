@@ -26,12 +26,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaOnSurfaceVariant
+import com.tupausa.ui.theme.ArenaOutline
 import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.viewModel.RegisterViewModel
 
 @Composable
@@ -125,10 +129,10 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -167,10 +171,10 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -210,10 +214,10 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -253,10 +257,10 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor = ArenaOutline,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimary
+                unfocusedLabelColor = ArenaPrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -302,13 +306,19 @@ fun RegisterScreen(
                 // Llamar al metodo register si las validaciones son exitosas
                 viewModel.register(nombre, correoElectronico, contrasena, confirmarContrasena)
             },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !isLoading
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            enabled = !isLoading,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = ArenaPrimary)
         ) {
             if (isLoading) {
-                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+                CircularProgressIndicator(
+                    color = ArenaPrimary)
             } else {
-                Text("Registrarse")
+                Text("Registrarse",
+                    color = ArenaPrimaryContainer)
             }
         }
 

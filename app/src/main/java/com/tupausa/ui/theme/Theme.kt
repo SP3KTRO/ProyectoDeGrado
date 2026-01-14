@@ -26,8 +26,11 @@ private val LightColorScheme = lightColorScheme(
     background = ArenaBackground,
     onBackground = ArenaOnSurface,
 
-    surface = ArenaSurface, // Blanco Hueso
+    surface = ArenaSurface,
     onSurface = ArenaOnSurface,
+
+    onSurfaceVariant = ArenaOnSurfaceVariant,
+
 
     outline = ArenaOutline
 )

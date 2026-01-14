@@ -32,6 +32,8 @@ import com.tupausa.view.user.InfoBadge
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
 import com.tupausa.alarm.AlarmActivity
+import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,12 +211,14 @@ fun AdminEjercicioDetalleScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
+                    containerColor = ArenaPrimary
                 )
             ) {
-                Icon(Icons.Default.PlayArrow, contentDescription = null)
+                Icon(Icons.Default.PlayArrow, contentDescription = null,
+                    tint = ArenaPrimaryContainer)
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Comenzar Ejercicio", fontSize = 18.sp)
+                Text("Comenzar Ejercicio", fontSize = 18.sp,
+                    color = ArenaPrimaryContainer)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

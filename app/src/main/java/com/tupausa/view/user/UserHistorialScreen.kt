@@ -182,7 +182,7 @@ fun HistorialItemView(item: HistorialRegistro) {
                 Text(
                     text = fechaStr,
                     fontSize = 12.sp,
-                    color = ArenaBackground
+                    color = ArenaPrimaryContainer
                 )
             }
 
@@ -195,7 +195,7 @@ fun HistorialItemView(item: HistorialRegistro) {
                 Text(
                     text = if(item.tipoDeteccion == "MANUAL") "Manual" else "Sensor",
                     fontSize = 10.sp,
-                    color = Color.Gray
+                    color = ArenaBackground
                 )
             }
         }

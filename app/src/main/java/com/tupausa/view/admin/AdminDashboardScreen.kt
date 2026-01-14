@@ -29,6 +29,7 @@ import com.tupausa.ui.theme.ArenaSurface
 fun AdminDashboardScreen(
     onNavigateToUsersList: () -> Unit,
     onNavigateToEjercicios: () -> Unit,
+    onNavigateToHistorial: () -> Unit,
     onLogout: () -> Unit
 ) {
     // Obtener nombre del usuario desde PreferencesManager
@@ -99,20 +100,29 @@ fun AdminDashboardScreen(
 
             // Tarjeta: Ver Usuarios
             AdminMenuCard(
-                title = "Ver Usuarios",
-                description = "Lista de todos los usuarios registrados",
+                title = "Usuarios",
+                description = "Ver y editar la lista de todos los usuarios registrados",
                 icon = painterResource(id = R.drawable.user),
                 iconTint = Color.Unspecified,
                 onClick = onNavigateToUsersList
             )
 
-            // Tarjeta: Gestionar Ejercicios
+            // Tarjeta: Ejercicios
             AdminMenuCard(
                 title = "Ejercicios",
                 description = "Ver lista de ejercicios disponibles",
                 icon = painterResource(id = R.drawable.exercise),
                 iconTint = Color.Unspecified,
                 onClick = onNavigateToEjercicios
+            )
+
+            // Tarjeta: Historial
+            AdminMenuCard(
+                title = "Registros",
+                description = "Ver registros de actividad de los usuarios",
+                icon = painterResource(id = R.drawable.historial),
+                iconTint = Color.Unspecified,
+                onClick = onNavigateToHistorial
             )
         }
     }

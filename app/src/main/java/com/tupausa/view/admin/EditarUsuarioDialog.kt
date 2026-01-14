@@ -1,5 +1,6 @@
 package com.tupausa.view.admin
 
+import android.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -9,6 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.tupausa.model.Usuario
+import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -104,14 +107,19 @@ fun EditarUsuarioDialog(
                         onConfirm(usuarioActualizado)
                     }
                 },
-                enabled = !nombreError && !emailError && nombre.isNotEmpty() && email.isNotEmpty()
+                enabled = !nombreError && !emailError && nombre.isNotEmpty() && email.isNotEmpty(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = ArenaPrimary
+                )
             ) {
-                Text("Guardar")
+                Text("Guardar",
+                    color = ArenaPrimaryContainer)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar",
+                    color = ArenaPrimaryContainer)
             }
         }
     )

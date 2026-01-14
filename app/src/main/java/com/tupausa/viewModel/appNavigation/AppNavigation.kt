@@ -105,6 +105,7 @@ fun AppNavigation(
             AdminDashboardScreen(
                 onNavigateToUsersList = { navController.navigate(AppRoutes.ADMIN_USERS_LIST) },
                 onNavigateToEjercicios = { navController.navigate(AppRoutes.ADMIN_EJERCICIOS) },
+                onNavigateToHistorial = { navController.navigate(AppRoutes.ADMIN_HISTORIAL) },
                 onLogout = {
                     loginViewModel.logout()
                     navController.navigate(AppRoutes.LOGIN) {
@@ -131,7 +132,7 @@ fun AppNavigation(
             LaunchedEffect(operationSuccess) {
                 operationSuccess?.let {
                     if (it.isNotEmpty()) {
-                        // TODO: Mostrar Snackbar
+                        //
                         usuarioViewModel.clearOperationSuccess()
                     }
                 }
@@ -141,7 +142,7 @@ fun AppNavigation(
             LaunchedEffect(error) {
                 error?.let {
                     if (it.isNotEmpty()) {
-                        // TODO: Mostrar Snackbar
+                        //
                         usuarioViewModel.clearError()
                     }
                 }
@@ -185,14 +186,13 @@ fun AppNavigation(
                 ejercicios = ejercicios,
                 isLoading = isLoading,
                 onBack = { navController.popBackStack() },
-                // AHORA CONECTAMOS EL CLICK:
                 onEjercicioClick = { ejercicio ->
                     navController.navigate(AppRoutes.adminEjercicioDetalle(ejercicio.idEjercicio))
                 }
             )
         }
         composable(
-            route = AppRoutes.ADMIN_EJERCICIO_DETALLE, // Asegúrate de tener esta ruta definida
+            route = AppRoutes.ADMIN_EJERCICIO_DETALLE,
             arguments = listOf(navArgument("ejercicioId") { type = NavType.IntType })
         ) { backStackEntry ->
             val ejercicioId = backStackEntry.arguments?.getInt("ejercicioId") ?: 0
@@ -208,6 +208,12 @@ fun AppNavigation(
                     onBack = { navController.popBackStack() }
                 )
             }
+        }
+
+        composable(AppRoutes.ADMIN_HISTORIAL) {
+            AdminHistorialScreen(
+                onBack = { navController.popBackStack() }
+            )
         }
 
         // ==========================================

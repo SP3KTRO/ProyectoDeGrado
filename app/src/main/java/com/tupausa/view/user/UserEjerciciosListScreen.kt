@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,7 +81,7 @@ fun UserEjerciciosListScreen(
                     isLoading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = MaterialTheme.colorScheme.primary // Color Bronce
+                            color = ArenaPrimary // Color Bronce
                         )
                     }
                     filteredEjercicios.isEmpty() -> {
@@ -239,7 +240,7 @@ fun UserEjercicioCard(
                             imageVector = getIconoPorTipo(ejercicio.tipoEjercicio),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary // Bronce
+                            tint = ArenaPrimary // Bronce
                         )
                     }
                 }
