@@ -20,6 +20,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.tupausa.R
+import com.tupausa.ui.theme.ArenaBackground
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.ui.theme.ArenaOnSurface
 import com.tupausa.ui.theme.ArenaOnSurfaceVariant
@@ -99,7 +100,7 @@ fun LoginScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer
@@ -127,7 +128,7 @@ fun LoginScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer

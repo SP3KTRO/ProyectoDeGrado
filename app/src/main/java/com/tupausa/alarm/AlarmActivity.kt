@@ -50,14 +50,19 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
+import android.util.Log
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material.icons.filled.Snooze
+import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.core.content.ContextCompat
 import com.tupausa.ui.theme.ArenaOnSurface
@@ -66,18 +71,23 @@ import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.CameraHelper
 import com.tupausa.utils.FlipDetector
 import com.tupausa.utils.ShakeDetector
+import com.tupausa.utils.ProximityDetector
+import com.tupausa.utils.CircleDetector
 import kotlin.random.Random
 
 // Enumeración de los retos disponibles
-enum class TipoReto { SHAKE, TAP, SWIPE_UP, FLIP }
+enum class TipoReto {SHAKE, TAP, FLIP, LONG_PRESS, DOUBLE_TAP, PROXIMITY, DRAW_CIRCLE, MULTI_TAP}
 
 class AlarmActivity : ComponentActivity() {
 
     private var ringtone: Ringtone? = null
 
-    // --- NUEVAS VARIABLES PARA SENSORES Y CAMARA ---
+    //VARIABLES PARA SENSORES Y CAMARA
     private lateinit var shakeDetector: ShakeDetector
     private lateinit var flipDetector: FlipDetector
+    private lateinit var proximityDetector: ProximityDetector
+
+    private var circleDetector: CircleDetector? = null
     private lateinit var cameraHelper: CameraHelper
     private var rutaFotoEvidencia: String = ""
 
@@ -85,10 +95,9 @@ class AlarmActivity : ComponentActivity() {
     private var retoActual by mutableStateOf(TipoReto.SHAKE)
     private var metaRepeticiones by mutableIntStateOf(5)
     private var repeticionesActuales by mutableIntStateOf(0)
-
     private var ejercicioRealCargado by mutableStateOf<Ejercicio?>(null)
 
-    // Launcher de permisos para la cámara
+    // Launcher de permisos para la camara
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -100,69 +109,142 @@ class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. Configuración Inicial
+        // 1. BLINDAJE DE VENTANA (Método moderno para evitar cierre al desbloquear)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+            setShowWhenLocked(true)
+            setTurnScreenOn(true)
+            val keyguardManager = getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
+            keyguardManager.requestDismissKeyguard(this, null)
+        } else {
+            @Suppress("DEPRECATION")
+            window.addFlags(
+                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
+                        WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
+                        WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
+            )
+        }
+
+        // 2. BLOQUEO DE BOTÓN ATRÁS
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                Toast.makeText(this@AlarmActivity, "Debes completar el reto para salir", Toast.LENGTH_SHORT).show()
+            }
+        })
+
+        // 3. RECUPERACIÓN DE DATOS E INICIALIZACIÓN
         val isManual = intent.getBooleanExtra("IS_MANUAL", false)
-        if (!isManual) encenderPantalla()
-
-        val app = application as TuPausaApplication
-        val repository = app.ejercicioRepository
-
-        // 2. Cargar el Ejercicio (ARREGLO #1: Lo cargamos aquí en el Activity)
         val targetId = intent.getIntExtra("ALARM_ID", -1)
         val tipoObjetivo = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val todos = repository.getAllEjercicios()
-            val encontrado = if (targetId != -1) {
-                todos.find { it.idEjercicio == targetId }
-            } else if (tipoObjetivo != "ALEATORIO") {
-                todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
-            } else {
-                todos.randomOrNull()
-            }
-            // Actualizamos la variable global
-            ejercicioRealCargado = encontrado ?: todos.randomOrNull()
-        }
+        // Inicializar sensores
 
-        // 3. Inicializar Sensores y Retos (Solo si es alarma real)
         if (!isManual) {
+            encenderPantalla()
             elegirRetoAleatorio()
             inicializarSensores()
             inicializarCamara()
             iniciarSonido()
         } else {
-            // Si es manual, desactivamos la complejidad
             retoActual = TipoReto.TAP
             metaRepeticiones = 1
         }
 
         setContent {
+            // Variable de estado para redesplegar la UI cuando el ejercicio cargue
+            var ejercicioState by remember { mutableStateOf<Ejercicio?>(null) }
+            // Cargamos el ejercicio de forma segura dentro del ciclo de vida de Compose
+            LaunchedEffect(Unit) {
+                val repository = (application as TuPausaApplication).ejercicioRepository
+                val todos = repository.getAllEjercicios()
+                val encontrado = if (targetId != -1) {
+                    todos.find { it.idEjercicio == targetId }
+                } else if (tipoObjetivo != "ALEATORIO") {
+                    todos.filter { it.tipoEjercicio == tipoObjetivo }.randomOrNull()
+                } else {
+                    todos.randomOrNull()
+                }
+                ejercicioState = encontrado ?: todos.randomOrNull()
+                ejercicioRealCargado = ejercicioState
+            }
+
+            BackHandler(enabled = true) {
+                // Lo dejamos vacío para que NO haga nada, o mostramos un mensaje.
+                Toast.makeText(this, "Debes completar el reto para salir", Toast.LENGTH_SHORT).show()
+            }
             com.tupausa.ui.theme.TuPausaTheme(dynamicColor = false) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .pointerInput(Unit) {
-                            detectTapGestures(onTap = { verificarProgreso(TipoReto.TAP) })
-                        }
-                        .pointerInput(Unit) {
-                            detectDragGestures { _, dragAmount ->
-                                if (dragAmount.y < -20) verificarProgreso(TipoReto.SWIPE_UP)
+                // SOLO mostramos la UI si el ejercicio ya se cargó
+                ejercicioState?.let { ejercicio ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 8.dp) // ZONA SEGURA para evitar gestos de sistema
+                            .pointerInput(Unit) {
+                                awaitPointerEventScope {
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        if (retoActual == TipoReto.MULTI_TAP && event.changes.size >= 3) {
+                                            if (event.changes.any { it.changedToDown() }) {
+                                                verificarProgreso(TipoReto.MULTI_TAP)
+                                            }
+                                        }
+                                    }
+                                }
                             }
-                        }
-                ) {
-                    AlarmScreen(
-                        ejercicio = ejercicioRealCargado, // Pasamos el ejercicio ya cargado
-                        infoReto = if(!isManual) "Reto: ${obtenerTextoReto(retoActual)} ($repeticionesActuales/$metaRepeticiones)" else "",
-                        isManual = isManual,
-                        onDismiss = {
-                            // ARREGLO #2: Lógica para el botón MANUAL "Terminar Ejercicio"
-                            terminarEjercicio(isManualMode = true)
-                        },
-                        onPosponer = { posponerAlarma() }
-                    )
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { verificarProgreso(TipoReto.TAP) },
+                                    onDoubleTap = { verificarProgreso(TipoReto.DOUBLE_TAP) },
+                                    onLongPress = { verificarProgreso(TipoReto.LONG_PRESS) }
+                                )
+                            }
+                            .pointerInput(Unit) {
+                                detectDragGestures(
+                                    onDragStart = { circleDetector?.reset() },
+                                    onDragEnd = {
+                                        circleDetector?.let { detector ->
+                                            if (retoActual == TipoReto.DRAW_CIRCLE && detector.isCircleDetected()) {
+                                                verificarProgreso(TipoReto.DRAW_CIRCLE)
+                                            }
+                                        }
+                                    },
+                                    onDrag = { change, dragAmount ->
+                                        change.consume()
+                                        // 1. Protección para DRAW_CIRCLE usando verificación de nulidad
+                                        if (retoActual == TipoReto.DRAW_CIRCLE) {
+                                            // El operador ?. asegura que addPoint solo se llame si circleDetector NO es null
+                                            circleDetector?.addPoint(change.position)
+                                        }
+                                    }
+                                )
+                            }
+                    ) {
+                        AlarmScreen(
+                            ejercicio = ejercicio, // Usamos la variable segura del let
+                            infoReto = if (!isManual) "Reto: ${obtenerTextoReto(retoActual)} ($repeticionesActuales/$metaRepeticiones)" else "",
+                            isManual = isManual,
+                            onDismiss = { terminarEjercicio(isManualMode = true) },
+                            onPosponer = { posponerAlarma() }
+                        )
+                    }
+                } ?: run {
+                    // Pantalla de carga opcional mientras el DB responde
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
                 }
             }
         }
+    }
+
+    // -----------------------------------------------------------------------
+    // C. BLOQUEO DEL BOTÓN ATRÁS
+    // -----------------------------------------------------------------------
+    @SuppressLint("MissingSuperCall")
+    @Deprecated("Deprecated in Java")
+    override fun onBackPressed() {
+        // No llamamos a super.onBackPressed(), así el botón no hace nada.
+        Toast.makeText(this, "Debes completar el reto para salir", Toast.LENGTH_SHORT).show()
     }
 
     // --- LÓGICA DE RETOS ---
@@ -209,7 +291,6 @@ class AlarmActivity : ComponentActivity() {
         }
     }
 
-    // --- EL RESTO DE FUNCIONES SIGUE IGUAL ---
 
     private fun elegirRetoAleatorio() {
         val valores = TipoReto.values()
@@ -218,24 +299,34 @@ class AlarmActivity : ComponentActivity() {
         metaRepeticiones = when(retoActual) {
             TipoReto.SHAKE -> 5  // Sacudir 5 veces
             TipoReto.TAP -> 8    // Tocar 8 veces
-            TipoReto.SWIPE_UP -> 5 // Deslizar 5 veces
             TipoReto.FLIP -> 1   // Voltear 1 vez
+            TipoReto.LONG_PRESS -> 4  // Mantener presionado 3 veces
+            TipoReto.DOUBLE_TAP -> 5  // Hacer doble click 5 veces
+            TipoReto.PROXIMITY -> 4    // Pasar la mano 3 veces
+            TipoReto.MULTI_TAP -> 3    // Tocar con varios dedos 3 veces
+            TipoReto.DRAW_CIRCLE -> 2  // Dibujar 2 círculos
         }
         repeticionesActuales = 0
     }
 
     private fun obtenerTextoReto(reto: TipoReto): String {
         return when(reto) {
-            TipoReto.SHAKE -> "¡Sacude el celular!"
-            TipoReto.TAP -> "¡Toca la pantalla!"
-            TipoReto.SWIPE_UP -> "¡Desliza hacia arriba!"
-            TipoReto.FLIP -> "¡Voltea el celular!"
+            TipoReto.SHAKE -> "¡Sacude el celular! 📳"
+            TipoReto.TAP -> "¡Toca la pantalla! 👆"
+            TipoReto.FLIP -> "¡Voltea el celular! 🔄"
+            TipoReto.LONG_PRESS -> "¡Mantén presionado 1 seg! 👆"
+            TipoReto.DOUBLE_TAP -> "¡Haz Doble-Toque rápido! 👆"
+            TipoReto.PROXIMITY -> "¡Pasa la mano sobre la cámara frontal! 👋"
+            TipoReto.MULTI_TAP -> "¡Toca con 3 dedos a la vez! 🖐️"
+            TipoReto.DRAW_CIRCLE -> "¡Dibuja un círculo en pantalla! ⭕"
         }
     }
 
     private fun inicializarSensores() {
         shakeDetector = ShakeDetector(this)
         flipDetector = FlipDetector(this)
+        circleDetector = CircleDetector()
+        proximityDetector = ProximityDetector(this)
 
         if (retoActual == TipoReto.SHAKE) {
             shakeDetector.setOnShakeListener(object : ShakeDetector.OnShakeListener {
@@ -249,6 +340,16 @@ class AlarmActivity : ComponentActivity() {
         if (retoActual == TipoReto.FLIP) {
             flipDetector.start {
                 verificarProgreso(TipoReto.FLIP)
+            }
+        }
+        if (retoActual == TipoReto.PROXIMITY) {
+            if (proximityDetector.isAvailable()) {
+                proximityDetector.start {
+                    verificarProgreso(TipoReto.PROXIMITY)
+                }
+            } else {
+                // Si no hay sensor, fallback a un reto simple
+                retoActual = TipoReto.TAP
             }
         }
     }
@@ -320,9 +421,10 @@ class AlarmActivity : ComponentActivity() {
         detenerSonido()
         if (::shakeDetector.isInitialized) shakeDetector.stop()
         if (::flipDetector.isInitialized) flipDetector.stop()
+        if (::proximityDetector.isInitialized) proximityDetector.stop()
     }
 
-    // ... Funciones de Sonido y Pantalla (iguales a tu código original) ...
+    // Funciones de Sonido y Pantalla
     private fun encenderPantalla() {
         if (SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -365,7 +467,7 @@ class AlarmActivity : ComponentActivity() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmScreen(
-    ejercicio: Ejercicio?, // AHORA RECIBE EL EJERCICIO DIRECTAMENTE
+    ejercicio: Ejercicio?,
     infoReto: String,
     isManual: Boolean,
     onDismiss: () -> Unit,
@@ -414,7 +516,9 @@ fun AlarmScreen(
             topBar = {
                 LinearProgressIndicator(
                     progress = { transformProgress(progreso) },
-                    modifier = Modifier.fillMaxWidth().height(8.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(8.dp),
                     color = ArenaOnPrimaryContainer,
                     trackColor = MaterialTheme.colorScheme.onSurface
                 )
@@ -422,7 +526,10 @@ fun AlarmScreen(
             bottomBar = {
                 Button(
                     onClick = if (isManual) onDismiss else onPosponer, // AQUÍ SE ACTIVA EL BOTÓN MANUAL
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .height(56.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if(isManual) ArenaPrimary else ArenaOnPrimaryContainer
                     )
@@ -475,7 +582,7 @@ fun AlarmScreen(
                         text = infoReto,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = ArenaOnSurface,
                         modifier = Modifier
                             .padding(vertical = 8.dp)
                             .background(Color.White.copy(alpha = 0.8f), RoundedCornerShape(8.dp))
@@ -487,7 +594,9 @@ fun AlarmScreen(
                 val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
                 Card(
                     shape = RoundedCornerShape(16.dp),
-                    modifier = Modifier.fillMaxWidth(0.9f).height(280.dp),
+                    modifier = Modifier
+                        .fillMaxWidth(0.9f)
+                        .height(280.dp),
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f))
                 ) {
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

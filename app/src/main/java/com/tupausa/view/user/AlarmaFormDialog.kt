@@ -28,10 +28,7 @@ import com.tupausa.ui.theme.ArenaPrimary
 import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 
-private enum class DialogStep {
-    FORMULARIO,
-    SELECCION_EJERCICIO
-}
+private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmaFormDialog(

@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.tupausa.ui.theme.ArenaBackground
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.ui.theme.ArenaOnSurfaceVariant
 import com.tupausa.ui.theme.ArenaOutline
@@ -129,7 +130,7 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer
@@ -171,7 +172,7 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer
@@ -214,7 +215,7 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer
@@ -257,7 +258,7 @@ fun RegisterScreen(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline,
                 // Texto: Café Oscuro (para leer bien)
                 focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaOutline,
+                unfocusedTextColor = ArenaBackground,
                 // Label (Etiqueta): Café
                 focusedLabelColor = ArenaOnPrimaryContainer,
                 unfocusedLabelColor = ArenaPrimaryContainer

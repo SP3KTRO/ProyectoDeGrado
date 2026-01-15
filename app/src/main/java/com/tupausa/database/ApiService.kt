@@ -1,7 +1,6 @@
 package com.tupausa.database
 
 import com.tupausa.model.*
-import com.tupausa.model.data.Alarma
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -16,13 +15,12 @@ interface ApiService {
     @PUT("usuarios")
     suspend fun updateUsuario(@Body usuario: Usuario): Response<Map<String, String>>
 
-    // Usamos @HTTP para poder enviar body en un DELETE (Requerido por tu Lambda)
+    // Usamos @HTTP para poder enviar body en un DELETE
     @HTTP(method = "DELETE", path = "usuarios", hasBody = true)
     suspend fun deleteUsuario(@Body body: Map<String, Int>): Response<Map<String, String>>
 
 
     // EJERCICIOS
-
     @GET("ejercicios")
     suspend fun getEjercicios(): Response<List<Ejercicio>>
 
@@ -34,21 +32,6 @@ interface ApiService {
 
     @HTTP(method = "DELETE", path = "ejercicios", hasBody = true)
     suspend fun deleteEjercicio(@Body body: Map<String, Int>): Response<Map<String, String>>
-
-    // ALARMAS
-
-    @GET("alarmas")
-    suspend fun getAlarmas(@Query("id_usuario") idUsuario: Int): Response<List<Alarma>>
-
-    @POST("alarmas")
-    suspend fun createAlarma(@Body alarma: Alarma): Response<Map<String, String>>
-
-    @PUT("alarmas")
-    suspend fun updateAlarma(@Body alarma: Alarma): Response<Map<String, String>>
-
-    @HTTP(method = "DELETE", path = "alarmas", hasBody = true)
-    suspend fun deleteAlarma(@Body body: Map<String, Int>): Response<Map<String, String>>
-
 
     // HISTORIAL (Registrar Pausas)
 
