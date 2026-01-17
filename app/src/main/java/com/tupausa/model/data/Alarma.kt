@@ -8,7 +8,8 @@ data class Alarma(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0, // ID local en el celular
 
-    val idEjercicio: Int,
+    val idsEjercicios: List<Int>, // Ahora guardamos una lista de IDs para la rutina
+    val idEjercicio: Int? = null, // ID del ejercicio actual
 
     // Guardamos hora y minuto separados para programar fácil el AlarmManager
     val hora: Int,

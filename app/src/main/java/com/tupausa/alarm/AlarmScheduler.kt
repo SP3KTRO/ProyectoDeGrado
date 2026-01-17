@@ -17,16 +17,10 @@ class AlarmScheduler(private val context: Context) {
         if (!alarma.activa) return
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
-            // --- CORRECCIÓN CRÍTICA AQUÍ ---
-
-            // 1. Enviamos el ID de la ALARMA con un nombre específico (para la notificación)
             putExtra("ALARM_RECORD_ID", alarma.id)
 
-            // 2. Enviamos el ID del EJERCICIO bajo el nombre "ALARM_ID"
-            // Esto es lo que la AlarmActivity espera para buscar el ejercicio correcto.
-            // NOTA: Asegúrate de que tu objeto 'alarma' tenga la propiedad 'idEjercicio'.
-            // Si es una alarma aleatoria, puedes enviar -1.
-            putExtra("ALARM_ID", alarma.idEjercicio)
+            // CAMBIO CLAVE: Enviamos la lista completa de IDs de la rutina
+            putIntegerArrayListExtra("ALARM_IDS_RUTINA", ArrayList(alarma.idsEjercicios))
 
             putExtra("ALARM_NOMBRE", alarma.etiqueta)
             putExtra("ALARM_TIPO", alarma.tipoEjercicio)

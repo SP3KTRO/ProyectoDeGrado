@@ -29,13 +29,14 @@ import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 
 private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmaFormDialog(
     alarmaAEditar: Alarma? = null,
     listaEjercicios: List<Ejercicio>,
     onDismiss: () -> Unit,
-    onConfirm: (Int, Int, List<Int>, String, String, String, Int) -> Unit
+    onConfirm: (Int, Int, List<Int>, String, String, String, List<Int>) -> Unit
 ) {
     // ESTADOS DEL FORMULARIO
     val timeState = rememberTimePickerState(
@@ -48,14 +49,18 @@ fun AlarmaFormDialog(
     // Días
     val daysOptions = listOf(2, 3, 4, 5, 6, 7, 1)
     val daysLabels = listOf("L", "M", "M", "J", "V", "S", "D")
-    val selectedDays = remember { mutableStateListOf<Int>().apply {
-        if (alarmaAEditar != null) addAll(alarmaAEditar.diasRepeticion)
-    }}
+    val selectedDays = remember {
+        mutableStateListOf<Int>().apply {
+            if (alarmaAEditar != null) addAll(alarmaAEditar.diasRepeticion)
+        }
+    }
 
-    // Ejercicio Seleccionado
-    var ejercicioSeleccionado: Ejercicio? by remember { mutableStateOf(
-        if (alarmaAEditar != null) listaEjercicios.find { it.idEjercicio == alarmaAEditar.idEjercicio } else null
-    )}
+    // Rutina de Ejercicios (Múltiple Selección)
+    val selectedExerciseIds = remember {
+        mutableStateListOf<Int>().apply {
+            if (alarmaAEditar != null) addAll(alarmaAEditar.idsEjercicios)
+        }
+    }
 
     // ESTADO PARA CONTROLAR LA VISTA INTERNA
     var currentStep by remember { mutableStateOf(DialogStep.FORMULARIO) }
@@ -63,56 +68,77 @@ fun AlarmaFormDialog(
     AlertDialog(
         containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
         onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxWidth(0.95f).heightIn(max = 600.dp),
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .heightIn(max = 600.dp),
         confirmButton = {
-            // Solo mostramos el botón de Guardar si estamos en el Formulario
             if (currentStep == DialogStep.FORMULARIO) {
-                Button(
-                    enabled = ejercicioSeleccionado != null,
-                    onClick = {
-                        onConfirm(
-                            timeState.hour,
-                            timeState.minute,
-                            selectedDays.toList(),
-                            etiqueta.ifEmpty { ejercicioSeleccionado?.nombreEjercicio ?: "Pausa Activa" },
-                            ejercicioSeleccionado?.tipoEjercicio ?: "ALEATORIO",
-                            tonoSeleccionado,
-                            ejercicioSeleccionado?.idEjercicio ?: -1
+                val puedeGuardar = selectedExerciseIds.size >= 4
+                Column(horizontalAlignment = Alignment.End) {
+                    if (!puedeGuardar && selectedExerciseIds.isNotEmpty()) {
+                        Text(
+                            "Mínimo 4 ejercicios",
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(bottom = 4.dp)
                         )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ArenaPrimary
-                    )
-                ) { Text(if (alarmaAEditar == null) "Crear" else "Guardar",
-                        color = ArenaPrimaryContainer
-                ) }
+                    }
+                    Button(
+                        enabled = puedeGuardar,
+                        onClick = {
+                            onConfirm(
+                                timeState.hour,
+                                timeState.minute,
+                                selectedDays.toList(),
+                                etiqueta.ifEmpty { "Mi Rutina de Pausa" },
+                                "RUTINA",
+                                tonoSeleccionado,
+                                selectedExerciseIds.toList()
+                            )
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ArenaPrimary)
+                    ) {
+                        Text(
+                            if (alarmaAEditar == null) "Crear" else "Guardar",
+                            color = ArenaPrimaryContainer
+                        )
+                    }
+                }
+            } else {
+                // Botón "Listo" en la pantalla de selección
+                Button(
+                    onClick = { currentStep = DialogStep.FORMULARIO },
+                    colors = ButtonDefaults.buttonColors(containerColor = ArenaPrimary)
+                ) {
+                    Text("Listo (${selectedExerciseIds.size})", color = ArenaPrimaryContainer)
+                }
             }
         },
         dismissButton = {
-            // Botón de Cancelar o Volver
             TextButton(onClick = {
                 if (currentStep == DialogStep.SELECCION_EJERCICIO) {
-                    currentStep = DialogStep.FORMULARIO // Volver atrás
+                    currentStep = DialogStep.FORMULARIO
                 } else {
-                    onDismiss() // Cerrar dialog
+                    onDismiss()
                 }
             }) {
-                Text(if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar",
-                        color = ArenaPrimaryContainer)
+                Text(
+                    if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar",
+                    color = ArenaPrimaryContainer
+                )
             }
         },
         title = {
             Text(
                 if (currentStep == DialogStep.FORMULARIO)
                     (if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma")
-                else "Elige un ejercicio"
+                else "Arma tu rutina (mín. 4)"
             )
         },
         text = {
             Crossfade(targetState = currentStep, label = "dialog_transition") { step ->
                 when (step) {
                     DialogStep.FORMULARIO -> {
-                        // --- VISTA A: FORMULARIO ---
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -122,7 +148,6 @@ fun AlarmaFormDialog(
                         ) {
                             TimeInput(state = timeState)
 
-                            // Tarjeta Clickable -> Cambia el paso a SELECCION
                             OutlinedCard(
                                 onClick = { currentStep = DialogStep.SELECCION_EJERCICIO },
                                 modifier = Modifier.fillMaxWidth(),
@@ -132,30 +157,27 @@ fun AlarmaFormDialog(
                                     modifier = Modifier.padding(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    if (ejercicioSeleccionado != null) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text("Ejercicio Seleccionado:", fontSize = 12.sp, color = Color.Gray)
-                                            Text(text = ejercicioSeleccionado!!.nombreEjercicio, fontWeight = FontWeight.Bold)
-                                        }
-                                        Icon(Icons.Default.Edit, "Cambiar", tint = MaterialTheme.colorScheme.primary)
-                                    } else {
-                                        Icon(Icons.Default.FitnessCenter, null, tint = Color.Gray)
-                                        Spacer(modifier = Modifier.width(16.dp))
-                                        Text("Seleccionar Ejercicio", modifier = Modifier.weight(1f), color = MaterialTheme.colorScheme.error)
-                                        Icon(Icons.Default.ChevronRight, null)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Rutina seleccionada:", fontSize = 12.sp, color = Color.Gray)
+                                        Text(
+                                            text = if (selectedExerciseIds.isEmpty()) "Ningún ejercicio"
+                                            else "${selectedExerciseIds.size} ejercicios seleccionados",
+                                            fontWeight = FontWeight.Bold,
+                                            color = if (selectedExerciseIds.size < 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                        )
                                     }
+                                    Icon(Icons.Default.Edit, "Cambiar", tint = ArenaPrimary)
                                 }
                             }
 
                             OutlinedTextField(
                                 value = etiqueta,
                                 onValueChange = { etiqueta = it },
-                                label = { Text("Nombre") },
+                                label = { Text("Nombre de la rutina") },
                                 singleLine = true,
                                 modifier = Modifier.fillMaxWidth()
                             )
 
-                            // Días
                             Text("Repetir:", style = MaterialTheme.typography.bodySmall)
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -177,21 +199,25 @@ fun AlarmaFormDialog(
                     }
 
                     DialogStep.SELECCION_EJERCICIO -> {
-                        // --- VISTA B: LISTA DE EJERCICIOS ---
-                        // Una lista simple dentro del mismo espacio del texto
                         Column {
-                            // Usamos BoxWithConstraints para asegurar altura si la lista es larga
+                            Text(
+                                "Seleccionados: ${selectedExerciseIds.size}/4 mínimo",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (selectedExerciseIds.size < 4) Color.Red else ArenaPrimary,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
                             Box(modifier = Modifier.heightIn(max = 400.dp)) {
                                 LazyColumn(
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     items(listaEjercicios) { ejercicio ->
+                                        val isSelected = selectedExerciseIds.contains(ejercicio.idEjercicio)
                                         SelectableEjercicioCard(
                                             ejercicio = ejercicio,
-                                            isSelected = ejercicio.idEjercicio == ejercicioSeleccionado?.idEjercicio,
+                                            isSelected = isSelected,
                                             onClick = {
-                                                ejercicioSeleccionado = ejercicio
-                                                currentStep = DialogStep.FORMULARIO // Seleccionar y volver automáticamente
+                                                if (isSelected) selectedExerciseIds.remove(ejercicio.idEjercicio)
+                                                else selectedExerciseIds.add(ejercicio.idEjercicio)
                                             }
                                         )
                                     }
@@ -205,7 +231,6 @@ fun AlarmaFormDialog(
     )
 }
 
-// --- CARD DE EJERCICIO SELECCIONABLE (Estilo AdminEjercicios) ---
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SelectableEjercicioCard(
@@ -220,9 +245,8 @@ fun SelectableEjercicioCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            // Si está seleccionado, le damos un tinte diferente
             containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
             else
                 MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
         ),
@@ -232,7 +256,6 @@ fun SelectableEjercicioCard(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Imagen
             Surface(
                 modifier = Modifier.size(56.dp),
                 shape = MaterialTheme.shapes.small,
@@ -252,7 +275,6 @@ fun SelectableEjercicioCard(
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Textos
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = ejercicio.nombreEjercicio,
@@ -266,50 +288,7 @@ fun SelectableEjercicioCard(
                 )
             }
 
-            // Radio Button visual (para que se note que es selección)
-            RadioButton(selected = isSelected, onClick = null)
-        }
-    }
-}
-
-// --- SELECTOR DE TONO ---
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SelectorTono(tonoActual: String, onTonoChange: (String) -> Unit) {
-    var expanded by remember { mutableStateOf(false) }
-    // Puedes agregar nombres de tus archivos en res/raw aquí
-    val opciones = listOf("Predeterminado", "Suave", "Enérgico", "Naturaleza")
-
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        OutlinedTextField(
-            value = tonoActual,
-            onValueChange = {},
-            readOnly = true,
-            label = { Text("Tono de Alarma") },
-            leadingIcon = { Icon(Icons.Default.Notifications, null) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-            modifier = Modifier.menuAnchor().fillMaxWidth()
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            opciones.forEach { opcion ->
-                DropdownMenuItem(
-                    text = { Text(opcion) },
-                    onClick = {
-                        onTonoChange(opcion)
-                        expanded = false
-                    },
-                    leadingIcon = {
-                        // Icono de play pequeñito para simular (funcionalidad futura)
-                        Icon(Icons.Default.PlayArrow, null, modifier = Modifier.size(16.dp))
-                    }
-                )
-            }
+            Checkbox(checked = isSelected, onCheckedChange = { onClick() })
         }
     }
 }

@@ -106,7 +106,7 @@ fun UserAlarmasScreen(
 
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             if (alarmas.isEmpty()) {
-                // Estado Vacío (Igual que antes)
+                // Estado Vacío
                 Column(
                     modifier = Modifier.align(Alignment.Center),
                     horizontalAlignment = Alignment.CenterHorizontally
@@ -123,7 +123,10 @@ fun UserAlarmasScreen(
                 // Lista de Alarmas
                 LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     items(alarmas) { alarma ->
-                        Box(modifier = Modifier.clickable { alarmaAEditar = alarma }) {
+                        Box(modifier = Modifier.clickable {
+                            viewModel.prepararEdicion(alarma)
+                            alarmaAEditar = alarma
+                        }) {
                             AlarmaCard(
                                 alarma = alarma,
                                 onToggle = { viewModel.toggleAlarma(alarma) },
@@ -138,17 +141,16 @@ fun UserAlarmasScreen(
         if (showCreateDialog || alarmaAEditar != null) {
             AlarmaFormDialog(
                 alarmaAEditar = alarmaAEditar,
-                listaEjercicios = listaEjercicios, // Le pasamos la lista al dialog
+                listaEjercicios = listaEjercicios,
                 onDismiss = {
                     showCreateDialog = false
                     alarmaAEditar = null
                 },
-                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idEjercicio ->
-                    // Preservamos el ID si es edición, si no es 0
+                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idsEjercicios ->
                     val idFinal = alarmaAEditar?.id ?: 0
                     val nuevaAlarma = Alarma(
                         id = idFinal,
-                        idEjercicio = idEjercicio,
+                        idsEjercicios = idsEjercicios,
                         hora = hora,
                         minuto = min,
                         diasRepeticion = dias,

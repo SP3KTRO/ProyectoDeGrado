@@ -3,10 +3,14 @@ package com.tupausa.view.user
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -53,8 +57,8 @@ fun AlarmaCard(
 
                 // Nombre y tipo
                 Text(
-                    text = "${alarma.etiqueta}",
-                    fontSize = 14.sp,
+                    text = alarma.etiqueta,
+                    fontSize = 16.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
@@ -64,6 +68,22 @@ fun AlarmaCard(
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.primary
                 )
+
+                // Información de la Rutina (PUNTO 4 IMPLEMENTADO)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (alarma.idsEjercicios.size < 4) Color.Red else Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Rutina: ${alarma.idsEjercicios.size} ejercicios",
+                        fontSize = 12.sp,
+                        color = if (alarma.idsEjercicios.size < 4) Color.Red else Color.Gray
+                    )
+                }
             }
 
             Row(verticalAlignment = Alignment.CenterVertically) {

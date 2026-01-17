@@ -1,5 +1,6 @@
 package com.tupausa.alarm
 
+import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -14,6 +15,7 @@ import com.tupausa.R
 
 class AlarmReceiver : BroadcastReceiver() {
 
+    @SuppressLint("SuspiciousIndentation")
     override fun onReceive(context: Context, intent: Intent) {
 
         // 1. WAKELOCK: Despierta el CPU inmediatamente
@@ -27,8 +29,7 @@ class AlarmReceiver : BroadcastReceiver() {
         wakeLock.acquire(10 * 1000L)
 
         // Recuperamos los IDs por separado
-        val exerciseId = intent.getIntExtra("ALARM_ID", -1)
-        // Este es el ID de la alarma programada (ej: 102)
+        val idsRutina = intent.getIntegerArrayListExtra("ALARM_IDS_RUTINA") ?: arrayListOf()
         val alarmRecordId = intent.getIntExtra("ALARM_RECORD_ID", 0)
         val alarmName = intent.getStringExtra("ALARM_NOMBRE")
         val alarmTipo = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
@@ -44,7 +45,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
             // Le pasamos a la Activity el ID DEL EJERCICIO bajo la clave "ALARM_ID"
             // (Porque tu Activity espera recibir el ID del ejercicio en esa clave)
-            putExtra("ALARM_ID", exerciseId)
+            putIntegerArrayListExtra("ALARM_IDS_RUTINA", idsRutina)
             putExtra("ALARM_RECORD_ID", alarmRecordId)
             putExtra("ALARM_NOMBRE", alarmName)
             putExtra("ALARM_TIPO", alarmTipo)

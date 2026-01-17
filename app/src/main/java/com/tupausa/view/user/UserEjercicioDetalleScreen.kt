@@ -249,7 +249,7 @@ fun UserEjercicioDetalleScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // BOTÓN 1: PROGRAMAR ALARMA ⏰
+                // BOTÓN 1: PROGRAMAR ALARMA
                 FilledTonalButton(
                     onClick = { showAlarmaDialog = true }, // Abrir Dialog
                     modifier = Modifier.height(56.dp),
@@ -295,26 +295,24 @@ fun UserEjercicioDetalleScreen(
 
         // --- LÓGICA DEL DIÁLOGO FLOTANTE ---
         if (showAlarmaDialog) {
-            // Creamos una alarma "ficticia" con los datos del ejercicio actual
-            // Esto sirve para pre-llenar el formulario
             val preAlarma = Alarma(
-                idEjercicio = ejercicio.idEjercicio,
+                idsEjercicios = listOf(ejercicio.idEjercicio),
                 hora = 8,
                 minuto = 0,
                 diasRepeticion = emptyList(),
-                etiqueta = ejercicio.nombreEjercicio, // Nombre del ejercicio actual
-                tipoEjercicio = ejercicio.tipoEjercicio, // Tipo del ejercicio actual
+                etiqueta = ejercicio.nombreEjercicio,
+                tipoEjercicio = ejercicio.tipoEjercicio,
                 activa = true
             )
 
             AlarmaFormDialog(
-                alarmaAEditar = preAlarma, // Pasamos la alarma ficticia para editar
-                listaEjercicios = listaEjercicios, // Lista completa por si quiere cambiar
+                alarmaAEditar = preAlarma,
+                listaEjercicios = listaEjercicios,
                 onDismiss = { showAlarmaDialog = false },
-                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idEjercicio ->
+                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idsEjercicios ->
                     // Guardamos la nueva alarma
                     val nuevaAlarma = Alarma(
-                        idEjercicio = idEjercicio,
+                        idsEjercicios = idsEjercicios,
                         hora = hora,
                         minuto = min,
                         diasRepeticion = dias,
