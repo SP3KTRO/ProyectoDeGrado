@@ -83,7 +83,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val builder = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(R.drawable.logo_white)
             .setContentTitle("¡Es hora de tu Pausa!")
-            .setContentText("Toca para realizar: $alarmName")
+            .setContentText("¿Aún no has hecho tu pausa activa? Comienza ahora: $alarmName")
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)

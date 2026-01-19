@@ -40,6 +40,9 @@ import com.tupausa.R
 import com.tupausa.model.Ejercicio
 import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.ArenaOnSurface
+import com.tupausa.ui.theme.ArenaOnSurfaceVariant
+import com.tupausa.ui.theme.ArenaPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
@@ -70,18 +73,18 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
 import androidx.core.content.ContextCompat
-import com.tupausa.ui.theme.ArenaOnSurface
-import com.tupausa.ui.theme.ArenaOnSurfaceVariant
-import com.tupausa.ui.theme.ArenaPrimaryContainer
-import com.tupausa.utils.CameraHelper
 import com.tupausa.utils.FlipDetector
 import com.tupausa.utils.ShakeDetector
 import com.tupausa.utils.ProximityDetector
 import com.tupausa.utils.CircleDetector
 import kotlin.random.Random
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.CameraSelector
+import androidx.camera.lifecycle.ProcessCameraProvider
+import java.util.concurrent.Executors
 
 // Enumeración de los retos disponibles
-enum class TipoReto { SHAKE, TAP, FLIP, LONG_PRESS, DOUBLE_TAP, PROXIMITY, DRAW_CIRCLE, MULTI_TAP }
+enum class TipoReto { SHAKE, TAP, FLIP, LONG_PRESS, DOUBLE_TAP, PROXIMITY, DRAW_CIRCLE, MULTI_TAP, FIND_LIGHT }
 
 class AlarmActivity : ComponentActivity() {
 
@@ -91,10 +94,7 @@ class AlarmActivity : ComponentActivity() {
     private lateinit var shakeDetector: ShakeDetector
     private lateinit var flipDetector: FlipDetector
     private lateinit var proximityDetector: ProximityDetector
-
     private var circleDetector: CircleDetector? = null
-    private lateinit var cameraHelper: CameraHelper
-    private var rutaFotoEvidencia: String = ""
 
     // ESTADO DE LA RUTINA
     private var listaEjerciciosRutina by mutableStateOf<List<Ejercicio>>(emptyList())
@@ -105,13 +105,16 @@ class AlarmActivity : ComponentActivity() {
     private var metaRepeticiones by mutableIntStateOf(5)
     private var repeticionesActuales by mutableIntStateOf(0)
 
-
     // Launcher de permisos para la camara
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            iniciarCamaraYTomarFoto()
+        if (isGranted && retoActual == TipoReto.FIND_LIGHT) {
+            iniciarDetectorLuz()
+        } else if (!isGranted && retoActual == TipoReto.FIND_LIGHT) {
+            Toast.makeText(this, "Se necesita cámara para este reto", Toast.LENGTH_SHORT).show()
+            retoActual = TipoReto.TAP
+            metaRepeticiones = 10
         }
     }
 
@@ -132,9 +135,8 @@ class AlarmActivity : ComponentActivity() {
         })
 
         setContent {
-            // Este efecto carga la lista de ejercicios una sola vez
+            // Carga de datos
             LaunchedEffect(intent) {
-                // 2. RECUPERACIÓN DE DATOS
                 val idsRutina = intent.getIntegerArrayListExtra("ALARM_IDS_RUTINA") ?: arrayListOf()
                 val isManual = intent.getBooleanExtra("IS_MANUAL", false)
 
@@ -153,7 +155,6 @@ class AlarmActivity : ComponentActivity() {
                 if (!isManual) {
                     indiceEjercicioActual = 0 // Reiniciar al principio si es nueva alarma
                     inicializarCicloEjercicio()
-                    inicializarCamara()
                     iniciarSonido()
                 }
             }
@@ -235,9 +236,9 @@ class AlarmActivity : ComponentActivity() {
                                 "Reto: ${obtenerTextoReto(retoActual)} ($repeticionesActuales/$metaRepeticiones)" else "",
                             isManual = intent.getBooleanExtra("IS_MANUAL", false),
                             onDismiss = { terminarRutinaCompleta(true) },
-                            onPosponer = { posponerAlarma() }
-                            //numActual = indiceEjercicioActual + 1,
-                            //total = listaEjerciciosRutina.size
+                            onPosponer = { posponerAlarma() },
+                            numActual = indiceEjercicioActual + 1,
+                            total = listaEjerciciosRutina.size
                         )
                     }
                 } ?: run {
@@ -263,6 +264,7 @@ class AlarmActivity : ComponentActivity() {
         if (::shakeDetector.isInitialized) shakeDetector.stop()
         if (::flipDetector.isInitialized) flipDetector.stop()
         if (::proximityDetector.isInitialized) proximityDetector.stop()
+        detenerCamara()
         inicializarSensores()
     }
 
@@ -270,6 +272,7 @@ class AlarmActivity : ComponentActivity() {
         if (tipoEjecutado == retoActual) {
             repeticionesActuales++
             if (repeticionesActuales >= metaRepeticiones) {
+                if(retoActual == TipoReto.FIND_LIGHT) detenerCamara()
                 avanzarSiguienteEjercicio()
             }
         }
@@ -278,7 +281,7 @@ class AlarmActivity : ComponentActivity() {
     private fun avanzarSiguienteEjercicio() {
         if (indiceEjercicioActual < listaEjerciciosRutina.size - 1) {
             indiceEjercicioActual++
-            Toast.makeText(this, "¡Buen trabajo! Siguiente ejercicio...", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "¡Buen trabajo!", Toast.LENGTH_SHORT).show()
             inicializarCicloEjercicio()
         } else {
             terminarRutinaCompleta(false)
@@ -287,6 +290,8 @@ class AlarmActivity : ComponentActivity() {
 
     private fun terminarRutinaCompleta(isManual: Boolean) {
         detenerSonido()
+        detenerCamara()
+
         val app = application as TuPausaApplication
         val userId = PreferencesManager(this).getUserId()
 
@@ -299,7 +304,7 @@ class AlarmActivity : ComponentActivity() {
                         idEjercicio = ej.idEjercicio,
                         duracion = ej.duracionSegundos,
                         tipo = if (isManual) "MANUAL" else "RUTINA_SENSOR",
-                        rutaEvidencia = rutaFotoEvidencia
+                        rutaEvidencia = "Rutina"
                     )
                 }
                 withContext(Dispatchers.Main) {
@@ -332,19 +337,21 @@ class AlarmActivity : ComponentActivity() {
             TipoReto.DOUBLE_TAP -> 5  // Hacer doble click 5 veces
             TipoReto.PROXIMITY -> 4    // Pasar la mano 3 veces
             TipoReto.MULTI_TAP -> 3    // Tocar con varios dedos 3 veces
-            TipoReto.DRAW_CIRCLE -> 2  // Dibujar 2 círculos
+            TipoReto.DRAW_CIRCLE -> 1  // Dibujar 1 círculos
+            TipoReto.FIND_LIGHT -> 1 // Encontrar la luz
         }
     }
 
     private fun obtenerTextoReto(reto: TipoReto): String = when (reto) {
-        TipoReto.SHAKE -> "¡Sacude el celular! 📳"
-        TipoReto.TAP -> "¡Toca la pantalla! 👆"
+        TipoReto.SHAKE -> "¡Sacude el celular!📳"
+        TipoReto.TAP -> "¡Toca la pantalla!👆"
         TipoReto.FLIP -> "¡Voltea el celular! 🔄"
-        TipoReto.LONG_PRESS -> "¡Mantén presionado 1 seg! 👆"
-        TipoReto.DOUBLE_TAP -> "¡Haz Doble-Toque rápido! 👆"
-        TipoReto.PROXIMITY -> "¡Pasa la mano sobre la cámara frontal! 👋"
-        TipoReto.MULTI_TAP -> "¡Toca con 3 dedos a la vez! 🖐️"
-        TipoReto.DRAW_CIRCLE -> "¡Dibuja un círculo en pantalla! ⭕"
+        TipoReto.LONG_PRESS -> "¡Mantén presionado 1 seg!👆"
+        TipoReto.DOUBLE_TAP -> "¡Haz Doble-Toque rápido!👆"
+        TipoReto.PROXIMITY -> "¡Pasa la mano sobre la cámara frontal!👋"
+        TipoReto.MULTI_TAP -> "¡Toca con 3 dedos a la vez!🖐️"
+        TipoReto.DRAW_CIRCLE -> "¡Dibuja un círculo en pantalla!⭕"
+        TipoReto.FIND_LIGHT -> "¡Apunta a una luz brillante!💡"
     }
 
     private fun inicializarSensores() {
@@ -364,16 +371,88 @@ class AlarmActivity : ComponentActivity() {
             }
 
             TipoReto.FLIP -> flipDetector.start { verificarProgreso(TipoReto.FLIP) }
+
             TipoReto.PROXIMITY -> {
                 if (proximityDetector.isAvailable()) {
                     proximityDetector.start { verificarProgreso(TipoReto.PROXIMITY) }
                 } else {
-                    retoActual = TipoReto.TAP
+                    retoActual = TipoReto.TAP // Fallback
+                }
+            }
+
+            TipoReto.FIND_LIGHT -> {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    iniciarDetectorLuz()
+                } else {
+                    requestPermissionLauncher.launch(Manifest.permission.CAMERA)
                 }
             }
 
             else -> {}
         }
+    }
+    private fun detenerCamara() {
+        try {
+            val cameraProvider = ProcessCameraProvider.getInstance(this).get()
+            cameraProvider.unbindAll()
+        } catch (e: Exception) {
+            // Ignorar si falla al detener
+        }
+    }
+    private fun iniciarDetectorLuz() {
+        Log.d("TuPausa_Debug", "Iniciando detector de luz...")
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+
+        cameraProviderFuture.addListener({
+            val cameraProvider = cameraProviderFuture.get()
+
+            // Análisis de imagen para detectar brillo
+            val imageAnalysis = ImageAnalysis.Builder()
+                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                .setImageQueueDepth(1)
+                .build()
+
+            imageAnalysis.setAnalyzer(Executors.newSingleThreadExecutor()) { image ->
+                val buffer = image.planes[0].buffer
+                val data = ByteArray(buffer.remaining())
+                buffer.get(data)
+
+                var total = 0L
+                for (byte in data) total += (byte.toInt() and 0xFF)
+                val luma = total.toDouble() / data.size
+
+                // Log de control
+                Log.d("LumaCheck", "Luz actual: $luma")
+
+                // Bajamos el umbral a 100 para que sea más fácil de detectar en interiores
+                if (luma > 110) {
+                    runOnUiThread {
+                        if (retoActual == TipoReto.FIND_LIGHT) {
+                            Log.d("TuPausa_Debug", "¡Luz detectada! Reto completado.")
+                            verificarProgreso(TipoReto.FIND_LIGHT)
+                            cameraProvider.unbindAll()
+                        }
+                    }
+                }
+                image.close()
+            }
+
+            try {
+                cameraProvider.unbindAll()
+
+                // Selector explícito para evitar cámaras "auxiliares" que fallan en MIUI
+                val cameraSelector = CameraSelector.Builder()
+                    .requireLensFacing(CameraSelector.LENS_FACING_BACK)
+                    .build()
+
+                cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis)
+                Log.d("TuPausa_Debug", "Cámara vinculada exitosamente")
+
+            } catch (exc: Exception) {
+                Log.e("TuPausa_Debug", "Error crítico al abrir cámara", exc)
+                retoActual = TipoReto.TAP // Fallback
+            }
+        }, ContextCompat.getMainExecutor(this))
     }
 
     private fun configurarPantallaInvasiva() {
@@ -393,29 +472,10 @@ class AlarmActivity : ComponentActivity() {
         }
     }
 
-    private fun inicializarCamara() {
-        cameraHelper =
-            CameraHelper(this, this, { file -> rutaFotoEvidencia = file.absolutePath }, {})
-        if (ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.CAMERA
-            ) == PackageManager.PERMISSION_GRANTED
-        ) {
-            cameraHelper.startCamera()
-            window.decorView.postDelayed({ cameraHelper.takePhoto() }, 3000)
-        } else {
-            requestPermissionLauncher.launch(Manifest.permission.CAMERA)
-        }
-    }
-
-    private fun iniciarCamaraYTomarFoto() {
-        cameraHelper.startCamera()
-        // Tomamos la foto a los 2 segundos de abrir la app
-        window.decorView.postDelayed({ cameraHelper.takePhoto() }, 2000)
-    }
-
     private fun posponerAlarma() {
         detenerSonido()
+        detenerCamara()
+
         val context = applicationContext
         val alarmManager =
             context.getSystemService(Context.ALARM_SERVICE) as? android.app.AlarmManager
@@ -482,234 +542,6 @@ class AlarmActivity : ComponentActivity() {
         isManual: Boolean,
         onDismiss: () -> Unit,
         onPosponer: () -> Unit,
-    ) {
-        val context = LocalContext.current
-        if (ejercicio == null) return
-
-        val imageLoader = remember {
-            ImageLoader.Builder(context)
-                .components {
-                    if (SDK_INT >= 28) add(ImageDecoderDecoder.Factory()) else add(GifDecoder.Factory())
-                }
-                .build()
-        }
-
-        var timeLeft by remember(ejercicio.idEjercicio) { mutableFloatStateOf(ejercicio.duracionSegundos.toFloat()) }
-
-        LaunchedEffect(ejercicio.idEjercicio) {
-            while (timeLeft > 0) {
-                delay(100L)
-                timeLeft -= 0.1f
-            }
-        }
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Scaffold(
-                containerColor = Color.Transparent,
-                topBar = {
-                    LinearProgressIndicator(
-                        progress = { transformProgress(timeLeft / ejercicio.duracionSegundos) },
-                        modifier = Modifier.fillMaxWidth().height(6.dp), // Reducido ligeramente
-                        color = ArenaOnPrimaryContainer,
-                        trackColor = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                bottomBar = {
-                    Button(
-                        onClick = if (isManual) onDismiss else onPosponer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 12.dp) // Padding reducido
-                            .height(50.dp), // Botón un poco más compacto
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isManual) ArenaPrimary else ArenaOnPrimaryContainer)
-                    ) {
-                        Icon(
-                            if (isManual) Icons.Default.Stop else Icons.Default.Snooze,
-                            contentDescription = null,
-                            tint = ArenaPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isManual) "TERMINAR" else "POSPONER 5 MIN", // Texto abreviado
-                            color = ArenaPrimaryContainer,
-                            fontSize = 16.sp, // Fuente ajustada
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            ) { padding ->
-                // Usamos Column sin Scroll global
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(top = 16.dp, bottom = 8.dp), // Márgenes controlados
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    // --- SECCIÓN 1: HEADER (Título, Tiempo, Reto) ---
-                    Text(
-                        text = ejercicio.nombreEjercicio,
-                        style = MaterialTheme.typography.titleLarge, // Estilo más compacto
-                        fontSize = 22.sp,
-                        color = ArenaOnSurface,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1, // Evitar que ocupe 2 lineas
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = "${timeLeft.toInt()} s",
-                            fontSize = 36.sp, // Reducido de 48 a 36
-                            fontWeight = FontWeight.Bold,
-                            color = ArenaPrimary
-                        )
-
-                        if (infoReto.isNotEmpty()) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(
-                                text = infoReto,
-                                fontSize = 14.sp, // Mucho más pequeño (antes 20)
-                                fontWeight = FontWeight.Bold,
-                                color = ArenaOnSurface,
-                                modifier = Modifier
-                                    .background(
-                                        Color.White.copy(alpha = 0.8f),
-                                        RoundedCornerShape(6.dp)
-                                    )
-                                    .padding(horizontal = 10.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // --- SECCIÓN 2: GIF (Flexible) ---
-                    val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f) // Un poco más angosto
-                            .weight(0.4f), // Ocupará el 40% del espacio disponible verticalmente
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (drawableId != 0) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(drawableId)
-                                        .crossfade(true).build(),
-                                    imageLoader = imageLoader,
-                                    contentDescription = "Guía",
-                                    contentScale = ContentScale.Fit, // Fit asegura que se vea todo, pero...
-                                    // Si quieres eliminar bordes a toda costa, usa ContentScale.Crop,
-                                    // pero podrías cortar partes del ejercicio.
-                                    modifier = Modifier.fillMaxSize().padding(4.dp)
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // --- SECCIÓN 3: INSTRUCCIONES (Flexible) ---
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.95f)
-                            .weight(0.6f) // Ocupará el resto del espacio (60%)
-                            .padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                        )
-                    ) {
-                        // Usamos LazyColumn AQUÍ adentro por si el texto es muy largo
-                        // pero la pantalla principal NO se mueve.
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(12.dp)
-                        ) {
-                            item {
-                                SectionTitle("Cómo realizarlo", fontSize = 16.sp)
-                                Text(
-                                    text = ejercicio.descripcion,
-                                    fontSize = 13.sp, // Texto compacto
-                                    lineHeight = 18.sp,
-                                    color = MaterialTheme.colorScheme.onSurface,
-                                    modifier = Modifier.padding(bottom = 8.dp)
-                                )
-                            }
-
-                            itemsIndexed(ejercicio.getInstruccionesList()) { index, instruccion ->
-                                InstruccionItemCompacto( // Crear versión compacta
-                                    numero = index + 1,
-                                    texto = instruccion
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Helper para títulos más pequeños
-    @Composable
-    fun SectionTitle(text: String, fontSize: TextUnit = 18.sp) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            fontSize = fontSize,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 4.dp),
-            color = ArenaPrimary
-        )
-    }
-
-    // Item de instrucción optimizado para espacio
-    @Composable
-    fun InstruccionItemCompacto(numero: Int, texto: String) {
-        Row(
-            modifier = Modifier.padding(vertical = 2.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(
-                text = "$numero.",
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = ArenaPrimary,
-                modifier = Modifier.width(20.dp)
-            )
-            Text(
-                text = texto,
-                fontSize = 13.sp,
-                lineHeight = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
-    /*@OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun AlarmScreen(
-        ejercicio: Ejercicio?,
-        infoReto: String,
-        isManual: Boolean,
-        onDismiss: () -> Unit,
-        onPosponer: () -> Unit,
         numActual: Int,
         total: Int
     ) {
@@ -727,13 +559,16 @@ class AlarmActivity : ComponentActivity() {
         }
 
         var timeLeft by remember(ejercicio.idEjercicio) { mutableFloatStateOf(ejercicio.duracionSegundos.toFloat()) }
+
         LaunchedEffect(ejercicio.idEjercicio) {
             while (timeLeft > 0) {
-                delay(100L); timeLeft -= 0.1f
+                delay(100L)
+                timeLeft -= 0.1f
             }
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier
+            .fillMaxSize()) {
             Image(
                 painter = painterResource(id = R.drawable.fondo),
                 contentDescription = null,
@@ -746,21 +581,18 @@ class AlarmActivity : ComponentActivity() {
                     Column {
                         LinearProgressIndicator(
                             progress = { transformProgress(timeLeft / ejercicio.duracionSegundos) },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp),
+                            modifier = Modifier.fillMaxWidth().height(13.dp),
                             color = ArenaOnPrimaryContainer,
-                            trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f)
+                            trackColor = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
                             text = "Ejercicio $numActual de $total",
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
+                                .fillMaxWidth(),
                             textAlign = TextAlign.Center,
                             color = ArenaPrimary,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 15.sp
                         )
                     }
                 },
@@ -769,176 +601,8 @@ class AlarmActivity : ComponentActivity() {
                         onClick = if (isManual) onDismiss else onPosponer,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
-                            .height(50.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isManual) ArenaPrimary else ArenaOnPrimaryContainer)
-                    ) {
-                        Icon(
-                            if (isManual) Icons.Default.Stop else Icons.Default.Snooze,
-                            null,
-                            tint = ArenaPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            if (isManual) "TERMINAR" else "POSPONER 5 MIN",
-                            color = ArenaPrimaryContainer,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(horizontal = 16.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = ejercicio.nombreEjercicio,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        color = ArenaOnSurface
-                    )
-                    Text(
-                        text = "${timeLeft.toInt()} s",
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.Black,
-                        color = ArenaPrimary
-                    )
-
-                    if (infoReto.isNotEmpty()) {
-                        Surface(
-                            color = Color.White.copy(alpha = 0.8f),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.padding(vertical = 4.dp)
-                        ) {
-                            Text(
-                                text = infoReto,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                                color = Color.Black
-                            )
-                        }
-                    }
-
-                    Card(
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .padding(vertical = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(
-                                alpha = 0.4f
-                            )
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
-                            if (drawableId != 0) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(drawableId)
-                                        .crossfade(true).build(),
-                                    imageLoader = imageLoader,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize()
-                                )
-                            }
-                        }
-                    }
-
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(
-                                alpha = 0.9f
-                            )
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(12.dp)) {
-                            Text(
-                                "Cómo realizarlo:",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp,
-                                color = ArenaPrimary
-                            )
-                            Text(
-                                text = ejercicio.descripcion,
-                                fontSize = 13.sp,
-                                maxLines = 3,
-                                overflow = TextOverflow.Ellipsis,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun AlarmScreen(
-        ejercicio: Ejercicio?,
-        infoReto: String,
-        isManual: Boolean,
-        onDismiss: () -> Unit,
-        onPosponer: () -> Unit,
-    ) {
-        val context = LocalContext.current
-        if (ejercicio == null) return
-
-        val imageLoader = remember {
-            ImageLoader.Builder(context)
-                .components {
-                    if (SDK_INT >= 28) add(ImageDecoderDecoder.Factory()) else add(
-                        GifDecoder.Factory()
-                    )
-                }
-                .build()
-        }
-
-        var timeLeft by remember(ejercicio.idEjercicio) { mutableFloatStateOf(ejercicio.duracionSegundos.toFloat()) }
-
-        LaunchedEffect(ejercicio.idEjercicio) {
-            while (timeLeft > 0) {
-                delay(100L)
-                timeLeft -= 0.1f
-            }
-        }
-
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Scaffold(
-                containerColor = Color.Transparent,
-                topBar = {
-                    LinearProgressIndicator(
-                        progress = { transformProgress(timeLeft / ejercicio.duracionSegundos) },
-                        modifier = Modifier.fillMaxWidth().height(8.dp),
-                        color = ArenaOnPrimaryContainer,
-                        trackColor = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                bottomBar = {
-                    Button(
-                        onClick = if (isManual) onDismiss else onPosponer,
-                        modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = if (isManual) ArenaPrimary else ArenaOnPrimaryContainer)
                     ) {
                         Icon(
@@ -950,55 +614,65 @@ class AlarmActivity : ComponentActivity() {
                         Text(
                             text = if (isManual) "TERMINAR EJERCICIO" else "POSPONER 5 MIN",
                             color = ArenaPrimaryContainer,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
             ) { padding ->
                 Column(
-                    modifier = Modifier.fillMaxSize().padding(padding)
-                        .verticalScroll(rememberScrollState()),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .padding(top = 2.dp, bottom = 2.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Spacer(modifier = Modifier.height(60.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = ejercicio.nombreEjercicio,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontSize = 24.sp,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontSize = 22.sp,
                         color = ArenaOnSurface,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        maxLines = 1,
+                        modifier = Modifier
+                            .padding(horizontal = 6.dp)
                     )
                     Text(
                         text = "${timeLeft.toInt()} s",
-                        fontSize = 48.sp,
+                        fontSize = 38.sp,
                         fontWeight = FontWeight.Bold,
                         color = ArenaPrimary
                     )
                     if (infoReto.isNotEmpty()) {
                         Text(
                             text = infoReto,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.ExtraBold,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
                             color = ArenaOnSurface,
-                            modifier = Modifier.padding(vertical = 8.dp).background(
+                            modifier = Modifier
+                                .background(
                                 Color.White.copy(alpha = 0.8f),
                                 RoundedCornerShape(8.dp)
-                            ).padding(horizontal = 16.dp, vertical = 4.dp)
+                            ).padding(horizontal = 6.dp, vertical = 4.dp)
                         )
                     }
+
                     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
                     Card(
-                        shape = RoundedCornerShape(16.dp),
-                        modifier = Modifier.fillMaxWidth(0.9f).height(280.dp),
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .height(280.dp)
+                            .wrapContentHeight(),
                         colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)
+                            containerColor = Color.Transparent
                         )
                     ) {
                         Box(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
                             if (drawableId != 0) {
@@ -1008,26 +682,27 @@ class AlarmActivity : ComponentActivity() {
                                     imageLoader = imageLoader,
                                     contentDescription = "Guía",
                                     contentScale = ContentScale.Fit,
-                                    modifier = Modifier.fillMaxSize()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(Alignment.Center)
                                 )
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(16.dp))
                     Card(
-                        modifier = Modifier.fillMaxWidth(0.95f).padding(bottom = 24.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.85f)
+                            .wrapContentHeight()
+                            .padding(bottom = 8.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
                         )
                     ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
+                        Column(modifier = Modifier
+                            .padding(12.dp)) {
                             SectionTitle("Cómo realizarlo")
-                            Text(
-                                text = ejercicio.descripcion,
-                                fontSize = 16.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                            ejercicio.getInstruccionesList().forEachIndexed { index, instruccion ->
+                            ejercicio.getInstruccionesList()
+                                .forEachIndexed { index, instruccion ->
                                 InstruccionItem(
                                     numero = index + 1,
                                     texto = instruccion
@@ -1038,8 +713,44 @@ class AlarmActivity : ComponentActivity() {
                 }
             }
         }
-    }*/
+    }
+    @Composable
+    fun SectionTitle(text: String) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.titleMedium,
+            textAlign = TextAlign.Center,
+            fontSize = 17.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .padding(bottom = 3.dp),
+            color = MaterialTheme.colorScheme.primary
+        )
+    }
+    @Composable
+    fun InstruccionItem(numero: Int, texto: String) {
+        Row(
+            modifier = Modifier
+                .padding(vertical = 2.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            Text(
+                text = "$numero.",
+                fontWeight = FontWeight.Bold,
+                fontSize = 17.sp,
+                lineHeight = 16.sp,
+                modifier = Modifier
+                    .width(20.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = texto,
+                fontSize = 17.sp,
+                lineHeight = 16.sp,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
 }
 
 fun transformProgress(value: Float): Float { return value.coerceIn(0f, 1f) }
-

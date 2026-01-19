@@ -90,7 +90,7 @@ fun AdminEjercicioDetalleScreen(
                     .height(250.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                    containerColor = Color.Transparent
                 )
             ) {
                 Box(
