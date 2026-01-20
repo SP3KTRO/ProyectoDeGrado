@@ -26,15 +26,18 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 import com.tupausa.view.user.InfoBadge
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
 import com.tupausa.alarm.AlarmActivity
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,8 +73,8 @@ fun AdminEjercicioDetalleScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = OnPrimaryContainer,
-                    navigationIconContentColor = OnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         }
@@ -115,9 +118,9 @@ fun AdminEjercicioDetalleScreen(
                                 imageVector = Icons.Default.FitnessCenter,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = OnSurface
                             )
-                            Text("Vista previa no disponible")
+                            Text("Vista previa no disponible", color = OnSurface )
                         }
                     }
                 }
@@ -134,13 +137,14 @@ fun AdminEjercicioDetalleScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
+                    // Titulo
                     Text(
                         text = ejercicio.nombreEjercicio,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = OnPrimary
                     )
-
+                    // Badges
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.fillMaxWidth()
@@ -151,16 +155,16 @@ fun AdminEjercicioDetalleScreen(
                     }
 
                     HorizontalDivider()
-
+                    // Descripción
                     SectionTitle("Descripción")
                     Text(
                         text = ejercicio.descripcion,
                         fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = OnPrimary
                     )
 
                     HorizontalDivider()
-
+                    // Instrucciones
                     SectionTitle("Instrucciones")
                     ejercicio.getInstruccionesList().forEachIndexed { index, instruccion ->
                         InstruccionItem(numero = index + 1, texto = instruccion)
@@ -171,7 +175,7 @@ fun AdminEjercicioDetalleScreen(
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                containerColor = Surface
                             )
                         ) {
                             Row(
@@ -181,13 +185,13 @@ fun AdminEjercicioDetalleScreen(
                                 Icon(
                                     imageVector = Icons.Default.HealthAndSafety,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                    tint = OnSurface
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = ejercicio.beneficios,
                                     fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color = OnSurface
                                 )
                             }
                         }
@@ -195,15 +199,15 @@ fun AdminEjercicioDetalleScreen(
                 }
             }
 
-            // --- NUEVO: BOTÓN DE COMENZAR EJERCICIO ---
+            // BOTÓN DE COMENZAR EJERCICIO
             Button(
                 onClick = {
                     val intent = Intent(context, AlarmActivity::class.java).apply {
                         putExtra("IS_MANUAL", true)
+                        putIntegerArrayListExtra("ALARM_IDS_RUTINA", arrayListOf(ejercicio.idEjercicio))
                         putExtra("ALARM_NOMBRE", ejercicio.nombreEjercicio)
                         putExtra("ALARM_TIPO", ejercicio.tipoEjercicio)
                         putExtra("ALARM_DURACION", ejercicio.duracionSegundos)
-                        putExtra("ALARM_ID", ejercicio.idEjercicio)
                     }
                     context.startActivity(intent)
                 },
@@ -212,16 +216,15 @@ fun AdminEjercicioDetalleScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary
+                    containerColor = OnPrimaryContainer
                 )
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null,
-                    tint = PrimaryContainer)
+                    tint = OnPrimary)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Comenzar Ejercicio", fontSize = 18.sp,
-                    color = PrimaryContainer)
+                    color = OnPrimary)
             }
-
             Spacer(modifier = Modifier.height(16.dp))
         }
     }

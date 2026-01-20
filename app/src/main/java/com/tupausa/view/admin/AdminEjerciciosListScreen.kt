@@ -22,9 +22,13 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.Ejercicio
+import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.Tertiary
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -63,14 +67,14 @@ fun AdminEjerciciosScreen(
                 isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.primary // Bronce
+                        color = OnPrimaryContainer
                     )
                 }
                 ejercicios.isEmpty() -> {
                     Text(
                         text = "No hay ejercicios disponibles",
                         modifier = Modifier.align(Alignment.Center),
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = OnSurface
                     )
                 }
                 else -> {
@@ -100,13 +104,12 @@ fun AdminEjercicioCard(
 ) {
     val context = LocalContext.current
 
-    // 1. Obtener ID de la imagen
+    // Obtener ID de la imagen
     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         onClick = onClick,
-        // 2. Color CREMA (Surface) con un toque de transparencia
         colors = CardDefaults.cardColors(
             containerColor = Secondary
         ),
@@ -118,19 +121,17 @@ fun AdminEjercicioCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // 3. IMAGEN (ESTÁTICA)
+            // IMAGEN
             Surface(
                 modifier = Modifier.size(64.dp),
                 shape = MaterialTheme.shapes.medium,
-                // Fondo suave por si la imagen es transparente
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                color = Color.Transparent
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     if (drawableId != 0) {
-                        // AsyncImage NORMAL (Sin GifDecoder = Imagen Estática)
                         AsyncImage(
                             model = ImageRequest.Builder(context)
                                 .data(drawableId)
@@ -141,12 +142,11 @@ fun AdminEjercicioCard(
                             modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        // Fallback: Icono si no hay imagen
                         Icon(
                             imageVector = getAdminIconoPorTipo(ejercicio.tipoEjercicio),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = OnPrimary
                         )
                     }
                 }
@@ -160,30 +160,28 @@ fun AdminEjercicioCard(
                     text = ejercicio.nombreEjercicio,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface // Café Oscuro
+                    color = OnPrimary
                 )
-
                 // Categoría
                 Text(
                     text = getAdminNombreAmigable(ejercicio.tipoEjercicio),
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.primary, // Bronce
-                    fontWeight = FontWeight.Medium
+                    color = Surface,
+                    fontWeight = FontWeight.Light
                 )
             }
-
-            // Datos Extra (Derecha)
+            // Datos Extra
             Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = "${ejercicio.duracionSegundos}s",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Tertiary
                 )
                 Text(
                     text = "Nivel: ${ejercicio.nivelIntensidad}",
                     fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.secondary // Café Medio
+                    color = PrimaryContainer
                 )
             }
         }

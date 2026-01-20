@@ -87,7 +87,7 @@ fun UserEjerciciosListScreen(
                     isLoading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = Primary
+                            color = OnPrimaryContainer
                         )
                     }
                     filteredEjercicios.isEmpty() -> {

@@ -73,6 +73,9 @@ class AlarmActivity : ComponentActivity() {
     private var metaRepeticiones by mutableIntStateOf(5)
     private var repeticionesActuales by mutableIntStateOf(0)
 
+    // Estado para el intent
+    private var intentState by mutableStateOf<Intent?>(null)
+
     // Launcher de permisos para la camara
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -89,7 +92,9 @@ class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. CONFIGURACIÓN DE PANTALLA
+        intentState = intent
+
+        // CONFIGURACIÓN DE PANTALLA
         configurarPantallaInvasiva()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -104,30 +109,32 @@ class AlarmActivity : ComponentActivity() {
 
         setContent {
             // Carga de datos
-            LaunchedEffect(intent) {
-                val idsRutina = intent.getIntegerArrayListExtra("ALARM_IDS_RUTINA") ?: arrayListOf()
-                val isManual = intent.getBooleanExtra("IS_MANUAL", false)
+            LaunchedEffect(intentState) {
+                intentState?.let { currentIntent ->
+                    val idsRutina = currentIntent.getIntegerArrayListExtra("ALARM_IDS_RUTINA") ?: arrayListOf()
+                    val isManual = currentIntent.getBooleanExtra("IS_MANUAL", false)
 
-                Log.d("TuPausa_Debug", "Cargando rutina: $idsRutina")
+                    Log.d("TuPausa_Debug", "Cargando rutina: $idsRutina")
 
-                val repository = (application as TuPausaApplication).ejercicioRepository
-                val todos = repository.getAllEjercicios()
+                    val repository = (application as TuPausaApplication).ejercicioRepository
+                    val todos = repository.getAllEjercicios()
 
-                listaEjerciciosRutina = if (idsRutina.isNotEmpty()) {
-                    idsRutina.mapNotNull { id -> todos.find { it.idEjercicio == id } }
-                } else {
-                    Log.e("TuPausa_Debug", "La lista de IDs llegó VACÍA, usando fallback aleatorio")
-                    listOf(todos.random())
-                }
+                    listaEjerciciosRutina = if (idsRutina.isNotEmpty()) {
+                        idsRutina.mapNotNull { id -> todos.find { it.idEjercicio == id } }
+                    } else {
+                        Log.e("TuPausa_Debug", "La lista de IDs llegó VACÍA, usando fallback aleatorio")
+                        listOf(todos.random())
+                    }
 
-                if (!isManual) {
-                    indiceEjercicioActual = 0 // Reiniciar al principio si es nueva alarma
-                    inicializarCicloEjercicio()
-                    iniciarSonido()
+                    if (!isManual) {
+                        indiceEjercicioActual = 0 // Reiniciar al principio si es nueva alarma
+                        inicializarCicloEjercicio()
+                        iniciarSonido()
+                    }
                 }
             }
 
-            // Bloqueo del botón atrás en Compose
+            // Bloqueo del botón atrás
             BackHandler(enabled = true) {
                 Toast.makeText(this, "Debes completar la rutina para salir", Toast.LENGTH_SHORT)
                     .show()
@@ -142,7 +149,6 @@ class AlarmActivity : ComponentActivity() {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(horizontal = 8.dp)
-                            // DETECTOR MULTI-TOUCH (3 DEDOS)
                             .pointerInput(retoActual) {
                                 if (retoActual == TipoReto.MULTI_TAP) {
                                     awaitPointerEventScope {
@@ -221,7 +227,9 @@ class AlarmActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent) // Actualiza el intent de la actividad para que el LaunchedEffect lo detecte
+        intentState = intent
     }
+
     private fun inicializarCicloEjercicio() {
         repeticionesActuales = 0
         elegirRetoAleatorio()
@@ -287,11 +295,11 @@ class AlarmActivity : ComponentActivity() {
     }
 
     // BLOQUEO DEL BOTÓN ATRÁS
-    @SuppressLint("MissingSuperCall")
+    /*@SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         Toast.makeText(this, "Debes completar el reto para salir", Toast.LENGTH_SHORT).show()
-    }
+    }*/
 
     private fun elegirRetoAleatorio() {
         val valores = TipoReto.entries
@@ -313,7 +321,7 @@ class AlarmActivity : ComponentActivity() {
     private fun obtenerTextoReto(reto: TipoReto): String = when (reto) {
         TipoReto.SHAKE -> "¡Sacude el celular!📳"
         TipoReto.TAP -> "¡Toca la pantalla!👆"
-        TipoReto.FLIP -> "¡Voltea el celular! 🔄"
+        TipoReto.FLIP -> "¡Voltea el celular!🔄"
         TipoReto.LONG_PRESS -> "¡Mantén presionado 1 seg!👆"
         TipoReto.DOUBLE_TAP -> "¡Haz Doble-Toque rápido!👆"
         TipoReto.PROXIMITY -> "¡Pasa la mano sobre la cámara frontal!👋"

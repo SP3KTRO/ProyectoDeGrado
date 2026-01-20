@@ -18,8 +18,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.model.Usuario
+import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.Tertiary
 import com.tupausa.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,8 +54,8 @@ fun AdminUsersListScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = OnPrimaryContainer,
-                    navigationIconContentColor = OnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         }
@@ -61,12 +68,14 @@ fun AdminUsersListScreen(
             when {
                 isLoading -> {
                     CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center)
+                        modifier = Modifier.align(Alignment.Center),
+                        color = OnPrimaryContainer
                     )
                 }
                 usuarios.isEmpty() -> {
                     Text(
                         text = "No hay usuarios registrados",
+                        color = OnSurface,
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -98,18 +107,19 @@ fun AdminUsersListScreen(
         if (showDeleteDialog && usuarioToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
+                containerColor = Secondary,
                 icon = {
                     Icon(
                         Icons.Default.Warning,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.error
+                        tint = OnSurfaceVariant
                     )
                 },
                 title = {
-                    Text("¿Eliminar usuario?")
+                    Text("¿Eliminar usuario?", color = OnPrimary)
                 },
                 text = {
-                    Text("¿Estás seguro de que deseas eliminar a ${usuarioToDelete?.nombre}? Esta acción no se puede deshacer.")
+                    Text("¿Estás seguro de que deseas eliminar a ${usuarioToDelete?.nombre}? Esta acción no se puede deshacer.", color = OnPrimary)
                 },
                 confirmButton = {
                     Button(
@@ -119,15 +129,15 @@ fun AdminUsersListScreen(
                             usuarioToDelete = null
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
+                            containerColor = OnPrimaryContainer
                         )
                     ) {
-                        Text("Eliminar")
+                        Text("Eliminar", color = OnPrimary)
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("Cancelar")
+                        Text("Cancelar", color = OnPrimary)
                     }
                 }
             )
@@ -171,24 +181,24 @@ fun UsuarioCardWithActions(
                     text = usuario.nombre,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = OnPrimary
                 )
                 Text(
                     text = usuario.correoElectronico,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = OnPrimary
                 )
                 Text(
                     text = if (usuario.idTipoUsuario == Constants.USER_TYPE_ADMIN) "Admin" else "Usuario",
                     fontSize = 12.sp,
                     color = if (usuario.idTipoUsuario == Constants.USER_TYPE_ADMIN)
-                        MaterialTheme.colorScheme.primary
+                        Tertiary
                     else
-                        MaterialTheme.colorScheme.secondary
+                        PrimaryContainer
                 )
             }
 
-            // Botones de acción
+            // Botones
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -196,7 +206,7 @@ fun UsuarioCardWithActions(
                 IconButton(
                     onClick = onEdit,
                     colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
+                        contentColor = Surface
                     )
                 ) {
                     Icon(
@@ -210,7 +220,7 @@ fun UsuarioCardWithActions(
                     IconButton(
                         onClick = onDelete,
                         colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
+                            contentColor = PrimaryContainer
                         )
                     ) {
                         Icon(

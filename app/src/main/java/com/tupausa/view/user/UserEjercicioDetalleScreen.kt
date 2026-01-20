@@ -170,14 +170,13 @@ fun UserEjercicioDetalleScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Título
+                    // Titulo
                     Text(
                         text = ejercicio.nombreEjercicio,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = OnPrimary
                     )
-
                     // Badges
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -271,10 +270,10 @@ fun UserEjercicioDetalleScreen(
                     onClick = {
                         val intent = Intent(context, AlarmActivity::class.java).apply {
                             putExtra("IS_MANUAL", true)
+                            putIntegerArrayListExtra("ALARM_IDS_RUTINA", arrayListOf(ejercicio.idEjercicio))
                             putExtra("ALARM_NOMBRE", ejercicio.nombreEjercicio)
                             putExtra("ALARM_TIPO", ejercicio.tipoEjercicio)
                             putExtra("ALARM_DURACION", ejercicio.duracionSegundos)
-                            putExtra("ALARM_ID", ejercicio.idEjercicio)
                         }
                         context.startActivity(intent)
                     },
