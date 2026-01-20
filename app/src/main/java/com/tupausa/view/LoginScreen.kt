@@ -20,13 +20,14 @@ import androidx.compose.foundation.Image
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.layout.ContentScale
 import com.tupausa.R
-import com.tupausa.ui.theme.ArenaBackground
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaOnSurface
-import com.tupausa.ui.theme.ArenaOnSurfaceVariant
-import com.tupausa.ui.theme.ArenaOutline
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.Outline
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
 import com.tupausa.viewModel.LoginViewModel
 
 @Composable
@@ -77,9 +78,9 @@ fun LoginScreen(
 
         Text(
             text = "Iniciar sesión",
-            fontSize = 20.sp,
+            fontSize = 22.sp,
             modifier = Modifier.padding(top = 8.dp, bottom = 32.dp),
-            color = ArenaOnPrimaryContainer
+            color = OnSurface
         )
 
         // Campo de email
@@ -92,18 +93,18 @@ fun LoginScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             enabled = !isLoading,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -120,18 +121,18 @@ fun LoginScreen(
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium,
             trailingIcon = {
@@ -157,16 +158,17 @@ fun LoginScreen(
                 .height(50.dp),
             enabled = !isLoading && email.isNotEmpty() && password.isNotEmpty(),
             colors = ButtonDefaults.buttonColors(
-                containerColor = ArenaPrimary // Cambia el color de fondo
+                containerColor = OnPrimaryContainer
             )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(24.dp)
                 )
             } else {
                 Text("Iniciar sesión", fontSize = 16.sp,
-                    color = ArenaPrimaryContainer)
+                    color = OnPrimary)
             }
         }
 
@@ -177,7 +179,7 @@ fun LoginScreen(
             onClick = onNavigateToRegister,
             enabled = !isLoading,
             colors = ButtonDefaults.textButtonColors(
-                contentColor = ArenaPrimary
+                contentColor = Primary
             )
         ) {
             Text("¿No tienes cuenta? Regístrate")
@@ -190,13 +192,13 @@ fun LoginScreen(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer
+                        containerColor = Primary
                     )
                 ) {
                     Text(
                         text = errorMessage,
                         modifier = Modifier.padding(16.dp),
-                        color = MaterialTheme.colorScheme.onErrorContainer
+                        color = OnPrimary
                     )
                 }
             }

@@ -27,14 +27,20 @@ import coil.compose.AsyncImage
 import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 import com.tupausa.TuPausaApplication
 import com.tupausa.alarm.AlarmActivity
 import com.tupausa.alarm.AlarmScheduler
 import com.tupausa.model.data.Alarma
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.Tertiary
 import com.tupausa.view.user.AlarmaFormDialog
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
@@ -46,11 +52,10 @@ import kotlinx.coroutines.launch
 fun UserEjercicioDetalleScreen(
     ejercicio: Ejercicio,
     onBack: () -> Unit
-    // Ya no necesitamos pasar callbacks vacíos porque implementaremos la lógica aquí dentro
 ) {
     val context = LocalContext.current
 
-    // 1. CONFIGURACIÓN DEL VIEWMODEL Y SCHEDULER (Necesarios para guardar la alarma)
+    // CONFIGURACIÓN DEL VIEWMODEL Y SCHEDULER (Necesarios para guardar la alarma)
     val app = context.applicationContext as TuPausaApplication
     val scheduler = remember { AlarmScheduler(context) }
 
@@ -62,15 +67,13 @@ fun UserEjercicioDetalleScreen(
         )
     )
 
-    // 2. ESTADOS
-    // Controla si se muestra el diálogo de programar alarma
+    // ESTADOS
     var showAlarmaDialog by remember { mutableStateOf(false) }
-    // Obtenemos la lista de ejercicios para que el Dialog funcione correctamente
     val listaEjercicios by viewModel.ejerciciosReales.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // 3. CONFIGURACIÓN DE COIL (GIFs)
+    // CONFIGURACIÓN DE COIL (GIFs)
     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
     val imageLoader = remember {
         ImageLoader.Builder(context)
@@ -99,8 +102,8 @@ fun UserEjercicioDetalleScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         }
@@ -145,9 +148,12 @@ fun UserEjercicioDetalleScreen(
                                 imageVector = Icons.Default.FitnessCenter,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = OnSurface
                             )
-                            Text("Vista previa no disponible")
+                            Text(
+                                text = "Vista previa no disponible",
+                                color = OnSurface
+                            )
                         }
                     }
                 }
@@ -157,7 +163,7 @@ fun UserEjercicioDetalleScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                    containerColor = Secondary
                 )
             ) {
                 Column(
@@ -169,7 +175,7 @@ fun UserEjercicioDetalleScreen(
                         text = ejercicio.nombreEjercicio,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = OnPrimary
                     )
 
                     // Badges
@@ -190,19 +196,15 @@ fun UserEjercicioDetalleScreen(
                             text = ejercicio.getNivelDisplayName()
                         )
                     }
-
                     Divider()
-
                     // Descripción
                     SectionTitle("Descripción")
                     Text(
                         text = ejercicio.descripcion,
                         fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = OnPrimary
                     )
-
                     Divider()
-
                     // Instrucciones
                     SectionTitle("Cómo realizarlo")
                     val instrucciones = ejercicio.getInstruccionesList()
@@ -212,14 +214,13 @@ fun UserEjercicioDetalleScreen(
                             texto = instruccion
                         )
                     }
-
                     // Beneficios
                     if (!ejercicio.beneficios.isNullOrEmpty()) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Card(
                             modifier = Modifier.fillMaxWidth(),
                             colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                containerColor = Surface
                             )
                         ) {
                             Row(
@@ -229,13 +230,13 @@ fun UserEjercicioDetalleScreen(
                                 Icon(
                                     imageVector = Icons.Default.HealthAndSafety,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                    tint = OnSurface
                                 )
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
                                     text = ejercicio.beneficios,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    fontSize = 16.sp,
+                                    color = OnSurface,
                                     fontWeight = FontWeight.Medium
                                 )
                             }
@@ -244,24 +245,28 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // --- ZONA DE BOTONES ---
+            // BOTONES
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // BOTÓN 1: PROGRAMAR ALARMA
+                // PROGRAMAR ALARMA
                 FilledTonalButton(
-                    onClick = { showAlarmaDialog = true }, // Abrir Dialog
+                    onClick = { showAlarmaDialog = true },
                     modifier = Modifier.height(56.dp),
-                    shape = MaterialTheme.shapes.large
+                    shape = MaterialTheme.shapes.large,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Tertiary
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Alarm,
-                        contentDescription = "Programar Alarma"
+                        contentDescription = "Programar Alarma",
+                        tint = OnSurface,
                     )
                 }
 
-                // BOTÓN 2: COMENZAR EJERCICIO
+                // COMENZAR EJERCICIO
                 Button(
                     onClick = {
                         val intent = Intent(context, AlarmActivity::class.java).apply {
@@ -278,22 +283,22 @@ fun UserEjercicioDetalleScreen(
                         .height(56.dp),
                     shape = MaterialTheme.shapes.large,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ArenaPrimary
+                        containerColor = OnPrimaryContainer
                     )
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null,
-                        tint = ArenaPrimaryContainer)
+                        tint = OnPrimary)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Comenzar Ejercicio",
                         fontSize = 18.sp,
-                        color = ArenaPrimaryContainer)
+                        color = OnPrimary)
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // --- LÓGICA DEL DIÁLOGO FLOTANTE ---
+        // LÓGICA DEL DIÁLOGO FLOTANTE
         if (showAlarmaDialog) {
             val preAlarma = Alarma(
                 idsEjercicios = listOf(ejercicio.idEjercicio),
@@ -341,7 +346,7 @@ fun SectionTitle(text: String) {
         text = text,
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.primary
+        color = Tertiary
     )
 }
 
@@ -352,7 +357,7 @@ fun InfoBadge(
 ) {
     Surface(
         shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.secondaryContainer
+        color = OnSecondary
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
@@ -363,12 +368,12 @@ fun InfoBadge(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer
+                tint = OnSurface
             )
             Text(
                 text = text,
                 fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = OnSurface,
                 fontWeight = FontWeight.Medium
             )
         }
@@ -389,7 +394,7 @@ fun InstruccionItem(
         Surface(
             modifier = Modifier.size(24.dp),
             shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.primary
+            color = Tertiary
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -397,7 +402,7 @@ fun InstruccionItem(
             ) {
                 Text(
                     text = numero.toString(),
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = OnSurface,
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )
@@ -410,7 +415,7 @@ fun InstruccionItem(
             text = texto,
             fontSize = 15.sp,
             modifier = Modifier.weight(1f),
-            color = MaterialTheme.colorScheme.onSurface
+            color = OnPrimary
         )
     }
 }

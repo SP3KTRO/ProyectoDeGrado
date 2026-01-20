@@ -10,46 +10,19 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.*
-import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import coil.ImageLoader
-import coil.compose.AsyncImage
-import coil.decode.GifDecoder
-import coil.decode.ImageDecoderDecoder
-import coil.request.ImageRequest
 import com.tupausa.TuPausaApplication
-import com.tupausa.R
+import com.tupausa.view.AlarmScreen
 import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaOnSurface
-import com.tupausa.ui.theme.ArenaOnSurfaceVariant
-import com.tupausa.ui.theme.ArenaPrimaryContainer
-import com.tupausa.utils.rememberDrawableId
-import com.tupausa.view.user.InstruccionItem
-import com.tupausa.view.user.SectionTitle
+import com.tupausa.ui.theme.Primary
 import com.tupausa.utils.PreferencesManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.Manifest
@@ -62,16 +35,10 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.filled.Snooze
 import androidx.compose.ui.input.pointer.changedToDown
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.TextUnit
 import androidx.core.content.ContextCompat
 import com.tupausa.utils.FlipDetector
 import com.tupausa.utils.ShakeDetector
@@ -81,6 +48,7 @@ import kotlin.random.Random
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.tupausa.view.AlarmScreen
 import java.util.concurrent.Executors
 
 // Enumeración de los retos disponibles
@@ -243,7 +211,7 @@ class AlarmActivity : ComponentActivity() {
                     }
                 } ?: run {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = ArenaPrimary)
+                        CircularProgressIndicator(color = Primary)
                     }
                 }
             }
@@ -424,7 +392,7 @@ class AlarmActivity : ComponentActivity() {
                 // Log de control
                 Log.d("LumaCheck", "Luz actual: $luma")
 
-                // Bajamos el umbral a 100 para que sea más fácil de detectar en interiores
+                // Bajamos el umbral a 110 para que sea más fácil de detectar en interiores
                 if (luma > 110) {
                     runOnUiThread {
                         if (retoActual == TipoReto.FIND_LIGHT) {
@@ -440,7 +408,7 @@ class AlarmActivity : ComponentActivity() {
             try {
                 cameraProvider.unbindAll()
 
-                // Selector explícito para evitar cámaras "auxiliares" que fallan en MIUI
+                // Selector explícito para evitar cámaras auxiliares
                 val cameraSelector = CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                     .build()
@@ -533,224 +501,4 @@ class AlarmActivity : ComponentActivity() {
         if (::flipDetector.isInitialized) flipDetector.stop()
         if (::proximityDetector.isInitialized) proximityDetector.stop()
     }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    fun AlarmScreen(
-        ejercicio: Ejercicio?,
-        infoReto: String,
-        isManual: Boolean,
-        onDismiss: () -> Unit,
-        onPosponer: () -> Unit,
-        numActual: Int,
-        total: Int
-    ) {
-        val context = LocalContext.current
-        if (ejercicio == null) return
-
-        val imageLoader = remember {
-            ImageLoader.Builder(context)
-                .components {
-                    if (SDK_INT >= 28) add(ImageDecoderDecoder.Factory()) else add(
-                        GifDecoder.Factory()
-                    )
-                }
-                .build()
-        }
-
-        var timeLeft by remember(ejercicio.idEjercicio) { mutableFloatStateOf(ejercicio.duracionSegundos.toFloat()) }
-
-        LaunchedEffect(ejercicio.idEjercicio) {
-            while (timeLeft > 0) {
-                delay(100L)
-                timeLeft -= 0.1f
-            }
-        }
-
-        Box(modifier = Modifier
-            .fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.fondo),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
-            )
-            Scaffold(
-                containerColor = Color.Transparent,
-                topBar = {
-                    Column {
-                        LinearProgressIndicator(
-                            progress = { transformProgress(timeLeft / ejercicio.duracionSegundos) },
-                            modifier = Modifier.fillMaxWidth().height(13.dp),
-                            color = ArenaOnPrimaryContainer,
-                            trackColor = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = "Ejercicio $numActual de $total",
-                            modifier = Modifier
-                                .fillMaxWidth(),
-                            textAlign = TextAlign.Center,
-                            color = ArenaPrimary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 15.sp
-                        )
-                    }
-                },
-                bottomBar = {
-                    Button(
-                        onClick = if (isManual) onDismiss else onPosponer,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
-                            .height(48.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = if (isManual) ArenaPrimary else ArenaOnPrimaryContainer)
-                    ) {
-                        Icon(
-                            if (isManual) Icons.Default.Stop else Icons.Default.Snooze,
-                            contentDescription = null,
-                            tint = ArenaPrimaryContainer
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = if (isManual) "TERMINAR EJERCICIO" else "POSPONER 5 MIN",
-                            color = ArenaPrimaryContainer,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-            ) { padding ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding)
-                        .padding(top = 2.dp, bottom = 2.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = ejercicio.nombreEjercicio,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontSize = 22.sp,
-                        color = ArenaOnSurface,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        maxLines = 1,
-                        modifier = Modifier
-                            .padding(horizontal = 6.dp)
-                    )
-                    Text(
-                        text = "${timeLeft.toInt()} s",
-                        fontSize = 38.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ArenaPrimary
-                    )
-                    if (infoReto.isNotEmpty()) {
-                        Text(
-                            text = infoReto,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = ArenaOnSurface,
-                            modifier = Modifier
-                                .background(
-                                Color.White.copy(alpha = 0.8f),
-                                RoundedCornerShape(8.dp)
-                            ).padding(horizontal = 6.dp, vertical = 4.dp)
-                        )
-                    }
-
-                    val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
-                    Card(
-                        shape = RoundedCornerShape(10.dp),
-                        modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .height(280.dp)
-                            .wrapContentHeight(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color.Transparent
-                        )
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            if (drawableId != 0) {
-                                AsyncImage(
-                                    model = ImageRequest.Builder(context).data(drawableId)
-                                        .crossfade(true).build(),
-                                    imageLoader = imageLoader,
-                                    contentDescription = "Guía",
-                                    contentScale = ContentScale.Fit,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .align(Alignment.Center)
-                                )
-                            }
-                        }
-                    }
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .wrapContentHeight()
-                            .padding(bottom = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
-                        )
-                    ) {
-                        Column(modifier = Modifier
-                            .padding(12.dp)) {
-                            SectionTitle("Cómo realizarlo")
-                            ejercicio.getInstruccionesList()
-                                .forEachIndexed { index, instruccion ->
-                                InstruccionItem(
-                                    numero = index + 1,
-                                    texto = instruccion
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    @Composable
-    fun SectionTitle(text: String) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            fontSize = 17.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier
-                .padding(bottom = 3.dp),
-            color = MaterialTheme.colorScheme.primary
-        )
-    }
-    @Composable
-    fun InstruccionItem(numero: Int, texto: String) {
-        Row(
-            modifier = Modifier
-                .padding(vertical = 2.dp),
-            verticalAlignment = Alignment.Top
-        ) {
-            Text(
-                text = "$numero.",
-                fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                lineHeight = 16.sp,
-                modifier = Modifier
-                    .width(20.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text = texto,
-                fontSize = 17.sp,
-                lineHeight = 16.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
-    }
 }
-
-fun transformProgress(value: Float): Float { return value.coerceIn(0f, 1f) }

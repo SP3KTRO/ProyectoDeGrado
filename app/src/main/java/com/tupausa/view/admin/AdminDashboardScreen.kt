@@ -20,9 +20,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.TuPausaApplication
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaSurface
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,9 +55,12 @@ fun AdminDashboardScreen(
                 )},
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión")
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión", tint = OnPrimary)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = OnPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -64,17 +71,17 @@ fun AdminDashboardScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            // Saludo personalizado
             Text(
                 text = "¡Hola ${userName}!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = ArenaOnPrimaryContainer
+                color = OnSurface
             )
-
             // Badge de Administrador
             Surface(
                 shape = MaterialTheme.shapes.small,
-                color = ArenaPrimary
+                color = OnSurfaceVariant
             ) {
                 Row(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
@@ -85,18 +92,18 @@ fun AdminDashboardScreen(
                         imageVector = Icons.Filled.AdminPanelSettings,
                         contentDescription = null,
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = OnPrimary
                     )
                     Text(
                         text = "Administrador",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
-                        color = ArenaSurface
+                        color = OnPrimary
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Tarjeta: Ver Usuarios
             AdminMenuCard(
@@ -141,7 +148,7 @@ fun AdminMenuCard(
             .fillMaxWidth()
             .height(120.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            containerColor = Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = onClick
@@ -166,12 +173,12 @@ fun AdminMenuCard(
                     text = title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = OnPrimary
                 )
                 Text(
                     text = description,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Surface
                 )
             }
         }

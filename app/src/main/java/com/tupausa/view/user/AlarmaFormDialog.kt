@@ -1,5 +1,6 @@
 package com.tupausa.view.user
 
+import android.R
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -14,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -23,9 +25,17 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.Gris
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.Tertiary
 import com.tupausa.utils.rememberDrawableId
 
 private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
@@ -55,7 +65,7 @@ fun AlarmaFormDialog(
         }
     }
 
-    // Rutina de Ejercicios (Múltiple Selección)
+    // Rutina de Ejercicios
     val selectedExerciseIds = remember {
         mutableStateListOf<Int>().apply {
             if (alarmaAEditar != null) addAll(alarmaAEditar.idsEjercicios)
@@ -66,7 +76,7 @@ fun AlarmaFormDialog(
     var currentStep by remember { mutableStateOf(DialogStep.FORMULARIO) }
 
     AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+        containerColor = Secondary,
         onDismissRequest = onDismiss,
         modifier = Modifier
             .fillMaxWidth(0.95f)
@@ -78,7 +88,7 @@ fun AlarmaFormDialog(
                     if (!puedeGuardar && selectedExerciseIds.isNotEmpty()) {
                         Text(
                             "Mínimo 4 ejercicios",
-                            color = MaterialTheme.colorScheme.error,
+                            color = OnSurfaceVariant,
                             fontSize = 12.sp,
                             modifier = Modifier.padding(bottom = 4.dp)
                         )
@@ -96,11 +106,11 @@ fun AlarmaFormDialog(
                                 selectedExerciseIds.toList()
                             )
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = ArenaPrimary)
+                        colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
                     ) {
                         Text(
                             if (alarmaAEditar == null) "Crear" else "Guardar",
-                            color = ArenaPrimaryContainer
+                            color = OnPrimary
                         )
                     }
                 }
@@ -108,9 +118,9 @@ fun AlarmaFormDialog(
                 // Botón "Listo" en la pantalla de selección
                 Button(
                     onClick = { currentStep = DialogStep.FORMULARIO },
-                    colors = ButtonDefaults.buttonColors(containerColor = ArenaPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
                 ) {
-                    Text("Listo (${selectedExerciseIds.size})", color = ArenaPrimaryContainer)
+                    Text("Listo (${selectedExerciseIds.size})", color = OnPrimary)
                 }
             }
         },
@@ -124,15 +134,16 @@ fun AlarmaFormDialog(
             }) {
                 Text(
                     if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar",
-                    color = ArenaPrimaryContainer
+                    color = OnPrimary
                 )
             }
         },
         title = {
             Text(
-                if (currentStep == DialogStep.FORMULARIO)
+                text = if (currentStep == DialogStep.FORMULARIO)
                     (if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma")
-                else "Arma tu rutina (mín. 4)"
+                else "Arma tu rutina (mín. 4)",
+                color = OnPrimary
             )
         },
         text = {
@@ -146,8 +157,17 @@ fun AlarmaFormDialog(
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            TimeInput(state = timeState)
-
+                            TimeInput(
+                                state = timeState,
+                                colors = TimePickerDefaults.colors(
+                                    // AM PM
+                                    periodSelectorSelectedContainerColor = OnPrimaryContainer,
+                                    periodSelectorUnselectedContainerColor = Gris,
+                                    // Hora y Minutos
+                                    timeSelectorSelectedContainerColor = OnPrimaryContainer,
+                                    timeSelectorUnselectedContainerColor = Gris,
+                                )
+                            )
                             OutlinedCard(
                                 onClick = { currentStep = DialogStep.SELECCION_EJERCICIO },
                                 modifier = Modifier.fillMaxWidth(),
@@ -158,27 +178,32 @@ fun AlarmaFormDialog(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text("Rutina seleccionada:", fontSize = 12.sp, color = Color.Gray)
+                                        Text("Rutina seleccionada:", fontSize = 12.sp, color = OnPrimary)
                                         Text(
                                             text = if (selectedExerciseIds.isEmpty()) "Ningún ejercicio"
                                             else "${selectedExerciseIds.size} ejercicios seleccionados",
                                             fontWeight = FontWeight.Bold,
-                                            color = if (selectedExerciseIds.size < 4) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                                            color = if (selectedExerciseIds.size < 4) OnSurfaceVariant else Tertiary
                                         )
                                     }
-                                    Icon(Icons.Default.Edit, "Cambiar", tint = ArenaPrimary)
+                                    Icon(Icons.Default.Edit, "Cambiar", tint = OnPrimary)
                                 }
                             }
 
                             OutlinedTextField(
                                 value = etiqueta,
                                 onValueChange = { etiqueta = it },
-                                label = { Text("Nombre de la rutina") },
+                                label = {
+                                    Text(  "Nombre de la rutina", color = OnPrimary) },
                                 singleLine = true,
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = Primary,
+                                    unfocusedBorderColor = OnPrimary
+                                )
                             )
 
-                            Text("Repetir:", style = MaterialTheme.typography.bodySmall)
+                            Text("Repetir:", style = MaterialTheme.typography.bodySmall, color = OnPrimary)
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth()
@@ -202,8 +227,8 @@ fun AlarmaFormDialog(
                         Column {
                             Text(
                                 "Seleccionados: ${selectedExerciseIds.size}/4 mínimo",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = if (selectedExerciseIds.size < 4) Color.Red else ArenaPrimary,
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (selectedExerciseIds.size < 4) OnSurfaceVariant else Tertiary,
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
                             Box(modifier = Modifier.heightIn(max = 400.dp)) {
@@ -246,9 +271,9 @@ fun SelectableEjercicioCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                OnPrimaryContainer
             else
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
@@ -259,7 +284,7 @@ fun SelectableEjercicioCard(
             Surface(
                 modifier = Modifier.size(56.dp),
                 shape = MaterialTheme.shapes.small,
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                color = Color.Transparent
             ) {
                 if (drawableId != 0) {
                     AsyncImage(
@@ -269,7 +294,7 @@ fun SelectableEjercicioCard(
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.padding(12.dp))
+                    Icon(Icons.Default.FitnessCenter, null, modifier = Modifier.padding(12.dp), tint = OnPrimary)
                 }
             }
 
@@ -279,12 +304,13 @@ fun SelectableEjercicioCard(
                 Text(
                     text = ejercicio.nombreEjercicio,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = OnPrimary
                 )
                 Text(
                     text = "${ejercicio.duracionSegundos}s • ${ejercicio.tipoEjercicio}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Surface
                 )
             }
 

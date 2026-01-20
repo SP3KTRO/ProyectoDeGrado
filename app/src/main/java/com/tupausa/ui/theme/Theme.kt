@@ -18,21 +18,17 @@ import androidx.compose.runtime.Composable
 
 
 private val LightColorScheme = lightColorScheme(
-    primary = ArenaPrimary,
-    onPrimary = ArenaOnPrimary,
-    primaryContainer = ArenaPrimaryContainer,
-    onPrimaryContainer = ArenaOnPrimaryContainer,
-
-    background = ArenaBackground,
-    onBackground = ArenaOnSurface,
-
-    surface = ArenaSurface,
-    onSurface = ArenaOnSurface,
-
-    onSurfaceVariant = ArenaOnSurfaceVariant,
-
-
-    outline = ArenaOutline
+    primary = Primary,
+    onPrimary = OnPrimary,
+    primaryContainer = PrimaryContainer,
+    onPrimaryContainer = OnPrimaryContainer,
+    surface = Surface,
+    onSurface = OnSurface,
+    onSurfaceVariant = OnSurfaceVariant,
+    tertiary = Tertiary,
+    secondary = Secondary,
+    onSecondary = OnSecondary,
+    outline = Outline
 )
 
 // Esquema Oscuro
@@ -64,8 +60,7 @@ fun TuPausaTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            // Barra de estado del color arena primary o transparente
-            window.statusBarColor = ArenaPrimary.toArgb()
+            window.statusBarColor = OnPrimaryContainer.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
         }
     }

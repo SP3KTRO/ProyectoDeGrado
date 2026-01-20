@@ -21,8 +21,15 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Tertiary
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,11 +58,10 @@ fun UserEjerciciosListScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 },
-                // 2. Barra transparente. El título tomará el color Café Oscuro (onSurface) definido en tu Theme
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         }
@@ -81,7 +87,7 @@ fun UserEjerciciosListScreen(
                     isLoading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = ArenaPrimary // Color Bronce
+                            color = Primary
                         )
                     }
                     filteredEjercicios.isEmpty() -> {
@@ -93,12 +99,12 @@ fun UserEjerciciosListScreen(
                                 imageVector = Icons.Default.SearchOff,
                                 contentDescription = null,
                                 modifier = Modifier.size(48.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant // Café grisáceo
+                                tint = OnSurface
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
                                 text = "No se encontraron ejercicios",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = OnSurface
                             )
                         }
                     }
@@ -173,15 +179,15 @@ fun FilterChips(
                     )
                 },
                 colors = FilterChipDefaults.filterChipColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                    labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    containerColor = Secondary,
+                    labelColor = OnPrimary,
+                    selectedContainerColor = OnPrimaryContainer,
+                    selectedLabelColor = OnPrimary
                 ),
                 border = FilterChipDefaults.filterChipBorder(
                     enabled = true,
                     selected = isSelected,
-                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    borderColor = OnSecondary,
                     selectedBorderColor = Color.Transparent,
                     borderWidth = 1.dp
                 )
@@ -204,7 +210,7 @@ fun UserEjercicioCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            containerColor = Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = onClick
@@ -219,7 +225,7 @@ fun UserEjercicioCard(
             Surface(
                 modifier = Modifier.size(72.dp),
                 shape = MaterialTheme.shapes.medium,
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+                color = Color.Transparent
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
@@ -240,7 +246,7 @@ fun UserEjercicioCard(
                             imageVector = getIconoPorTipo(ejercicio.tipoEjercicio),
                             contentDescription = null,
                             modifier = Modifier.size(32.dp),
-                            tint = ArenaPrimary // Bronce
+                            tint = Surface
                         )
                     }
                 }
@@ -254,7 +260,7 @@ fun UserEjercicioCard(
                     text = ejercicio.nombreEjercicio,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface // Café Oscuro
+                    color = OnPrimary
                 )
 
                 Spacer(modifier = Modifier.height(4.dp))
@@ -262,7 +268,7 @@ fun UserEjercicioCard(
                 Text(
                     text = ejercicio.descripcion,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant, // Café Gris
+                    color = Surface,
                     maxLines = 2
                 )
 
@@ -274,21 +280,20 @@ fun UserEjercicioCard(
                     // Badge tipo
                     Surface(
                         shape = MaterialTheme.shapes.small,
-                        color = MaterialTheme.colorScheme.secondaryContainer // Bronce suave
+                        color = OnSecondary
                     ) {
                         Text(
                             text = getNombreAmigable(ejercicio.tipoEjercicio),
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             fontSize = 12.sp,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer // Café muy oscuro
+                            color = OnSurface
                         )
                     }
 
                     // Badge duración
                     Surface(
                         shape = MaterialTheme.shapes.small,
-                        // Un color un poco distinto para la duración (usamos Tertiary)
-                        color = MaterialTheme.colorScheme.tertiaryContainer // Puede ser un tono melocotón suave si lo definiste, o default
+                        color = OnSurfaceVariant
                     ) {
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
@@ -298,13 +303,13 @@ fun UserEjercicioCard(
                                 imageVector = Icons.Default.Timer,
                                 contentDescription = null,
                                 modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer
+                                tint = OnPrimary
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 text = "${ejercicio.duracionSegundos}s",
                                 fontSize = 12.sp,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                color = OnPrimary
                             )
                         }
                     }

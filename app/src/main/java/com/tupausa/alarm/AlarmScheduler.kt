@@ -18,10 +18,8 @@ class AlarmScheduler(private val context: Context) {
 
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("ALARM_RECORD_ID", alarma.id)
-
-            // CAMBIO CLAVE: Enviamos la lista completa de IDs de la rutina
+            // Enviamos la lista completa de IDs de la rutina
             putIntegerArrayListExtra("ALARM_IDS_RUTINA", ArrayList(alarma.idsEjercicios))
-
             putExtra("ALARM_NOMBRE", alarma.etiqueta)
             putExtra("ALARM_TIPO", alarma.tipoEjercicio)
             putExtra("ALARM_DURACION", alarma.duracionSegundos)

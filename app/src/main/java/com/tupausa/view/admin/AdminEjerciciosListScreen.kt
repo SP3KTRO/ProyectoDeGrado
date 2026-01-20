@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.Secondary
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,8 +48,8 @@ fun AdminEjerciciosScreen(
                 // 2. Barra Transparente y textos color Café
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         }
@@ -106,7 +108,7 @@ fun AdminEjercicioCard(
         onClick = onClick,
         // 2. Color CREMA (Surface) con un toque de transparencia
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f) //
+            containerColor = Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {

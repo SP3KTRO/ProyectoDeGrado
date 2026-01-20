@@ -26,17 +26,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.tupausa.ui.theme.ArenaBackground
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaOnSurfaceVariant
-import com.tupausa.ui.theme.ArenaOutline
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.Outline
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
 import com.tupausa.viewModel.RegisterViewModel
 
 @Composable
@@ -103,7 +104,7 @@ fun RegisterScreen(
         Text(
             text = "Regístrate",
             style = MaterialTheme.typography.headlineMedium,
-            color = ArenaOnPrimaryContainer
+            color = OnSurface
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -122,18 +123,18 @@ fun RegisterScreen(
             label = { Text("Nombre") },
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
         ),
         shape = MaterialTheme.shapes.medium
         )
@@ -142,7 +143,7 @@ fun RegisterScreen(
         if (nombreError.isNotEmpty()) {
             Text(
                 text = nombreError,
-                color = MaterialTheme.colorScheme.onError,
+                color = OnSurface,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -164,18 +165,18 @@ fun RegisterScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -184,7 +185,7 @@ fun RegisterScreen(
         if (correoError.isNotEmpty()) {
             Text(
                 text = correoError,
-                color = MaterialTheme.colorScheme.onError,
+                color = OnSurface,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -207,18 +208,18 @@ fun RegisterScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -227,7 +228,7 @@ fun RegisterScreen(
         if (contrasenaError.isNotEmpty()) {
             Text(
                 text = contrasenaError,
-                color = MaterialTheme.colorScheme.onError,
+                color = OnSurface,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -250,18 +251,18 @@ fun RegisterScreen(
             visualTransformation = PasswordVisualTransformation(),
             modifier = Modifier.fillMaxWidth(),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                // Bordes: Bronce (para delimitar bien)
-                focusedBorderColor = MaterialTheme.colorScheme.primary,
-                unfocusedBorderColor = MaterialTheme.colorScheme.outline,
-                // Texto: Café Oscuro (para leer bien)
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = ArenaBackground,
-                // Label (Etiqueta): Café
-                focusedLabelColor = ArenaOnPrimaryContainer,
-                unfocusedLabelColor = ArenaPrimaryContainer
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                disabledContainerColor = Secondary,
+                // Bordes
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+                // Texto
+                focusedTextColor = OnPrimary,
+                unfocusedTextColor = Outline,
+                // Label
+                focusedLabelColor = OnSurface,
+                unfocusedLabelColor = PrimaryContainer
             ),
             shape = MaterialTheme.shapes.medium
         )
@@ -270,7 +271,7 @@ fun RegisterScreen(
         if (confirmarContrasenaError.isNotEmpty()) {
             Text(
                 text = confirmarContrasenaError,
-                color = MaterialTheme.colorScheme.onError,
+                color = OnSurface,
                 modifier = Modifier.padding(top = 4.dp)
             )
         }
@@ -312,14 +313,14 @@ fun RegisterScreen(
                 .height(50.dp),
             enabled = !isLoading,
             colors = ButtonDefaults.buttonColors(
-                containerColor = ArenaPrimary)
+                containerColor = OnPrimaryContainer)
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    color = ArenaPrimary)
+                    color = OnPrimaryContainer)
             } else {
                 Text("Registrarse",
-                    color = ArenaPrimaryContainer)
+                    color = OnPrimary)
             }
         }
 
@@ -329,7 +330,7 @@ fun RegisterScreen(
         TextButton(
             onClick = onNavigateToLogin,
             colors = ButtonDefaults.textButtonColors(
-                contentColor = ArenaPrimary
+                contentColor = Primary
             )
             ) {
             Text("¿Ya tienes una cuenta? Inicia sesión")
@@ -339,7 +340,7 @@ fun RegisterScreen(
         if (error.isNotEmpty()) {
             Text(
                 text = error,
-                color = MaterialTheme.colorScheme.error,
+                color = Primary,
                 modifier = Modifier.padding(top = 8.dp)
             )
         }

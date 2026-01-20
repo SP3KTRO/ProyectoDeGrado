@@ -2,22 +2,23 @@ package com.tupausa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-//Paleta de colores (Sand)
+//Paleta de colores
 
-// EL FONDO
-val ArenaBackground = Color(0xFFFFDAC9)
+val Primary = Color(0xFFC01C1C) // Container error
 
-// ELEMENTOS PRINCIPALES (Botones, Títulos)
-val ArenaPrimary = Color(0xFF9C3328)
-val ArenaOnPrimary = Color(0xFFFFFFFF)
-val ArenaPrimaryContainer = Color(0xFFFFEDEA)
-val ArenaOnPrimaryContainer = Color(0xFF410002)
+val OnPrimary = Color(0xFFFFFFFF) // Texto claro
+val PrimaryContainer = Color(0xFFADACAC)
 
-// SUPERFICIES (Cards, Inputs, Fondos de texto)
-val ArenaSurface = Color(0xFFFFF8F6)
-val ArenaOnSurface = Color(0xFF2E1514)
-val ArenaOnSurfaceVariant = Color(0xFF5D403E)
+val OnPrimaryContainer = Color(0xFF560202) // Buttons y color base
 
-// BORDES (Outlines)
-val ArenaOutline = Color(0xFFA87E7A)
+val Surface = Color(0xFFFFD5AE) //Texto alternativo
+
+val OnSurface = Color(0xFF251010) //Texto oscuro
+val OnSurfaceVariant = Color(0xFFA23030)
+
+val Secondary = Color(0xFF1A1A1A) // Card oscura
+val OnSecondary = Color(0xFFC4BFBF) // Card clara
+val Tertiary = Color(0xFFD98C09)
+val Outline = Color(0xFFE0B89A)
+val Gris = Color(0xFF4B4B4B)
 

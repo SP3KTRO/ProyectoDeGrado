@@ -10,8 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.tupausa.model.Usuario
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
 import com.tupausa.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +30,7 @@ fun EditarUsuarioDialog(
     var emailError by remember { mutableStateOf(false) }
 
     AlertDialog(
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
+        containerColor = Secondary,
         onDismissRequest = onDismiss,
         title = {
             Text("Editar Usuario")
@@ -109,17 +110,17 @@ fun EditarUsuarioDialog(
                 },
                 enabled = !nombreError && !emailError && nombre.isNotEmpty() && email.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ArenaPrimary
+                    containerColor = Primary
                 )
             ) {
                 Text("Guardar",
-                    color = ArenaPrimaryContainer)
+                    color = PrimaryContainer)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancelar",
-                    color = ArenaPrimaryContainer)
+                    color = PrimaryContainer)
             }
         }
     )

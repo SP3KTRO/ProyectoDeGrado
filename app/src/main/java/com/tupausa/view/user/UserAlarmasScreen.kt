@@ -14,21 +14,31 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tupausa.TuPausaApplication
 import com.tupausa.alarm.AlarmScheduler
 import com.tupausa.model.data.Alarma
-import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSecondary
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.Surface
+import com.tupausa.ui.theme.Tertiary
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
 
@@ -49,16 +59,16 @@ fun UserAlarmasScreen(
         )
     )
 
-    // --- DATOS ---
+    // DATOS
     val alarmas by viewModel.alarmas.collectAsState()
     val listaEjercicios by viewModel.ejerciciosReales.collectAsState()
 
-    // --- ESTADOS DE UI ---
+    // ESTADOS DE UI
     var showCreateDialog by remember { mutableStateOf(false) }
     var alarmaAEditar: Alarma? by remember { mutableStateOf(null) }
     var showPermissionDialog by remember { mutableStateOf(false) }
 
-    // --- PERMISOS
+    // PERMISOS
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
         onResult = { isGranted -> if (!isGranted) showPermissionDialog = true }
@@ -76,7 +86,6 @@ fun UserAlarmasScreen(
         }
     }
 
-    // --- UI PRINCIPAL ---
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -89,17 +98,17 @@ fun UserAlarmasScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showCreateDialog = true },
-                containerColor = ArenaPrimary
+                containerColor = OnPrimaryContainer
             ) {
-                Icon(Icons.Default.Add, "Crear Alarma", tint = Color.White)
+                Icon(Icons.Default.Add, "Crear Alarma", tint = OnPrimary)
             }
         }
     ) { padding ->
@@ -116,7 +125,7 @@ fun UserAlarmasScreen(
                     Text(
                         text = "No tienes alarmas",
                         fontSize = 20.sp,
-                        color = ArenaOnPrimaryContainer
+                        color = OnSurface
                     )
                 }
             } else {
@@ -182,6 +191,82 @@ fun UserAlarmasScreen(
                 },
                 dismissButton = { TextButton(onClick = { showPermissionDialog = false }) { Text("Cancelar") } }
             )
+        }
+    }
+}
+
+@Composable
+fun AlarmaCard(
+    alarma: Alarma,
+    onToggle: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = Secondary
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column {
+                // Hora
+                Text(
+                    text = String.format("%02d:%02d", alarma.hora, alarma.minuto),
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (alarma.activa) OnPrimary else Color.Gray
+                )
+                // Nombre y tipo
+                Text(
+                    text = alarma.etiqueta,
+                    fontSize = 16.sp,
+                    color = if (alarma.activa) Surface else Color.Gray
+                )
+                // Días
+                Text(
+                    text = if (alarma.diasRepeticion.isEmpty()) "Una vez" else "Días programados",
+                    fontSize = 12.sp,
+                    color = Tertiary
+                )
+                // Información de la Rutina
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.FitnessCenter,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = if (alarma.idsEjercicios.size < 4) Color.Red else Color.Gray
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "Rutina: ${alarma.idsEjercicios.size} ejercicios",
+                        fontSize = 12.sp,
+                        color = if (alarma.idsEjercicios.size < 4) Primary else PrimaryContainer
+                    )
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Switch Activar/Desactivar
+                Switch(
+                    checked = alarma.activa,
+                    onCheckedChange = onToggle,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = OnPrimary,
+                        checkedTrackColor = Primary,
+                        uncheckedThumbColor = Color.Gray
+                    )
+                )
+                // Botón eliminar
+                IconButton(onClick = onDelete) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = PrimaryContainer)
+                }
+            }
         }
     }
 }

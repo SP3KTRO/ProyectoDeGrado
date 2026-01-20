@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -19,8 +18,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.TuPausaApplication
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.Secondary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.OnSurface
+import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.Surface
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,9 +51,12 @@ fun UserDashboardScreen(
                 ) },
                 actions = {
                     IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.ExitToApp, "Cerrar Sesión")
+                        Icon(Icons.Default.ExitToApp, "Cerrar Sesión", tint = OnPrimary)
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = OnPrimaryContainer
+                )
             )
         }
     ) { padding ->
@@ -67,16 +72,16 @@ fun UserDashboardScreen(
                 text = "¡Hola ${userName}!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = ArenaOnPrimaryContainer
+                color = OnSurface
             )
             Text(
                 text = "Cuídate mientras estudias 💻",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Medium,
-                color = ArenaOnPrimaryContainer
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Light,
+                color = OnSurface
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Tarjeta: Ver Ejercicios
             UserMenuCard(
@@ -122,7 +127,7 @@ fun UserMenuCard(
             .fillMaxWidth()
             .height(100.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            containerColor = Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         onClick = onClick
@@ -143,18 +148,16 @@ fun UserMenuCard(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column {
-                // Título
                 Text(
                     text = title,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = OnPrimary
                 )
-                // Descripción
                 Text(
                     text = description,
                     fontSize = 14.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = Surface
                 )
             }
         }

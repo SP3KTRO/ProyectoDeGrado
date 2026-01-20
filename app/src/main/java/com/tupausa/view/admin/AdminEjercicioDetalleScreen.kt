@@ -26,14 +26,15 @@ import coil.decode.GifDecoder
 import coil.decode.ImageDecoderDecoder
 import coil.request.ImageRequest
 import com.tupausa.model.Ejercicio
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.utils.rememberDrawableId
 import com.tupausa.view.user.InfoBadge
 import com.tupausa.view.user.InstruccionItem
 import com.tupausa.view.user.SectionTitle
 import com.tupausa.alarm.AlarmActivity
-import com.tupausa.ui.theme.ArenaPrimary
-import com.tupausa.ui.theme.ArenaPrimaryContainer
+import com.tupausa.ui.theme.Primary
+import com.tupausa.ui.theme.PrimaryContainer
+import com.tupausa.ui.theme.Secondary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,8 +70,8 @@ fun AdminEjercicioDetalleScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnPrimaryContainer,
+                    navigationIconContentColor = OnPrimaryContainer
                 )
             )
         }
@@ -126,7 +127,7 @@ fun AdminEjercicioDetalleScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+                    containerColor = Secondary
                 )
             ) {
                 Column(
@@ -211,14 +212,14 @@ fun AdminEjercicioDetalleScreen(
                     .height(56.dp),
                 shape = MaterialTheme.shapes.large,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = ArenaPrimary
+                    containerColor = Primary
                 )
             ) {
                 Icon(Icons.Default.PlayArrow, contentDescription = null,
-                    tint = ArenaPrimaryContainer)
+                    tint = PrimaryContainer)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Comenzar Ejercicio", fontSize = 18.sp,
-                    color = ArenaPrimaryContainer)
+                    color = PrimaryContainer)
             }
 
             Spacer(modifier = Modifier.height(16.dp))

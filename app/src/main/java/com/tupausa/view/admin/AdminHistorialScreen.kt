@@ -11,8 +11,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
-import com.tupausa.ui.theme.ArenaPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.Primary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,8 +31,8 @@ fun AdminHistorialScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnPrimaryContainer,
+                    navigationIconContentColor = OnPrimaryContainer
                 )
             )
         }
@@ -59,7 +59,7 @@ fun AdminHistorialScreen(
                     text = "Aquí verás tu historial de pausas\ny estadísticas de progreso",
                     fontSize = 16.sp,
                     textAlign = TextAlign.Center,
-                    color = ArenaPrimary
+                    color = Primary
                 )
             }
         }

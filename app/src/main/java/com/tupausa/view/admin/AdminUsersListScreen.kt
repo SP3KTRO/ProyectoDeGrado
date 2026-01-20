@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.model.Usuario
-import com.tupausa.ui.theme.ArenaOnPrimaryContainer
+import com.tupausa.ui.theme.OnPrimaryContainer
+import com.tupausa.ui.theme.Secondary
 import com.tupausa.utils.Constants
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,8 +47,8 @@ fun AdminUsersListScreen(
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
-                    titleContentColor = ArenaOnPrimaryContainer,
-                    navigationIconContentColor = ArenaOnPrimaryContainer
+                    titleContentColor = OnPrimaryContainer,
+                    navigationIconContentColor = OnPrimaryContainer
                 )
             )
         }
@@ -146,7 +147,7 @@ fun UsuarioCardWithActions(
         modifier = Modifier
             .fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)
+            containerColor = Secondary
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
     ) {
