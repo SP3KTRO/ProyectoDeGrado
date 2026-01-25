@@ -23,6 +23,7 @@ class AlarmScheduler(private val context: Context) {
             putExtra("ALARM_NOMBRE", alarma.etiqueta)
             putExtra("ALARM_TIPO", alarma.tipoEjercicio)
             putExtra("ALARM_DURACION", alarma.duracionSegundos)
+            putExtra("ALARM_TONO", alarma.tonoAlarma)
         }
 
         // El PendingIntent SÍ debe usar el ID de la ALARMA para ser único en el sistema

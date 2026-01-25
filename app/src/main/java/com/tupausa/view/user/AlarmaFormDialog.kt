@@ -1,7 +1,9 @@
 package com.tupausa.view.user
 
-import android.R
+import android.content.Context
+import android.media.MediaPlayer
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -25,6 +27,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.data.Alarma
 import com.tupausa.model.Ejercicio
+import com.tupausa.model.data.TonosDisponibles
 import com.tupausa.ui.theme.Gris
 import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.OnPrimaryContainer
@@ -36,6 +39,7 @@ import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.Surface
 import com.tupausa.ui.theme.Tertiary
+import com.tupausa.utils.PreferencesManager
 import com.tupausa.utils.rememberDrawableId
 
 private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
@@ -43,18 +47,39 @@ private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlarmaFormDialog(
+    context: Context,
     alarmaAEditar: Alarma? = null,
     listaEjercicios: List<Ejercicio>,
     onDismiss: () -> Unit,
     onConfirm: (Int, Int, List<Int>, String, String, String, List<Int>) -> Unit
 ) {
+    // Preparación de estado del tono
+    val preferencesManager = remember { PreferencesManager(context) }
+
+    val idTonoInicial = remember {
+        if (alarmaAEditar != null) {
+            // Buscamos el ID basado en el nombre guardado
+            TonosDisponibles.lista.find { it.nombre == alarmaAEditar.tonoAlarma }?.recurso
+                ?: TonosDisponibles.lista.first().recurso
+        } else {
+            // Si es nueva, usamos el último seleccionado o el primero
+            preferencesManager.getSelectedTone(TonosDisponibles.lista.first().recurso)
+        }
+    }
+
     // ESTADOS DEL FORMULARIO
     val timeState = rememberTimePickerState(
         initialHour = alarmaAEditar?.hora ?: 8,
         initialMinute = alarmaAEditar?.minuto ?: 0
     )
     var etiqueta by remember { mutableStateOf(alarmaAEditar?.etiqueta ?: "") }
-    var tonoSeleccionado by remember { mutableStateOf("Predeterminado") }
+
+    // Tonos
+    var selectedToneId by remember { mutableIntStateOf(idTonoInicial) }
+    var showTonoDialog by remember { mutableStateOf(false) } // Controla si se ve el popup
+
+    // Helper para obtener el nombre actual basado en el ID seleccionado
+    val nombreTonoActual = TonosDisponibles.lista.find { it.recurso == selectedToneId }?.nombre ?: "Predeterminado"
 
     // Días
     val daysOptions = listOf(2, 3, 4, 5, 6, 7, 1)
@@ -96,13 +121,14 @@ fun AlarmaFormDialog(
                     Button(
                         enabled = puedeGuardar,
                         onClick = {
+                            preferencesManager.setSelectedTone(selectedToneId)
                             onConfirm(
                                 timeState.hour,
                                 timeState.minute,
                                 selectedDays.toList(),
-                                etiqueta.ifEmpty { "Mi Rutina de Pausa" },
+                                etiqueta.ifEmpty { "Mi Rutina" },
                                 "RUTINA",
-                                tonoSeleccionado,
+                                nombreTonoActual,
                                 selectedExerciseIds.toList()
                             )
                         },
@@ -168,6 +194,7 @@ fun AlarmaFormDialog(
                                     timeSelectorUnselectedContainerColor = Gris,
                                 )
                             )
+                            // Seleeción de rutina
                             OutlinedCard(
                                 onClick = { currentStep = DialogStep.SELECCION_EJERCICIO },
                                 modifier = Modifier.fillMaxWidth(),
@@ -190,6 +217,30 @@ fun AlarmaFormDialog(
                                 }
                             }
 
+                            // SELECCIÓN DE TONO
+                            OutlinedCard(
+                                onClick = { showTonoDialog = true }, // Abre el popup
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text("Sonido de alarma:", fontSize = 12.sp, color = OnPrimary)
+                                        Text(
+                                            text = nombreTonoActual,
+                                            fontWeight = FontWeight.Bold,
+                                            color = Tertiary
+                                        )
+                                    }
+                                    // Icono de nota musical
+                                    Icon(Icons.Default.MusicNote, "Cambiar Tono", tint = OnPrimary)
+                                }
+                            }
+
+                            // ETIQUETA
                             OutlinedTextField(
                                 value = etiqueta,
                                 onValueChange = { etiqueta = it },
@@ -254,6 +305,16 @@ fun AlarmaFormDialog(
             }
         }
     )
+    if (showTonoDialog) {
+        SelectorTonoDialog(
+            tonoIdActual = selectedToneId, // Le pasamos el ID actual
+            onDismiss = { showTonoDialog = false },
+            onTonoSeleccionado = { nuevoId ->
+                selectedToneId = nuevoId // Actualizamos el estado interno
+                showTonoDialog = false
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -318,3 +379,107 @@ fun SelectableEjercicioCard(
         }
     }
 }
+
+@Composable
+fun SelectorTonoDialog(
+    tonoIdActual: Int,
+    onDismiss: () -> Unit,
+    onTonoSeleccionado: (Int) -> Unit
+) {
+    val context = LocalContext.current
+
+    var seleccionTemporal by remember {
+        mutableStateOf(
+            TonosDisponibles.lista.find { it.recurso == tonoIdActual }
+                ?: TonosDisponibles.lista.first()
+        )
+    }
+
+    // MediaPlayer para la previsualización
+    val mediaPlayer = remember { MediaPlayer() }
+
+    fun reproducirPreview(resId: Int) {
+        try {
+            if (mediaPlayer.isPlaying) mediaPlayer.stop()
+            mediaPlayer.reset()
+
+            // Abrimos el recurso raw usando el ID
+            val afd = context.resources.openRawResourceFd(resId)
+            if (afd != null) {
+                mediaPlayer.setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                afd.close()
+                mediaPlayer.prepare()
+                mediaPlayer.start()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    // Limpieza al cerrar el dialog
+    DisposableEffect(Unit) {
+        onDispose {
+            if (mediaPlayer.isPlaying) mediaPlayer.stop()
+            mediaPlayer.release()
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Elige un tono", color = OnPrimary) },
+        containerColor = Secondary,
+        text = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 300.dp)
+            ) {
+                items(TonosDisponibles.lista) { tono ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                seleccionTemporal = tono
+                                reproducirPreview(tono.recurso)
+                            }
+                            .padding(vertical = 12.dp, horizontal = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (tono == seleccionTemporal),
+                            onClick = {
+                                seleccionTemporal = tono
+                                reproducirPreview(tono.recurso)
+                            }
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = tono.nombre,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = OnPrimary
+                        )
+
+                        if (tono == seleccionTemporal) {
+                            Spacer(modifier = Modifier.weight(1f))
+                            Icon(
+                                imageVector = Icons.Default.VolumeUp,
+                                contentDescription = "Sonando",
+                                tint = OnPrimary
+                            )
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                onTonoSeleccionado(seleccionTemporal.recurso)
+                onDismiss()
+            }) { Text("Aceptar", color = Tertiary) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = OnPrimary) }
+        }
+    )
+}
+

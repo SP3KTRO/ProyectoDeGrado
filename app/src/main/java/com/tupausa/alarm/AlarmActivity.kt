@@ -2,7 +2,8 @@ package com.tupausa.alarm
 
 import android.app.KeyguardManager
 import android.media.AudioAttributes
-import android.media.Ringtone
+import androidx.annotation.RawRes
+import com.tupausa.R
 import android.media.RingtoneManager
 import android.os.Build.VERSION.SDK_INT
 import android.os.Build
@@ -30,6 +31,8 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.media.AudioManager
+import android.media.MediaPlayer
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -48,6 +51,7 @@ import kotlin.random.Random
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.CameraSelector
 import androidx.camera.lifecycle.ProcessCameraProvider
+import com.tupausa.model.data.TonosDisponibles
 import com.tupausa.view.AlarmScreen
 import java.util.concurrent.Executors
 
@@ -56,7 +60,8 @@ enum class TipoReto { SHAKE, TAP, FLIP, LONG_PRESS, DOUBLE_TAP, PROXIMITY, DRAW_
 
 class AlarmActivity : ComponentActivity() {
 
-    private var ringtone: Ringtone? = null
+    private var mediaPlayer: MediaPlayer? = null
+
 
     //VARIABLES PARA SENSORES Y CAMARA
     private lateinit var shakeDetector: ShakeDetector
@@ -92,6 +97,7 @@ class AlarmActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        volumeControlStream = AudioManager.STREAM_MUSIC
         intentState = intent
 
         // CONFIGURACIÓN DE PANTALLA
@@ -400,8 +406,8 @@ class AlarmActivity : ComponentActivity() {
                 // Log de control
                 Log.d("LumaCheck", "Luz actual: $luma")
 
-                // Bajamos el umbral a 110 para que sea más fácil de detectar en interiores
-                if (luma > 110) {
+                // Umbral de detección de luz: 120
+                if (luma > 120) {
                     runOnUiThread {
                         if (retoActual == TipoReto.FIND_LIGHT) {
                             Log.d("TuPausa_Debug", "¡Luz detectada! Reto completado.")
@@ -463,6 +469,7 @@ class AlarmActivity : ComponentActivity() {
             putExtra("ALARM_NOMBRE", intent.getStringExtra("ALARM_NOMBRE"))
             putExtra("ALARM_DURACION", intent.getIntExtra("ALARM_DURACION", 60))
             putExtra("ALARM_TIPO", intent.getStringExtra("ALARM_TIPO"))
+            putExtra("ALARM_TONO", intent.getStringExtra("ALARM_TONO"))
         }
 
         val pendingIntent = android.app.PendingIntent.getBroadcast(
@@ -483,23 +490,46 @@ class AlarmActivity : ComponentActivity() {
 
     private fun iniciarSonido() {
         try {
-            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+            val nombreTono = intent.getStringExtra("ALARM_TONO") ?: "Predeterminado"
+            val tonoRecurso = TonosDisponibles.lista.find { it.nombre == nombreTono }?.recurso
+                ?: R.raw.jazz_suave // Fallback si no lo encuentra
 
-            ringtone = RingtoneManager.getRingtone(applicationContext, uri).apply {
-                audioAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_ALARM)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
-                play()
+            // Configuración MediaPlayer
+            mediaPlayer = MediaPlayer.create(this, tonoRecurso).apply {
+                isLooping = true // Que no deje de sonar hasta completar la rutina
+                setAudioAttributes(
+                    AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build()
+                )
+                start()
             }
+            Log.d("TuPausa_Audio", "Reproduciendo tono: $nombreTono")
         } catch (e: Exception) {
-            e.printStackTrace()
+            Log.e("TuPausa_Audio", "Error al iniciar sonido: ${e.message}")
+            // Fallback al sonido por defecto del sistema en caso de error crítico
+            val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(applicationContext, uri)
+                prepare()
+                start()
+            }
         }
     }
 
     private fun detenerSonido() {
-        ringtone?.stop()
+        try {
+            mediaPlayer?.let {
+                if (it.isPlaying) {
+                    it.stop()
+                }
+                it.release()
+            }
+            mediaPlayer = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override fun onDestroy() {

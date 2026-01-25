@@ -306,10 +306,12 @@ fun UserEjercicioDetalleScreen(
                 diasRepeticion = emptyList(),
                 etiqueta = ejercicio.nombreEjercicio,
                 tipoEjercicio = ejercicio.tipoEjercicio,
+                tonoAlarma = "Predeterminado",
                 activa = true
             )
 
             AlarmaFormDialog(
+                context = context,
                 alarmaAEditar = preAlarma,
                 listaEjercicios = listaEjercicios,
                 onDismiss = { showAlarmaDialog = false },
@@ -322,6 +324,7 @@ fun UserEjercicioDetalleScreen(
                         diasRepeticion = dias,
                         etiqueta = etiqueta,
                         tipoEjercicio = tipo,
+                        tonoAlarma = tono,
                         activa = true
                     )
                     viewModel.guardarAlarma(nuevaAlarma)

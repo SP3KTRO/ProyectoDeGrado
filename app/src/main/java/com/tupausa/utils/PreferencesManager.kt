@@ -52,4 +52,12 @@ class PreferencesManager(context: Context) {
     fun isAdmin(): Boolean {
         return getUserType() == Constants.USER_TYPE_ADMIN
     }
+
+    fun setSelectedTone(toneResourceId: Int) {
+        prefs.edit().putInt(Constants.PREF_SELECTED_TONE, toneResourceId).apply()
+    }
+
+    fun getSelectedTone(defaultToneId: Int): Int {
+        return prefs.getInt(Constants.PREF_SELECTED_TONE, defaultToneId)
+    }
 }

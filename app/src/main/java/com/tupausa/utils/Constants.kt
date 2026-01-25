@@ -12,6 +12,7 @@ object Constants {
     const val PREF_USER_EMAIL = "user_email"
     const val PREF_IS_LOGGED_IN = "is_logged_in"
     const val PREF_USER_TYPE = "user_type"
+    const val PREF_SELECTED_TONE = "selected_tone"
 
     // BASE DE DATOS
     const val DATABASE_NAME = "tupausa_database.db"
@@ -45,6 +46,7 @@ object Constants {
         const val USER_EJERCICIO_DETALLE = "user_ejercicio_detalle/{ejercicioId}"
         const val USER_ALARMAS = "user_alarmas"
         const val USER_HISTORIAL = "user_historial"
+        const val USER_SETTINGS = "user_settings"
     }
 
     // MENSAJES

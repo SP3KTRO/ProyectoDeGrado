@@ -19,6 +19,7 @@ data class Alarma(
     val etiqueta: String = "Pausa Activa",
     val duracionSegundos: Int = 60,
     val tipoEjercicio: String = "ALEATORIO",
+    val tonoAlarma: String = "Predeterminado",
     // ID del servidor para sincronizar después
     val idRemoto: Int? = null
 )

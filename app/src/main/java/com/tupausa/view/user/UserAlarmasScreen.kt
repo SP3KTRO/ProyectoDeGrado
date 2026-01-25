@@ -149,6 +149,7 @@ fun UserAlarmasScreen(
 
         if (showCreateDialog || alarmaAEditar != null) {
             AlarmaFormDialog(
+                context = context,
                 alarmaAEditar = alarmaAEditar,
                 listaEjercicios = listaEjercicios,
                 onDismiss = {
@@ -165,6 +166,7 @@ fun UserAlarmasScreen(
                         diasRepeticion = dias,
                         etiqueta = etiqueta,
                         tipoEjercicio = tipo,
+                        tonoAlarma = tono,
                         activa = true
                     )
                     viewModel.guardarAlarma(nuevaAlarma)

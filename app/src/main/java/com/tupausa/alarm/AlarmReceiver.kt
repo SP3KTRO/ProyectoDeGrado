@@ -33,6 +33,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val alarmName = intent.getStringExtra("ALARM_NOMBRE")
         val alarmTipo = intent.getStringExtra("ALARM_TIPO") ?: "ALEATORIO"
         val alarmDuracion = intent.getIntExtra("ALARM_DURACION", 60)
+        val alarmToneName = intent.getStringExtra("ALARM_TONO") ?: "Predeterminado"
 
         // Preparamos el Intent para la Actividad
         val fullScreenIntent = Intent(context, AlarmActivity::class.java).apply {
@@ -48,6 +49,7 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra("ALARM_NOMBRE", alarmName)
             putExtra("ALARM_TIPO", alarmTipo)
             putExtra("ALARM_DURACION", alarmDuracion)
+            putExtra("ALARM_TONO", alarmToneName)
         }
 
         val fullScreenPendingIntent = PendingIntent.getActivity(
