@@ -15,13 +15,10 @@ class HistorialViewModel(application: Application) : AndroidViewModel(applicatio
     private val app = application as TuPausaApplication
     private val repository = app.historialRepository
     private val prefs = app.preferencesManager
-
     private val _historialList = MutableStateFlow<List<HistorialRegistro>>(emptyList())
     val historialList: StateFlow<List<HistorialRegistro>> = _historialList
-
-    private val _resumen = MutableStateFlow(ResumenEstadistico(0, 0, 0))
+    private val _resumen = MutableStateFlow(ResumenEstadistico(0, 0, /*0*/))
     val resumen: StateFlow<ResumenEstadistico> = _resumen
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -43,7 +40,7 @@ class HistorialViewModel(application: Application) : AndroidViewModel(applicatio
                 _resumen.value = ResumenEstadistico(
                     totalPausas = total,
                     tiempoTotalMinutos = tiempo,
-                    rachaDias = calcularRacha(lista)
+                    //rachaDias = calcularRacha(lista)
                 )
             } catch (e: Exception) {
                 // Manejar error si es necesario
@@ -53,10 +50,28 @@ class HistorialViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    private fun calcularRacha(historial: List<HistorialRegistro>): Int {
-        // Implementación básica de racha
-        if (historial.isEmpty()) return 0
-        // Por ahora retornamos 0 o una lógica simple, se puede expandir comparando fechas
-        return 0 
+    fun borrarHistorial() {
+        val userId = prefs.getUserId()
+        if (userId == -1) return
+
+        viewModelScope.launch {
+            try {
+                repository.borrarHistorial(userId)
+
+                // Limpiamos los estados inmediatamente para que la UI reaccione
+                _historialList.value = emptyList()
+                _resumen.value = ResumenEstadistico(0, 0,/*0*/)
+
+                // Volvemos a cargar para sincronizar con la base de datos (que ahora está vacía)
+                cargarDatos()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
+
+    /*private fun calcularRacha(historial: List<HistorialRegistro>): Int {
+        if (historial.isEmpty()) return 0
+        return 0 
+    }*/
 }

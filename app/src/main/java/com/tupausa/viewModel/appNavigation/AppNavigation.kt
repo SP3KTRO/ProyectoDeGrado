@@ -7,17 +7,25 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tupausa.TuPausaApplication
+import com.tupausa.database.RetrofitClient
 import com.tupausa.model.Usuario
+import com.tupausa.repository.EjercicioRepository
+import com.tupausa.repository.HistorialRepository
+import com.tupausa.repository.UsuarioRepository
 import com.tupausa.utils.Constants
 import com.tupausa.view.*
 import com.tupausa.view.admin.*
 import com.tupausa.view.user.*
+import com.tupausa.viewModel.AdminHistorialViewModel
+import com.tupausa.viewModel.AdminHistorialViewModelFactory
 import com.tupausa.viewModel.EjercicioViewModel
 import com.tupausa.viewModel.LoginViewModel
 import com.tupausa.viewModel.UsuarioViewModel
@@ -191,6 +199,7 @@ fun AppNavigation(
                 }
             )
         }
+
         composable(
             route = AppRoutes.ADMIN_EJERCICIO_DETALLE,
             arguments = listOf(navArgument("ejercicioId") { type = NavType.IntType })
@@ -211,8 +220,15 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.ADMIN_HISTORIAL) {
+            // Usamos el ViewModel de Android para que se cree correctamente
+            val adminVM: AdminHistorialViewModel = viewModel(
+                factory = AdminHistorialViewModelFactory((
+                        LocalContext.current.applicationContext as TuPausaApplication).historialRepository
+                )
+            )
             AdminHistorialScreen(
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                viewModel = adminVM
             )
         }
 

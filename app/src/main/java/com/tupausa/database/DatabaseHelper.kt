@@ -125,18 +125,33 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_cuello_rotacion")
-                put(COL_INSTRUCCIONES, "Siéntate derecho con la espalda recta|Gira lentamente la cabeza hacia la derecha|Mantén la posición 5 segundos|Regresa al centro|Repite hacia la izquierda|Realiza 5 repeticiones completas")
-                put(COL_BENEFICIOS, "Reduce tensión cervical, mejora movilidad del cuello, previene dolores de cabeza")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate derecho con la espalda recta|Gira lentamente la cabeza hacia la derecha|Mantén la posición 5 segundos|Regresa al centro|Repite hacia la izquierda|Realiza 5 repeticiones completas"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Reduce tensión cervical, mejora movilidad del cuello, previene dolores de cabeza"
+                )
             },
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Estiramiento de Muñecas")
-                put(COL_DESCRIPCION, "Previene el síndrome del túnel carpiano y alivia tensión en manos")
+                put(
+                    COL_DESCRIPCION,
+                    "Previene el síndrome del túnel carpiano y alivia tensión en manos"
+                )
                 put(COL_TIPO_EJERCICIO, "MUÑECAS")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 45)
                 put(COL_URL_IMAGEN, "gif_munecas")
-                put(COL_INSTRUCCIONES, "Extiende el brazo frente a ti con la palma hacia arriba|Con la otra mano, tira suavemente de los dedos hacia atrás|Mantén el estiramiento 10 segundos|Haz lo mismo con la palma hacia abajo|Cambia de mano|Realiza 3 series en cada mano")
-                put(COL_BENEFICIOS, "Previene lesiones por movimientos repetitivos, alivia dolor en muñecas")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Extiende el brazo frente a ti con la palma hacia arriba|Con la otra mano, tira suavemente de los dedos hacia atrás|Mantén el estiramiento 10 segundos|Haz lo mismo con la palma hacia abajo|Cambia de mano|Realiza 3 series en cada mano"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Previene lesiones por movimientos repetitivos, alivia dolor en muñecas"
+                )
             },
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Regla 20-20-20 para Ojos")
@@ -145,7 +160,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 20)
                 put(COL_URL_IMAGEN, "gif_ojos")
-                put(COL_INSTRUCCIONES, "Cada 20 minutos de trabajo|Mira algo a 20 pies de distancia (6 metros)|Mantén la mirada durante 20 segundos|Parpadea varias veces|Vuelve a tu trabajo")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Cada 20 minutos de trabajo|Mira algo a 20 pies de distancia (6 metros)|Mantén la mirada durante 20 segundos|Parpadea varias veces|Vuelve a tu trabajo"
+                )
                 put(COL_BENEFICIOS, "Reduce fatiga visual, previene ojo seco, mejora enfoque")
             },
             ContentValues().apply {
@@ -155,7 +173,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 90)
                 put(COL_URL_IMAGEN, "gif_espalda")
-                put(COL_INSTRUCCIONES, "De pie, entrelaza las manos frente a ti|Estira los brazos hacia adelante redondeando la espalda|Mantén 15 segundos|Lleva las manos por encima de la cabeza|Inclínate suavemente a cada lado|Repite 3 veces")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie, entrelaza las manos frente a ti|Estira los brazos hacia adelante redondeando la espalda|Mantén 15 segundos|Lleva las manos por encima de la cabeza|Inclínate suavemente a cada lado|Repite 3 veces"
+                )
                 put(COL_BENEFICIOS, "Mejora postura, alivia dolor lumbar, aumenta flexibilidad")
             },
             ContentValues().apply {
@@ -165,8 +186,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 120)
                 put(COL_URL_IMAGEN, "gif_respiracion")
-                put(COL_INSTRUCCIONES, "Siéntate cómodamente con la espalda recta|Inhala por la nariz contando hasta 4|Mantén el aire contando hasta 4|Exhala por la boca contando hasta 6|Repite 5 veces")
-                put(COL_BENEFICIOS, "Reduce ansiedad, mejora concentración, regula presión arterial")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate cómodamente con la espalda recta|Inhala por la nariz contando hasta 4|Mantén el aire contando hasta 4|Exhala por la boca contando hasta 6|Repite 5 veces"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Reduce ansiedad, mejora concentración, regula presión arterial"
+                )
             },
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Estiramiento de Hombros")
@@ -175,7 +202,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_hombros")
-                put(COL_INSTRUCCIONES, "Cruza el brazo derecho sobre el pecho|Con la mano izquierda, presiona suavemente el codo derecho|Mantén 15 segundos|Haz círculos con los hombros 10 veces|Cambia de brazo")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Cruza el brazo derecho sobre el pecho|Con la mano izquierda, presiona suavemente el codo derecho|Mantén 15 segundos|Haz círculos con los hombros 10 veces|Cambia de brazo"
+                )
                 put(COL_BENEFICIOS, "Alivia tensión en hombros, mejora movilidad")
             },
             ContentValues().apply {
@@ -185,7 +215,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 90)
                 put(COL_URL_IMAGEN, "gif_sentadilla")
-                put(COL_INSTRUCCIONES, "De pie, separa los pies al ancho de hombros|Baja como si fueras a sentarte|Mantén espalda recta|Sube lentamente|Realiza 10-15 repeticiones")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie, separa los pies al ancho de hombros|Baja como si fueras a sentarte|Mantén espalda recta|Sube lentamente|Realiza 10-15 repeticiones"
+                )
                 put(COL_BENEFICIOS, "Mejora circulación, fortalece piernas, activa metabolismo")
             },
             ContentValues().apply {
@@ -195,7 +228,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 75)
                 put(COL_URL_IMAGEN, "gif_cat_cow")
-                put(COL_INSTRUCCIONES, "Apoya manos y rodillas en el suelo|Inhala arqueando la espalda|Exhala redondeando la espalda|Alterna entre ambas posiciones|Realiza 10 repeticiones")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Apoya manos y rodillas en el suelo|Inhala arqueando la espalda|Exhala redondeando la espalda|Alterna entre ambas posiciones|Realiza 10 repeticiones"
+                )
                 put(COL_BENEFICIOS, "Mejora flexibilidad espinal, alivia tensión lumbar")
             },
             ContentValues().apply {
@@ -205,7 +241,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_pectorales")
-                put(COL_INSTRUCCIONES, "De pie junto a una pared|Coloca el antebrazo en la pared|Gira el cuerpo alejándote del brazo|Mantén 20 segundos|Repite del otro lado")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie junto a una pared|Coloca el antebrazo en la pared|Gira el cuerpo alejándote del brazo|Mantén 20 segundos|Repite del otro lado"
+                )
                 put(COL_BENEFICIOS, "Mejora postura, abre pecho, facilita respiración")
             },
             ContentValues().apply {
@@ -215,7 +254,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 45)
                 put(COL_URL_IMAGEN, "gif_dedos")
-                put(COL_INSTRUCCIONES, "Abre y cierra las manos 10 veces|Toca cada dedo con el pulgar|Haz círculos con las muñecas|Sacude las manos 10 segundos|Repite 2 veces")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Abre y cierra las manos 10 veces|Toca cada dedo con el pulgar|Haz círculos con las muñecas|Sacude las manos 10 segundos|Repite 2 veces"
+                )
                 put(COL_BENEFICIOS, "Previene calambres, mejora destreza, aumenta circulación")
             },
             ContentValues().apply {
@@ -225,8 +267,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_marcha")
-                put(COL_INSTRUCCIONES, "Ponte de pie con espacio suficiente|Levanta las rodillas alternadamente como si marcharas|Mueve los brazos al ritmo de las piernas|Mantén un ritmo constante|Respira fluidamente por la nariz")
-                put(COL_BENEFICIOS, "Mejora el retorno venoso, despierta el cerebro, aumenta la energía")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Ponte de pie con espacio suficiente|Levanta las rodillas alternadamente como si marcharas|Mueve los brazos al ritmo de las piernas|Mantén un ritmo constante|Respira fluidamente por la nariz"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Mejora el retorno venoso, despierta el cerebro, aumenta la energía"
+                )
             },
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Rotación de Tobillos")
@@ -235,8 +283,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_tobillos")
-                put(COL_INSTRUCCIONES, "Siéntate y levanta un pie del suelo|Dibuja círculos grandes con la punta del pie|Haz 10 círculos hacia la derecha|Haz 10 círculos hacia la izquierda|Repite con el otro pie")
-                put(COL_BENEFICIOS, "Previene la retención de líquidos, fortalece tobillos, evita calambres")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate y levanta un pie del suelo|Dibuja círculos grandes con la punta del pie|Haz 10 círculos hacia la derecha|Haz 10 círculos hacia la izquierda|Repite con el otro pie"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Previene la retención de líquidos, fortalece tobillos, evita calambres"
+                )
             }
         )
 
@@ -245,7 +299,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
-    fun obtenerIdEjercicioDeHistorial(idRegistro: Int): Int {
+    /*fun obtenerIdEjercicioDeHistorial(idRegistro: Int): Int {
         val db = this.readableDatabase
         var idEncontrado = 0 // Valor por defecto si no se encuentra
 
@@ -262,10 +316,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         cursor.close()
         return idEncontrado
-    }
+    }*/
     fun obtenerTotalPausas(userId: Int): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT COUNT(*) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?", arrayOf(userId.toString()))
+        val cursor = db.rawQuery(
+            "SELECT COUNT(*) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?",
+            arrayOf(userId.toString())
+        )
         var total = 0
         if (cursor.moveToFirst()) {
             total = cursor.getInt(0)
@@ -276,7 +333,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun obtenerTiempoTotalMinutos(userId: Int): Int {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT SUM($COL_DURACION_REAL_SEG) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?", arrayOf(userId.toString()))
+        val cursor = db.rawQuery(
+            "SELECT SUM($COL_DURACION_REAL_SEG) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?",
+            arrayOf(userId.toString())
+        )
         var totalSegundos = 0
         if (cursor.moveToFirst()) {
             totalSegundos = cursor.getInt(0)
@@ -381,6 +441,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
         db.update(TABLE_HISTORIAL, values, "$COL_ID_REGISTRO = ?", arrayOf(idRegistro.toString()))
         db.close()
+    }
+
+    fun borrarTodoElHistorial(idUsuario: Int): Int {
+        val db = this.writableDatabase
+
+        // CAMBIO AQUÍ: Usamos $TABLE_HISTORIAL y la constante del ID_USUARIO
+        return db.delete(TABLE_HISTORIAL, "$COL_ID_USUARIO = ?", arrayOf(idUsuario.toString()))
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {

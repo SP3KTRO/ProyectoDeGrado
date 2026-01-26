@@ -31,11 +31,9 @@ data class Ejercicio(
     @SerializedName("instrucciones") val instrucciones: String?,
     @SerializedName("beneficios") val beneficios: String?
 ) : Serializable {
-
     fun getInstruccionesList(): List<String> {
         return instrucciones?.split("|")?.filter { it.isNotBlank() } ?: emptyList()
     }
-
     fun getTipoDisplayName(): String = tipoEjercicio
     fun getNivelDisplayName(): String = nivelIntensidad
 }
@@ -58,3 +56,13 @@ data class HistorialEjecucion(
     @SerializedName("metodo_deteccion") val metodoDeteccion: String?,
     @SerializedName("duracion") val duracion: Int
 ) : Serializable
+
+data class HistorialS3(
+    @SerializedName("id_registro") val idRegistro: Int,
+    @SerializedName("id_usuario") val idUsuario: Int,
+    @SerializedName("id_ejercicio") val idEjercicio: Int,
+    @SerializedName("fecha_realizacion") val fechaRealizacion: String?,
+    @SerializedName("hora_inicio") val horaInicio: String?,
+    @SerializedName("hora_fin") val horaFin: String?,
+    @SerializedName("tipo_deteccion_usado") val tipoDeteccion: String?
+)

@@ -22,7 +22,6 @@ import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.OnSurfaceVariant
-import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.Surface

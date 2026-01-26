@@ -12,6 +12,6 @@ data class HistorialRegistro(
 
 data class ResumenEstadistico(
     val totalPausas: Int,
-    val tiempoTotalMinutos: Int,
-    val rachaDias: Int
+    val tiempoTotalMinutos: Int
+    //val rachaDias: Int
 )

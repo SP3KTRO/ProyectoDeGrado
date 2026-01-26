@@ -105,7 +105,7 @@ fun AlarmaFormDialog(
         onDismissRequest = onDismiss,
         modifier = Modifier
             .fillMaxWidth(0.95f)
-            .heightIn(max = 600.dp),
+            .heightIn(max = 650.dp),
         confirmButton = {
             if (currentStep == DialogStep.FORMULARIO) {
                 val puedeGuardar = selectedExerciseIds.size >= 4
@@ -210,7 +210,7 @@ fun AlarmaFormDialog(
                                             text = if (selectedExerciseIds.isEmpty()) "Ningún ejercicio"
                                             else "${selectedExerciseIds.size} ejercicios seleccionados",
                                             fontWeight = FontWeight.Bold,
-                                            color = if (selectedExerciseIds.size < 4) OnSurfaceVariant else Tertiary
+                                            color = if (selectedExerciseIds.size < 4) Gris else Tertiary
                                         )
                                     }
                                     Icon(Icons.Default.Edit, "Cambiar", tint = OnPrimary)

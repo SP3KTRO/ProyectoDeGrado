@@ -36,7 +36,7 @@ interface ApiService {
     // HISTORIAL (Registrar Pausas)
 
     @GET("historial")
-    suspend fun getHistorial(@Query("id_usuario") idUsuario: Int): Response<List<HistorialEjecucion>>
+    suspend fun getHistorial(@Query("id_usuario") idUsuario: Int): Response<List<HistorialS3>>
 
     @POST("historial")
     suspend fun registrarPausa(@Body historial: HistorialEjecucion): Response<Map<String, String>>

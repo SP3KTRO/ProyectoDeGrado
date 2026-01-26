@@ -14,8 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,10 +37,35 @@ fun UserHistorialScreen(
     val historial by viewModel.historialList.collectAsState()
     val resumen by viewModel.resumen.collectAsState()
 
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
     // Cargar datos al entrar
     LaunchedEffect(Unit) {
         viewModel.cargarDatos()
     }
+
+    // DIÁLOGO DE CONFIRMACIÓN
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("¿Borrar historial?") },
+            text = { Text("Esta acción eliminará todos tus registros locales de pausas activas. No se puede deshacer.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.borrarHistorial()
+                    showDeleteDialog = false
+                }) {
+                    Text("Borrar todo", color = Color.Red)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -46,6 +74,18 @@ fun UserHistorialScreen(
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
+                    }
+                },
+                actions = {
+                    // BOTÓN DE BORRAR
+                    if (historial.isNotEmpty()) {
+                        IconButton(onClick = { showDeleteDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Borrar todo",
+                                tint = OnSurface
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

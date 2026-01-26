@@ -1,6 +1,7 @@
 package com.tupausa
 
 import android.app.Application
+import com.tupausa.database.ApiService
 import com.tupausa.database.DatabaseHelper
 import com.tupausa.database.RetrofitClient
 import com.tupausa.repository.UsuarioRepository
@@ -40,7 +41,10 @@ class TuPausaApplication : Application() {
 
     //Repositorio de Historial
     val historialRepository by lazy {
-        HistorialRepository(database)
+        HistorialRepository(
+            database,
+            RetrofitClient.instance
+        )
     }
 
     override fun onCreate() {

@@ -128,7 +128,7 @@ class AlarmActivity : ComponentActivity() {
                     listaEjerciciosRutina = if (idsRutina.isNotEmpty()) {
                         idsRutina.mapNotNull { id -> todos.find { it.idEjercicio == id } }
                     } else {
-                        Log.e("TuPausa_Debug", "La lista de IDs llegó VACÍA, usando fallback aleatorio")
+                        Log.e("TuPausa_Debug", "La lista de IDs llegó vacía, usando fallback aleatorio")
                         listOf(todos.random())
                     }
 
@@ -301,11 +301,11 @@ class AlarmActivity : ComponentActivity() {
     }
 
     // BLOQUEO DEL BOTÓN ATRÁS
-    /*@SuppressLint("MissingSuperCall")
+    @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
         Toast.makeText(this, "Debes completar el reto para salir", Toast.LENGTH_SHORT).show()
-    }*/
+    }
 
     private fun elegirRetoAleatorio() {
         val valores = TipoReto.entries
@@ -403,7 +403,6 @@ class AlarmActivity : ComponentActivity() {
                 for (byte in data) total += (byte.toInt() and 0xFF)
                 val luma = total.toDouble() / data.size
 
-                // Log de control
                 Log.d("LumaCheck", "Luz actual: $luma")
 
                 // Umbral de detección de luz: 120
