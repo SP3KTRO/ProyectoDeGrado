@@ -103,7 +103,7 @@ fun AdminDashboardScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Tarjeta: Ver Usuarios
             AdminMenuCard(

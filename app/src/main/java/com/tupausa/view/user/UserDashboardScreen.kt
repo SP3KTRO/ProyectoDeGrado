@@ -74,14 +74,16 @@ fun UserDashboardScreen(
                 fontWeight = FontWeight.Bold,
                 color = OnSurface
             )
+
+            // Bienvenida
             Text(
                 text = "Cuídate mientras estudias 💻",
-                fontSize = 18.sp,
+                fontSize = 19.sp,
                 fontWeight = FontWeight.Light,
                 color = OnSurface
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
             // Tarjeta: Ver Ejercicios
             UserMenuCard(
@@ -125,7 +127,7 @@ fun UserMenuCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
+            .height(120.dp),
         colors = CardDefaults.cardColors(
             containerColor = Secondary
         ),

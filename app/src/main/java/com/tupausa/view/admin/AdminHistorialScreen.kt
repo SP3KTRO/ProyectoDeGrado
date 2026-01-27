@@ -6,8 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -18,12 +17,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.tupausa.R
 import com.tupausa.model.HistorialS3
 import com.tupausa.model.Usuario
 import com.tupausa.ui.theme.OnPrimary
+import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.OnSecondary
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.PrimaryContainer
@@ -51,9 +54,13 @@ fun AdminHistorialScreen(
     }
 
     Scaffold(
+        containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text(usuarioSeleccionado?.nombre ?: "Historial Global") },
+                title = { Text(
+                    text = usuarioSeleccionado?.nombre ?: "Historial Global",
+                    color = OnSurface
+                ) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (usuarioSeleccionado != null) {
@@ -65,7 +72,12 @@ fun AdminHistorialScreen(
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = OnSurface,
+                    navigationIconContentColor = OnSurface
+                )
             )
         }
     ) { padding ->
@@ -73,7 +85,10 @@ fun AdminHistorialScreen(
             .padding(padding)
             .fillMaxSize()) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = OnPrimaryContainer
+                )
             } else if (usuarioSeleccionado == null) {
                 // LISTA DE USUARIOS
                 LazyColumn(modifier = Modifier
@@ -90,27 +105,41 @@ fun AdminHistorialScreen(
                                 },
                             colors = CardDefaults.cardColors(containerColor = Secondary)
                         ) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(Icons.Default.Person, contentDescription = null, tint = OnPrimary)
+                            Row(
+                                modifier = Modifier.padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically)
+                            {
+                                Icon(painter = painterResource(id = R.drawable.user),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(40.dp),
+                                    tint = Color.Unspecified
+                                )
                                 Spacer(modifier = Modifier.width(16.dp))
                                 Column {
-                                    Text(usuario.nombre, fontWeight = FontWeight.Bold, color = OnPrimary)
-                                    Text(usuario.correoElectronico, fontSize = 12.sp, color = OnSurface.copy(alpha = 0.7f))
+                                    Text(
+                                        text = usuario.nombre,
+                                        fontWeight = FontWeight.Bold,
+                                        color = OnPrimary
+                                    )
+                                    Text(
+                                        text = usuario.correoElectronico,
+                                        fontSize = 12.sp,
+                                        color = Surface
+                                    )
                                 }
                             }
                         }
                     }
                 }
             } else {
-                // DETALLE DEL HISTORIAL (Similar a UserHistorialScreen)
+                // DETALLE DEL HISTORIAL
                 if (historial.isEmpty()) {
-                    Text("No hay registros para este usuario.", modifier = Modifier.align(Alignment.Center))
+                    Text("No hay registros para este usuario.", color = OnSurface, modifier = Modifier.align(Alignment.Center))
                 } else {
                     LazyColumn(modifier = Modifier
                         .fillMaxSize()
                         .padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         items(historial) { registro ->
-                            // 2. BUSCAMOS EL NOMBRE DEL EJERCICIO
                             val ejercicioEncontrado = ejercicios.find { it.idEjercicio == registro.idEjercicio }
                             val nombreAMostrar = ejercicioEncontrado?.nombreEjercicio ?: "Ejercicio #${registro.idEjercicio}"
 
@@ -125,14 +154,20 @@ fun AdminHistorialScreen(
 
 @Composable
 fun AdminHistorialItemView(item: HistorialS3, nombreEjercicio: String) {
-    Card(colors = CardDefaults.cardColors(containerColor = Secondary)) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Secondary)
+    ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(shape = MaterialTheme.shapes.small, color = OnSecondary, modifier = Modifier.size(40.dp)) {
+            Surface(shape = MaterialTheme.shapes.small,
+                color = OnSecondary, modifier = Modifier.size(40.dp)
+            ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(Icons.Default.History, contentDescription = null, tint = OnSurface)
+                    Icon(Icons.Default.History,
+                        contentDescription = null, tint = OnSurface
+                    )
                 }
             }
             Spacer(modifier = Modifier.width(16.dp))
@@ -149,8 +184,12 @@ fun AdminHistorialItemView(item: HistorialS3, nombreEjercicio: String) {
                 )
             }
             Column(horizontalAlignment = Alignment.End) {
-                Text(text = item.tipoDeteccion ?: "N/A", fontSize = 10.sp, color = Surface)
-                Text(text = "${item.horaInicio} - ${item.horaFin}", fontSize = 10.sp, color = OnSurface)
+                Text(text = item.tipoDeteccion ?: "N/A", fontSize = 10.sp,
+                    color = Surface
+                )
+                Text(text = "${item.horaInicio} - ${item.horaFin}",
+                    fontSize = 10.sp, color = PrimaryContainer
+                )
             }
         }
     }

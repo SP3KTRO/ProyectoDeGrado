@@ -180,8 +180,9 @@ fun UserAlarmasScreen(
         if (showPermissionDialog) {
             AlertDialog(
                 onDismissRequest = { showPermissionDialog = false },
-                title = { Text("Permisos Requeridos") },
-                text = { Text("Para que las alarmas funcionen correctamente, necesitas otorgar permisos en la configuración.") },
+                containerColor = Secondary,
+                title = { Text("Permisos Requeridos" , color = OnPrimary) },
+                text = { Text("Para que las alarmas funcionen correctamente, necesitas otorgar permisos en la configuración.", color = OnPrimary) },
                 confirmButton = {
                     Button(onClick = {
                         showPermissionDialog = false
@@ -189,9 +190,12 @@ fun UserAlarmasScreen(
                             data = Uri.fromParts("package", context.packageName, null)
                         }
                         context.startActivity(intent)
-                    }) { Text("Ir a Configuración") }
+                    },
+                        colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                    ) { Text("Ir a Configuración", color = OnPrimary) }
                 },
-                dismissButton = { TextButton(onClick = { showPermissionDialog = false }) { Text("Cancelar") } }
+                dismissButton = { TextButton(onClick = { showPermissionDialog = false })
+                { Text("Cancelar", color = OnPrimary) } }
             )
         }
     }

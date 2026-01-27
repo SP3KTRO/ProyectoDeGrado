@@ -1,5 +1,6 @@
 package com.tupausa.view.user
 
+import android.R
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -48,19 +49,20 @@ fun UserHistorialScreen(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("¿Borrar historial?") },
-            text = { Text("Esta acción eliminará todos tus registros locales de pausas activas. No se puede deshacer.") },
+            containerColor = Secondary,
+            title = { Text("¿Borrar historial?", color = OnPrimary) },
+            text = { Text("Esta acción eliminará todos tus registros locales de pausas activas. No se puede deshacer.", color = OnPrimary) },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.borrarHistorial()
                     showDeleteDialog = false
                 }) {
-                    Text("Borrar todo", color = Color.Red)
+                    Text("Borrar todo", color = Tertiary)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar")
+                    Text("Cancelar", color = OnPrimary)
                 }
             }
         )
@@ -83,7 +85,7 @@ fun UserHistorialScreen(
                             Icon(
                                 imageVector = Icons.Default.Delete,
                                 contentDescription = "Borrar todo",
-                                tint = OnSurface
+                                tint = OnSurfaceVariant
                             )
                         }
                     }

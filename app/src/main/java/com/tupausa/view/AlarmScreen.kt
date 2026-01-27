@@ -129,17 +129,17 @@ fun AlarmScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 14.dp, vertical = 10.dp)
                         .height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = if (isManual) Tertiary else OnPrimaryContainer)
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
                 ) {
                     Icon(
                         if (isManual) Icons.Default.Stop else Icons.Default.Snooze,
                         contentDescription = null,
-                        tint = if (isManual) OnPrimaryContainer else OnPrimary
+                        tint = OnPrimary
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = if (isManual) "TERMINAR EJERCICIO" else "POSPONER 5 MIN",
-                        color = if (isManual) OnPrimaryContainer else OnPrimary,
+                        color = OnPrimary,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold
                     )

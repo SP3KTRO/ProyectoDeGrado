@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.tupausa.model.Usuario
 import com.tupausa.repository.UsuarioRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
@@ -27,9 +28,9 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     private val _operationSuccess = MutableLiveData<String>()
     val operationSuccess: LiveData<String> get() = _operationSuccess
 
-    // ==========================================
+    private val ALERT_DURATION = 4000L
+
     // OBTENER USUARIOS DESDE LA API
-    // ==========================================
 
     fun fetchUsuariosFromApi() {
         _isLoading.value = true
@@ -41,19 +42,15 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
                     _usuarios.value = usuarios
                     _isLoading.value = false
                 }.onFailure { exception ->
-                    _error.value = exception.message ?: "Error al cargar usuarios"
-                    _isLoading.value = false
+                    handleTemporaryError(exception.message ?: "Error al cargar usuarios")
                 }
             } catch (e: Exception) {
-                _error.value = "Error de red: ${e.message}"
-                _isLoading.value = false
+                handleTemporaryError("Error de red. Por favor, verifica tu conexión.")
             }
         }
     }
 
-    // ==========================================
-    // ACTUALIZAR USUARIO
-    // ==========================================
+    // Actualizar usuario
 
     fun updateUsuario(id: Int, usuario: Usuario) {
         _isLoading.value = true
@@ -62,24 +59,19 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
                 val result = repository.updateUsuario(id, usuario)
 
                 result.onSuccess {
-                    _operationSuccess.value = "Usuario actualizado correctamente"
-                    _isLoading.value = false
+                    handleTemporarySuccess("Usuario actualizado correctamente")
                     // Recargar lista de usuarios
                     fetchUsuariosFromApi()
                 }.onFailure { exception ->
-                    _error.value = exception.message ?: "Error al actualizar usuario"
-                    _isLoading.value = false
+                    handleTemporaryError(exception.message ?: "Error al actualizar usuario")
                 }
             } catch (e: Exception) {
-                _error.value = "Error de red: ${e.message}"
-                _isLoading.value = false
+                handleTemporaryError("Error al conectar con el servidor")
             }
         }
     }
 
-    // ==========================================
-    // ELIMINAR USUARIO
-    // ==========================================
+    // Eliminar usuario
 
     fun deleteUsuario(id: Int) {
         _isLoading.value = true
@@ -88,29 +80,38 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
                 val result = repository.deleteUsuario(id)
 
                 result.onSuccess {
-                    _operationSuccess.value = "Usuario eliminado correctamente"
-                    _isLoading.value = false
-                    // Recargar lista de usuarios
+                    handleTemporarySuccess("Usuario eliminado correctamente")
                     fetchUsuariosFromApi()
                 }.onFailure { exception ->
-                    _error.value = exception.message ?: "Error al eliminar usuario"
-                    _isLoading.value = false
+                    handleTemporaryError(exception.message ?: "Error al eliminar usuario")
                 }
             } catch (e: Exception) {
-                _error.value = "Error de red: ${e.message}"
-                _isLoading.value = false
+                handleTemporaryError("Error de red inesperado")
             }
         }
     }
 
-    // ==========================================
-    // LIMPIAR ESTADOS
-    // ==========================================
+    // Limpiar estados
 
+    private fun handleTemporaryError(message: String) {
+        _error.value = message
+        _isLoading.value = false
+        viewModelScope.launch {
+            delay(ALERT_DURATION)
+            clearError()
+        }
+    }
+    private fun handleTemporarySuccess(message: String) {
+        _operationSuccess.value = message
+        _isLoading.value = false
+        viewModelScope.launch {
+            delay(ALERT_DURATION)
+            clearOperationSuccess()
+        }
+    }
     fun clearError() {
         _error.value = ""
     }
-
     fun clearOperationSuccess() {
         _operationSuccess.value = ""
     }

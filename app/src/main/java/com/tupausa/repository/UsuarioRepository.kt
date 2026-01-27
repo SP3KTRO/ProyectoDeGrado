@@ -20,20 +20,13 @@ class UsuarioRepository(
         private const val TAG = "UsuarioRepository"
     }
 
-    // ==========================================
     // LOGOUT
-    // ==========================================
     fun logout() {
         preferencesManager.clearUserSession()
         Log.d(TAG, "Sesión Cerrada.")
     }
-    // ==========================================
-    // LOGIN - Validar con API
-    // ==========================================
 
-    // ==========================================
-    // LOGIN
-    // ==========================================
+    // LOGIN - Validar con API
     suspend fun login(email: String, password: String): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.getUsuarios()
@@ -46,23 +39,26 @@ class UsuarioRepository(
 
                 if (usuario != null) {
                     saveUsuarioLocal(usuario) // SQLite
-                    preferencesManager.saveUserSession(usuario) // <--- 2. GUARDAR SESIÓN EN PREFS
+                    preferencesManager.saveUserSession(usuario) // GUARDAR SESIÓN EN PREFS
                     Result.success(usuario)
                 } else {
                     Result.failure(Exception("Correo o Contraseña incorrectos"))
                 }
             } else {
-                Result.failure(Exception("Error al conectar: ${response.message()}"))
+                Result.failure(Exception("No se pudo conectar con el servidor. Inténtalo más tarde."))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error en login: ${e.message}")
-            Result.failure(e)
+            Log.e(TAG, "Error: ${e.message}")
+            val errorPersonalizado = if (e is java.net.UnknownHostException) {
+                "No hay conexión a internet. Revisa tu red."
+            } else {
+                "Ocurrió un error inesperado. Inténtalo de nuevo."
+            }
+            Result.failure(Exception(errorPersonalizado))
         }
     }
 
-    // ==========================================
     // REGISTRO
-    // ==========================================
 
     suspend fun register(usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
@@ -76,20 +72,23 @@ class UsuarioRepository(
                 val errorMsg = when (response.code()) {
                     409 -> "El correo ya está registrado"
                     400 -> "Datos inválidos"
-                    else -> "Error del servidor: ${response.message()}"
+                    else -> "No se pudo conectar con el servidor. Inténtalo más tarde."
                 }
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error en registro: ${e.message}")
-            Result.failure(e)
+            Log.e(TAG, "Error: ${e.message}")
+            val errorPersonalizado = if (e is java.net.UnknownHostException) {
+                "No hay conexión a internet. Revisa tu red."
+            } else {
+                "Ocurrió un error inesperado. Inténtalo de nuevo."
+            }
+            Result.failure(Exception(errorPersonalizado))
         }
     }
 
-    // ==========================================
-    // ADMIN: Obtener todos los usuarios de la API
-    // ==========================================
 
+    // ADMIN: Obtener todos los usuarios de la API
     suspend fun getAllUsuariosFromApi(): Result<List<Usuario>> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.getUsuarios()
@@ -98,17 +97,20 @@ class UsuarioRepository(
                 val usuarios = response.body() ?: emptyList()
                 Result.success(usuarios)
             } else {
-                Result.failure(Exception("Error: ${response.message()}"))
+                Result.failure(Exception("No se pudo conectar con el servidor. Inténtalo más tarde."))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error obteniendo usuarios: ${e.message}")
-            Result.failure(e)
+            Log.e(TAG, "Error: ${e.message}")
+            val errorPersonalizado = if (e is java.net.UnknownHostException) {
+                "No hay conexión a internet. Revisa tu red."
+            } else {
+                "Ocurrió un error inesperado. Inténtalo de nuevo."
+            }
+            Result.failure(Exception(errorPersonalizado))
         }
     }
 
-    // ==========================================
     // ADMIN: Actualizar usuario (PUT)
-    // ==========================================
 
     suspend fun updateUsuario(id: Int, usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
@@ -124,20 +126,23 @@ class UsuarioRepository(
                     404 -> "Usuario no encontrado"
                     400 -> "Datos inválidos"
                     409 -> "El correo ya está en uso por otro usuario"
-                    else -> "Error del servidor: ${response.message()}"
+                    else -> "No se pudo conectar con el servidor. Inténtalo más tarde."
                 }
                 Log.e(TAG, "Error en respuesta: $errorMsg")
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error actualizando usuario: ${e.message}")
-            Result.failure(e)
+            Log.e(TAG, "Error: ${e.message}")
+            val errorPersonalizado = if (e is java.net.UnknownHostException) {
+                "No hay conexión a internet. Revisa tu red."
+            } else {
+                "Ocurrió un error inesperado. Inténtalo de nuevo."
+            }
+            Result.failure(Exception(errorPersonalizado))
         }
     }
 
-    // ==========================================
     // ADMIN: Eliminar usuario (DELETE)
-    // ==========================================
 
     suspend fun deleteUsuario(id: Int): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
@@ -152,14 +157,19 @@ class UsuarioRepository(
                 val errorMsg = when (response.code()) {
                     404 -> "Usuario no encontrado"
                     403 -> "No tienes permisos para eliminar este usuario"
-                    else -> "Error del servidor: ${response.message()}"
+                    else -> "No se pudo conectar con el servidor. Inténtalo más tarde."
                 }
                 Log.e(TAG, "Error en respuesta: $errorMsg")
                 Result.failure(Exception(errorMsg))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Error eliminando usuario: ${e.message}")
-            Result.failure(e)
+            Log.e(TAG, "Error: ${e.message}")
+            val errorPersonalizado = if (e is java.net.UnknownHostException) {
+                "No hay conexión a internet. Revisa tu red."
+            } else {
+                "Ocurrió un error inesperado. Inténtalo de nuevo."
+            }
+            Result.failure(Exception(errorPersonalizado))
         }
     }
 
