@@ -1,13 +1,22 @@
 package com.tupausa.view.admin
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +36,7 @@ import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.Surface
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Tertiary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +50,34 @@ fun AdminDashboardScreen(
     val context = LocalContext.current
     val app = context.applicationContext as TuPausaApplication
     val userName = app.preferencesManager.getUserName()
+
+    // Estado para controlar el diálogo de "Acerca de"
+    var showAboutDialog by remember { mutableStateOf(false) }
+
+    // Dialog Acerca De
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            containerColor = Secondary,
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Cerrar", color = Tertiary)
+                }
+            },
+            title = { Text("TuPausa", color = Tertiary) },
+            text = {
+                Column {
+                    Text("Versión: 1.0.0", color = OnPrimary, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Desarrollado por:\nDaniel Callejas & Brayan Acosta", color = OnPrimary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Proyecto de Grado de Tecnología en Sistematización de datos 💻", color = OnPrimary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text("Universidad Distrital Francisco José de Caldas.", color = OnPrimary)
+                }
+            }
+        )
+    }
 
     Scaffold(
         containerColor = Color.Transparent,
@@ -62,6 +100,42 @@ fun AdminDashboardScreen(
                     containerColor = OnPrimaryContainer
                 )
             )
+        },
+        bottomBar = {
+            BottomAppBar(
+                containerColor = OnPrimaryContainer,
+                contentColor = OnPrimary,
+                tonalElevation = 8.dp,
+                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                modifier = Modifier.height(60.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Acerca de / Versión
+                    Surface(
+                        onClick = { showAboutDialog = true },
+                        shape = RoundedCornerShape(8.dp),
+                        color = OnPrimaryContainer,
+                        modifier = Modifier.size(55.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Info,
+                                tint = OnPrimary,
+                                contentDescription = "Info",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text("v1.0", fontSize = 10.sp, color = OnPrimary)
+                        }
+                    }
+                }
+            }
         }
     ) { padding ->
         Column(
