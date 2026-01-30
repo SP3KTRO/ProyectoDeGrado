@@ -8,11 +8,12 @@ import android.database.sqlite.SQLiteOpenHelper
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
+    // Companion object para definir constantes y nombres de tablas
     companion object {
         private const val DATABASE_NAME = "tupausa_database.db"
         private const val DATABASE_VERSION = 3
 
-        // DEFINICION DE TABLAS Y COLUMNAS
+        // Definición de tablas y columnas
 
         // Tabla Tipo_usuario
         const val TABLE_TIPO_USUARIO = "Tipo_usuario"
@@ -54,7 +55,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COL_SINCRONIZADO = "sincronizado"
         const val COL_RUTA_EVIDENCIA = "ruta_evidencia"
     }
-
+    // Implementación de métodos de SQLiteOpenHelper
     override fun onConfigure(db: SQLiteDatabase) {
         super.onConfigure(db)
         db.setForeignKeyConstraintsEnabled(true)
@@ -299,24 +300,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         }
     }
 
-    /*fun obtenerIdEjercicioDeHistorial(idRegistro: Int): Int {
-        val db = this.readableDatabase
-        var idEncontrado = 0 // Valor por defecto si no se encuentra
-
-        // Consultamos solo la columna ID_EJERCICIO filtrando por el ID del registro
-        val cursor = db.rawQuery(
-            "SELECT $COL_ID_EJERCICIO FROM $TABLE_HISTORIAL WHERE $COL_ID_REGISTRO = ?",
-            arrayOf(idRegistro.toString())
-        )
-
-        if (cursor.moveToFirst()) {
-            // La columna 0 es COL_ID_EJERCICIO porque es la única que pedimos en el SELECT
-            idEncontrado = cursor.getInt(0)
-        }
-
-        cursor.close()
-        return idEncontrado
-    }*/
     fun obtenerTotalPausas(userId: Int): Int {
         val db = this.readableDatabase
         val cursor = db.rawQuery(
@@ -363,7 +346,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put(COL_SINCRONIZADO, 0)
             put(COL_RUTA_EVIDENCIA, rutaEvidencia)
         }
-
         val id = db.insert(TABLE_HISTORIAL, null, values)
         db.close()
         return id
@@ -383,7 +365,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """
 
         val cursor = db.rawQuery(query, arrayOf(userId.toString()))
-
         if (cursor.moveToFirst()) {
             do {
                 val item = HistorialRegistro(
@@ -415,7 +396,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     """
 
         val cursor = db.rawQuery(query, arrayOf(userId.toString()))
-
         if (cursor.moveToFirst()) {
             do {
                 val item = HistorialRegistro(
@@ -445,8 +425,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun borrarTodoElHistorial(idUsuario: Int): Int {
         val db = this.writableDatabase
-
-        // CAMBIO AQUÍ: Usamos $TABLE_HISTORIAL y la constante del ID_USUARIO
         return db.delete(TABLE_HISTORIAL, "$COL_ID_USUARIO = ?", arrayOf(idUsuario.toString()))
     }
 

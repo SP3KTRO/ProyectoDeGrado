@@ -125,8 +125,7 @@ fun AdminEjercicioDetalleScreen(
                     }
                 }
             }
-
-            // Información Detallada
+            // Contenido del ejercicio
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -199,7 +198,7 @@ fun AdminEjercicioDetalleScreen(
                 }
             }
 
-            // BOTÓN DE COMENZAR EJERCICIO
+            // Boton de comenzar ejercicio
             Button(
                 onClick = {
                     val intent = Intent(context, AlarmActivity::class.java).apply {

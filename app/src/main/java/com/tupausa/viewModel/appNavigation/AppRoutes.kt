@@ -11,7 +11,6 @@ object AppRoutes {
     const val ADMIN_USERS_LIST = "admin_users_list"
     const val ADMIN_EJERCICIOS = "admin_ejercicios"
     const val ADMIN_EJERCICIO_DETALLE = "admin_ejercicio_detalle/{ejercicioId}"
-
     const val ADMIN_HISTORIAL = "admin_historial"
 
 

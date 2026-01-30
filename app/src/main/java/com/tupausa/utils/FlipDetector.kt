@@ -10,7 +10,7 @@ class FlipDetector(context: Context) : SensorEventListener {
 
     private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     private val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
-    private var listener: (() -> Unit)? = null
+    private var listener: (() -> Unit)? = null  // Interfaz para avisar a la Activity
     private var isFaceDown = false
 
     fun start(onFlip: () -> Unit) {
@@ -25,9 +25,9 @@ class FlipDetector(context: Context) : SensorEventListener {
     }
 
     override fun onSensorChanged(event: SensorEvent) {
-        val z = event.values[2] // Eje Z: positivo es pantalla arriba, negativo es pantalla abajo
+        val z = event.values[2] // Eje z - positivo es pantalla arriba, negativo es pantalla abajo
 
-        // Si Z es menor a -8 (aprox gravedad negativa), está boca abajo
+        // Si z es menor a -8, está boca abajo
         if (z < -8 && !isFaceDown) {
             isFaceDown = true
             listener?.invoke()

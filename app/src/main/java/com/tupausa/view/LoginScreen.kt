@@ -157,7 +157,6 @@ fun LoginScreen(
                 },
                 enabled = !isLoading
             )
-
             Spacer(modifier = Modifier.height(24.dp))
 
             // Botón de login
@@ -199,25 +198,6 @@ fun LoginScreen(
             ) {
                 Text("¿No tienes cuenta? Regístrate")
             }
-
-                // Mostrar error si existe
-                /*error?.let { errorMessage ->
-                if (errorMessage.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = Primary
-                        )
-                    ) {
-                        Text(
-                            text = errorMessage,
-                            modifier = Modifier.padding(16.dp),
-                            color = OnPrimary
-                        )
-                    }
-                }
-            }*/
         }
     }
 }

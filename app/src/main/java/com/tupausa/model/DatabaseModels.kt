@@ -3,7 +3,7 @@ package com.tupausa.model
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
-// MODELOS DE USUARIO
+// Modelos de la API
 
 data class TipoUsuario(
     @SerializedName("id_tipo_usuario") val idTipoUsuario: Int,
@@ -17,8 +17,6 @@ data class Usuario(
     @SerializedName("contrasena") val contrasena: String,
     @SerializedName("id_tipo_usuario") val idTipoUsuario: Int, // Default 1 (Estudiante)
 ) : Serializable
-
-// MODELOS DE NEGOCIO
 
 data class Ejercicio(
     @SerializedName("id_ejercicio") val idEjercicio: Int,

@@ -5,12 +5,11 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
 import com.tupausa.model.data.Alarma
-import java.util.Calendar
 
 class AlarmScheduler(private val context: Context) {
 
+    // Instancia del AlarmManager
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
     fun programar(alarma: Alarma) {
@@ -26,16 +25,17 @@ class AlarmScheduler(private val context: Context) {
             putExtra("ALARM_TONO", alarma.tonoAlarma)
         }
 
-        // El PendingIntent SÍ debe usar el ID de la ALARMA para ser único en el sistema
+        // PendingIntent para la alarma
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarma.id, // ID Único de la alarma
+            alarma.id, // ID único de la alarma
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val tiempoDisparo = calcularProximoDisparo(alarma)
 
+        // Configuración de la alarma
         if (tiempoDisparo != null) {
             val alarmClockInfo = AlarmManager.AlarmClockInfo(
                 tiempoDisparo,
@@ -59,7 +59,7 @@ class AlarmScheduler(private val context: Context) {
         val intent = Intent(context, AlarmReceiver::class.java)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            alarma.id, // Usamos el ID de la alarma para encontrar la correcta a cancelar
+            alarma.id,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

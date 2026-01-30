@@ -29,27 +29,26 @@ class HistorialViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                // 1. Cargar Lista
+                // Cargar Lista
                 val lista = repository.obtenerHistorial(userId)
                 _historialList.value = lista
 
-                // 2. Cargar Estadísticas
+                // Cargar Estadísticas
                 val total = repository.obtenerTotalPausas(userId)
                 val tiempo = repository.obtenerTiempoTotalMinutos(userId)
 
                 _resumen.value = ResumenEstadistico(
                     totalPausas = total,
                     tiempoTotalMinutos = tiempo,
-                    //rachaDias = calcularRacha(lista)
                 )
             } catch (e: Exception) {
-                // Manejar error si es necesario
             } finally {
                 _isLoading.value = false
             }
         }
     }
 
+    // Borrar historial
     fun borrarHistorial() {
         val userId = prefs.getUserId()
         if (userId == -1) return
@@ -62,16 +61,11 @@ class HistorialViewModel(application: Application) : AndroidViewModel(applicatio
                 _historialList.value = emptyList()
                 _resumen.value = ResumenEstadistico(0, 0,/*0*/)
 
-                // Volvemos a cargar para sincronizar con la base de datos (que ahora está vacía)
+                // Volvemos a cargar para sincronizar con la base de datos que ahora está vacía
                 cargarDatos()
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
-
-    /*private fun calcularRacha(historial: List<HistorialRegistro>): Int {
-        if (historial.isEmpty()) return 0
-        return 0 
-    }*/
 }

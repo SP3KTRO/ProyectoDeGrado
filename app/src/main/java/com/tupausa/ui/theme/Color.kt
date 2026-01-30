@@ -14,6 +14,6 @@ val OnSurfaceVariant = Color(0xFFA23030) // Variante rojo suave
 val Secondary = Color(0xFF1A1A1A) // Card oscura
 val OnSecondary = Color(0xFFC4BFBF) // Card clara
 val Tertiary = Color(0xFFD98C09) // Amarillo quemado
-val Outline = Color(0xFFE0B89A)
+val Outline = Color(0xFFE0B89A) // Texto Outline
 val Gris = Color(0xFF4B4B4B)
 

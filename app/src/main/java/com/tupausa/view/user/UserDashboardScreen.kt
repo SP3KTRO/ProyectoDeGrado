@@ -45,13 +45,13 @@ fun UserDashboardScreen(
     val app = context.applicationContext as TuPausaApplication
     val userName = app.preferencesManager.getUserName()
 
-    // Estado para controlar el diálogo de "Acerca de"
+    // Estado para controlar el diálogo de Acerca de
     var showAboutDialog by remember { mutableStateOf(false) }
 
     // Función para enviar correo
     val sendEmail = {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:") // Solo apps de email deben manejar esto
+            data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_EMAIL, arrayOf("jdcallejasc@udistrital.edu.co", "bacostap@udistrital.edu.co"))
             putExtra(Intent.EXTRA_SUBJECT, "Soporte TuPausa - Usuario: $userName")
         }
@@ -72,10 +72,10 @@ fun UserDashboardScreen(
             text = {
                 Column {
                     Text("Versión: 1.0.0", color = OnPrimary, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text("Desarrollado por:\nDaniel Callejas & Brayan Acosta", color = OnPrimary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Proyecto de Grado de Tecnología en Sistematización de datos 💻", color = OnPrimary)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Tecnología en Sistematización de datos.", color = OnPrimary)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Universidad Distrital Francisco José de Caldas.", color = OnPrimary)
                 }
@@ -187,7 +187,7 @@ fun UserDashboardScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Tarjeta: Ver Ejercicios
+            // Card - Ver Ejercicios
             UserMenuCard(
                 title = "Ejercicios",
                 description = "Explora ejercicios de pausas activas",
@@ -196,7 +196,7 @@ fun UserDashboardScreen(
                 onClick = onNavigateToEjercicios
             )
 
-            // Tarjeta: Mis Alarmas
+            // Card - Mis Alarmas
             UserMenuCard(
                 title = "Mis Alarmas",
                 description = "Programa tus pausas activas",
@@ -205,7 +205,7 @@ fun UserDashboardScreen(
                 onClick = onNavigateToAlarmas
             )
 
-            // Tarjeta: Mi Historial
+            // Card - Mi Historial
             UserMenuCard(
                 title = "Mi Historial",
                 description = "Revisa tu progreso y estadísticas",

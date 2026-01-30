@@ -15,17 +15,17 @@ class ShakeDetector(context: Context) : SensorEventListener {
     // Configuración de sensibilidad
     private val SHAKE_THRESHOLD_GRAVITY = 2.7F // Qué tan fuerte hay que agitar
     private val SHAKE_SLOP_TIME_MS = 500 // Tiempo mínimo entre sacudidas
-    private val SHAKE_COUNT_RESET_TIME_MS = 3000 // Si deja de agitar 3s, se reinicia
+    private val SHAKE_COUNT_RESET_TIME_MS = 3000 // Si deja de agitar, se reinicia
 
     private var mListener: OnShakeListener? = null
-    private var mShakeTimestamp: Long = 0
-    private var mShakeCount = 0
+    private var mShakeTimestamp: Long = 0 // Timestamp de la última sacudida
+    private var mShakeCount = 0 // Contador de sacudidas
 
     // Interfaz para avisar a la Activity
     interface OnShakeListener {
-        fun onShake(count: Int) // Nos dice cuántas veces lleva sacudiendo
+        fun onShake(count: Int)
     }
-
+     // Asignar Listener
     fun setOnShakeListener(listener: OnShakeListener) {
         this.mListener = listener
     }
@@ -41,9 +41,9 @@ class ShakeDetector(context: Context) : SensorEventListener {
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // No se necesita
     }
 
+    // Eventos de sensores
     override fun onSensorChanged(event: SensorEvent) {
         if (mListener == null) return
 
@@ -61,12 +61,12 @@ class ShakeDetector(context: Context) : SensorEventListener {
         if (gForce > SHAKE_THRESHOLD_GRAVITY) {
             val now = System.currentTimeMillis()
 
-            // Ignorar sacudidas muy seguidas (ruido)
+            // Ignorar si las sacudidas son muy seguidas
             if (mShakeTimestamp + SHAKE_SLOP_TIME_MS > now) {
                 return
             }
 
-            // Si pasó mucho tiempo, reiniciar contador
+            // Reiniciar contador
             if (mShakeTimestamp + SHAKE_COUNT_RESET_TIME_MS < now) {
                 mShakeCount = 0
             }

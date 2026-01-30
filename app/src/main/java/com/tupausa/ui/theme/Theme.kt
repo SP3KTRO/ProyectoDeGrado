@@ -6,7 +6,6 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
@@ -31,13 +30,9 @@ private val LightColorScheme = lightColorScheme(
     outline = Outline
 )
 
-// Esquema Oscuro
 private val DarkColorScheme = darkColorScheme(
     primary = Color(0xFFFFB951),
-    onPrimary = Color(0xFF452B00),
-    background = Color(0xFF1E1B16),
-    surface = Color(0xFF332A22),
-    onSurface = Color(0xFFEDE0D4)
+    onPrimary = OnPrimary,
 )
 
 @Composable
@@ -50,10 +45,10 @@ fun TuPausaTheme(
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (darkTheme) dynamicDarkColorScheme(context) else dynamicDarkColorScheme(context)
         }
         darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+        else -> DarkColorScheme
     }
 
     val view = LocalView.current

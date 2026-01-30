@@ -102,7 +102,7 @@ fun AdminUsersListScreen(
             }
         }
 
-        // Diálogo de confirmación para eliminar
+        // Dialog de confirmación para eliminar
         if (showDeleteDialog && usuarioToDelete != null) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },

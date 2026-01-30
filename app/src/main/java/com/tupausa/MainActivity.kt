@@ -20,7 +20,6 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
-
 import androidx.work.OneTimeWorkRequest // Test
 
 
@@ -31,8 +30,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // 1. PROGRAMAR LA TAREA DE FONDO (WORKER)
-        // Esto iniciará el ciclo para subir datos a S3 cuando haya internet
+        // Programar la sincronizacipon de datos a S3 cuando haya internet
         programarSincronizacion()
 
         setContent {
@@ -40,7 +38,7 @@ class MainActivity : ComponentActivity() {
                 Box(
                     modifier = Modifier.fillMaxSize()
                 ) {
-                    // CAPA 1 BACK
+                    // Background de la app
                     Image(
                         painter = painterResource(id = R.drawable.fondo),
                         contentDescription = "Fondo de la app",
@@ -48,7 +46,7 @@ class MainActivity : ComponentActivity() {
                         modifier = Modifier.fillMaxSize()
                     )
 
-                    // CAPA 2 FRONT
+                    // Navegación de la app
                     val usuarioViewModel: UsuarioViewModel by viewModels {
                         UsuarioViewModelFactory(app.usuarioRepository)
                     }
@@ -65,20 +63,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // --- FUNCIÓN PARA CONFIGURAR LA SINCRONIZACIÓN ---
+    // Función para programar la sincronización de datos a S3
     private fun programarSincronizacion() {
-        // Restricción: Solo ejecutar si hay conexión a Internet
+        // Restricciones - solo ejecutar si hay conexión a Internet
         val restricciones = Constraints.Builder()
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
-
-        // Configurar: Ejecutar cada 1 hora (Intervalo mínimo permitido por Android es 15 min)
+        // Sincronización cada hora
         val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
             .setConstraints(restricciones)
             .build()
-
-        // Encolar: Usamos 'KEEP' para que si ya existe una tarea programada,
-        // no la duplique ni la reinicie, simplemente mantenga la existente.
+        // Encolamos si ya existe una ejecución programada con el mismo nombre
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "SincronizacionHistorial",
             ExistingPeriodicWorkPolicy.KEEP,

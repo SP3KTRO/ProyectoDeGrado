@@ -16,12 +16,12 @@ class TuPausaApplication : Application() {
     // Base de datos SQLITE
     private val database by lazy { DatabaseHelper(this) }
 
-    //Base de Datos (Room)
+    // Base de Datos (Room)
     val roomDatabase by lazy { AppDatabase.getDatabase(this) }
 
     val preferencesManager by lazy { PreferencesManager(this) }
 
-    //Repositorios
+    // Repositorios
     val usuarioRepository by lazy {
         UsuarioRepository(
             database,
@@ -34,12 +34,10 @@ class TuPausaApplication : Application() {
         EjercicioRepository(database)
     }
 
-    //Repositorio de Alarmas
     val alarmaRepository by lazy {
         AlarmaRepository(roomDatabase.alarmaDao())
     }
 
-    //Repositorio de Historial
     val historialRepository by lazy {
         HistorialRepository(
             database,

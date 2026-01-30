@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class AdminHistorialViewModel(private val repository: HistorialRepository) : ViewModel() {
-
     private val _usuarios = MutableStateFlow<List<Usuario>>(emptyList())
     private val _ejercicios = MutableStateFlow<List<Ejercicio>>(emptyList())
     val usuarios: StateFlow<List<Usuario>> = _usuarios

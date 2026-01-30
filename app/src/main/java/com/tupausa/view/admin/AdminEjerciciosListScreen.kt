@@ -49,7 +49,6 @@ fun AdminEjerciciosScreen(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
                     }
                 },
-                // 2. Barra Transparente y textos color Café
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = Color.Transparent,
                     titleContentColor = OnSurface,
@@ -121,7 +120,7 @@ fun AdminEjercicioCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // IMAGEN
+            // Imagen
             Surface(
                 modifier = Modifier.size(64.dp),
                 shape = MaterialTheme.shapes.medium,

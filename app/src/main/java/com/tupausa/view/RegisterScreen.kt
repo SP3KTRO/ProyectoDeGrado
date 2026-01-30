@@ -72,36 +72,33 @@ fun RegisterScreen(
 
     // Manejar el botón de retroceso
     BackHandler {
-        onNavigateToLogin() // Navegar a la pantalla de inicio de sesión
+        onNavigateToLogin()
     }
 
-    // Función para validar el nombre
+    // Funciones para validación de campos
     fun isValidNombre(nombre: String): Boolean {
         val nombreRegex = "^[a-zA-Z\\s]{5,}\$".toRegex()
         return nombre.matches(nombreRegex)
     }
 
-    // Función para validar el correo electrónico
     fun isValidEmail(email: String): Boolean {
         val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.(com|co)\$".toRegex()
         return email.matches(emailRegex)
     }
 
-    // Función para validar la contraseña
     fun isValidPassword(password: String): Boolean {
         val passwordRegex = "^[a-zA-Z0-9]{8,}\$".toRegex()
         return password.matches(passwordRegex)
     }
 
-    // Función para filtrar caracteres no permitidos en el nombre
     fun filterNombre(input: String): String {
         return input.replace("[^a-zA-Z\\s]".toRegex(), "")
     }
 
-    // Función para filtrar caracteres no permitidos en el correo electrónico
     fun filterEmail(input: String): String {
         return input.replace("[^a-zA-Z0-9@._-]".toRegex(), "")
     }
+
     // Errores del server
     LaunchedEffect(error) {
         if (error.isNotEmpty()) {
@@ -305,34 +302,30 @@ fun RegisterScreen(
             // Botón de registro
             Button(
                 onClick = {
-                    // Validar el nombre
+                    // Condicionales para validaciones de campos
                     if (!isValidNombre(nombre)) {
                         nombreError =
                             "El nombre debe tener al menos 5 caracteres y no puede contener caracteres especiales."
                         return@Button
                     }
 
-                    // Validar el correo electrónico
                     if (!isValidEmail(correoElectronico)) {
                         correoError =
                             "El correo electrónico debe tener un formato válido (ejemplo@dominio.com)."
                         return@Button
                     }
 
-                    // Validar la contraseña
                     if (!isValidPassword(contrasena)) {
                         contrasenaError =
                             "La contraseña debe tener al menos 8 carácteres y no puede contener carácteres especiales."
                         return@Button
                     }
 
-                    // Validar que las contraseñas coincidan
                     if (confirmarContrasena != contrasena) {
                         confirmarContrasenaError = "Las contraseñas no coinciden."
                         return@Button
                     }
-
-                    // Llamar al metodo register si las validaciones son exitosas
+                    // Registrar
                     viewModel.register(nombre, correoElectronico, contrasena, confirmarContrasena)
                 },
                 modifier = Modifier
@@ -368,15 +361,6 @@ fun RegisterScreen(
             ) {
                 Text("¿Ya tienes una cuenta? Inicia sesión")
             }
-
-            // Mostrar error general
-            /*if (error.isNotEmpty()) {
-                Text(
-                    text = error,
-                    color = Primary,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }*/
 
             // Mostrar alerta de registro exitoso
             if (registerSuccess) {

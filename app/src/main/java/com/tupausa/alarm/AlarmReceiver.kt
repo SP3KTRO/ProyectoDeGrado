@@ -18,16 +18,16 @@ class AlarmReceiver : BroadcastReceiver() {
     @SuppressLint("SuspiciousIndentation")
     override fun onReceive(context: Context, intent: Intent) {
 
-        // WAKELOCK Despierta el CPU inmediatamente
+        // Wakwlock para despertar el cpu
         val powerManager = context.getSystemService(Context.POWER_SERVICE) as PowerManager
         val wakeLock = powerManager.newWakeLock(
             PowerManager.PARTIAL_WAKE_LOCK,
             "TuPausa:AlarmWakeLockTag"
         )
-        // Adquirimos el lock por 10 segundos para dar tiempo a la Activity de cargar
+        // Wakelock por 10 segundos para dar tiempo a la Activity de cargar
         wakeLock.acquire(10 * 1000L)
 
-        // Recuperamos los IDs por separado
+        // Variables de la alarma
         val idsRutina = intent.getIntegerArrayListExtra("ALARM_IDS_RUTINA") ?: arrayListOf()
         val alarmRecordId = intent.getIntExtra("ALARM_RECORD_ID", 0)
         val alarmName = intent.getStringExtra("ALARM_NOMBRE")
@@ -35,7 +35,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val alarmDuracion = intent.getIntExtra("ALARM_DURACION", 60)
         val alarmToneName = intent.getStringExtra("ALARM_TONO") ?: "Predeterminado"
 
-        // Preparamos el Intent para la Actividad
+        // Intent para la Actividad
         val fullScreenIntent = Intent(context, AlarmActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or
                     Intent.FLAG_ACTIVITY_CLEAR_TASK or
@@ -43,7 +43,7 @@ class AlarmReceiver : BroadcastReceiver() {
                     Intent.FLAG_ACTIVITY_SINGLE_TOP or
                     Intent.FLAG_ACTIVITY_NO_USER_ACTION
 
-            // Le pasamos a la Activity el ID DEL EJERCICIO bajo la clave "ALARM_ID"
+            // Le pasamos a la Activity el ID del ejercicio bajo la clave ALARM_ID
             putIntegerArrayListExtra("ALARM_IDS_RUTINA", idsRutina)
             putExtra("ALARM_RECORD_ID", alarmRecordId)
             putExtra("ALARM_NOMBRE", alarmName)
@@ -54,13 +54,13 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
-            alarmRecordId, // Usamos ID de registro para el PendingIntent
+            alarmRecordId,
             fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or
                     PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Crear Canal de Notificación
+        // Variables de notificación
         val channelId = "alarm_channel_tupausa"
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -89,11 +89,9 @@ class AlarmReceiver : BroadcastReceiver() {
             .setAutoCancel(true)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setFullScreenIntent(fullScreenPendingIntent, true)
-            .setContentIntent(fullScreenPendingIntent) // Para click manual
-
+            .setContentIntent(fullScreenPendingIntent)
             notificationManager.notify(alarmRecordId, builder.build())
 
-            // OPCIONAL Intenta lanzar la actividad directamente si el dispositivo está desbloqueado
             try {
             context.startActivity(fullScreenIntent)
             } catch (e: Exception) {

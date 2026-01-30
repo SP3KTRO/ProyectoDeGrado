@@ -11,34 +11,19 @@ import kotlinx.coroutines.launch
 
 class EjercicioViewModel(application: Application) : AndroidViewModel(application) {
 
-    // Acceso al repositorio a través de la clase Application
     private val repository = (application as TuPausaApplication).ejercicioRepository
-
-    // LiveData para la lista de ejercicios
     private val _ejercicios = MutableLiveData<List<Ejercicio>>()
     val ejercicios: LiveData<List<Ejercicio>> get() = _ejercicios
-
-    // LiveData para un ejercicio específico (Detalle)
     private val _ejercicioSeleccionado = MutableLiveData<Ejercicio?>()
     val ejercicioSeleccionado: LiveData<Ejercicio?> get() = _ejercicioSeleccionado
-
-    // LiveData para el estado de carga (ProgressBar)
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
-
-    // LiveData para manejar errores (Toast o Snackbar de error)
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> get() = _error
-
-    // LiveData para mensajes de éxito (Toast de confirmación)
     private val _mensaje = MutableLiveData<String?>()
     val mensaje: LiveData<String?> get() = _mensaje
 
-    // ==========================================
-    // MÉTODOS DE LECTURA (GET)
-    // ==========================================
-
-    // CARGAR TODOS LOS EJERCICIOS
+    // Cargar ejercicios
     fun loadEjercicios() {
         _isLoading.value = true
         viewModelScope.launch {
@@ -53,7 +38,6 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // CARGAR EJERCICIO POR ID
     fun loadEjercicioById(id: Int) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -68,7 +52,6 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // FILTRAR POR TIPO
     fun loadEjerciciosByTipo(tipo: String) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -83,7 +66,7 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // OBTENER EJERCICIO ALEATORIO
+    // Obtener un ejercicio aleatorio
     fun loadEjercicioAleatorio() {
         _isLoading.value = true
         viewModelScope.launch {
@@ -97,10 +80,6 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
             }
         }
     }
-
-    // ==========================================
-    // MÉTODOS DE ESCRITURA (POST / DELETE)
-    // ==========================================
 
     fun agregarEjercicio(ejercicio: Ejercicio) {
         _isLoading.value = true
@@ -140,10 +119,7 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
-    // ==========================================
-    // LIMPIEZA DE ESTADOS
-    // ==========================================
-
+    // Limpieza de estados
     fun clearError() {
         _error.value = null
     }

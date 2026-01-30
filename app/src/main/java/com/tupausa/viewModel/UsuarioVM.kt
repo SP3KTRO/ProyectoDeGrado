@@ -15,23 +15,16 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     // LiveData para la lista de usuarios
     private val _usuarios = MutableLiveData<List<Usuario>>()
     val usuarios: LiveData<List<Usuario>> get() = _usuarios
-
-    // LiveData para el estado de carga
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
-
-    // LiveData para manejar errores
     private val _error = MutableLiveData<String>()
     val error: LiveData<String> get() = _error
-
-    // LiveData para operaciones exitosas
     private val _operationSuccess = MutableLiveData<String>()
     val operationSuccess: LiveData<String> get() = _operationSuccess
 
     private val ALERT_DURATION = 4000L
 
-    // OBTENER USUARIOS DESDE LA API
-
+    // Get usuarios desde la Api
     fun fetchUsuariosFromApi() {
         _isLoading.value = true
         viewModelScope.launch {
@@ -51,7 +44,6 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     }
 
     // Actualizar usuario
-
     fun updateUsuario(id: Int, usuario: Usuario) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -72,7 +64,6 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     }
 
     // Eliminar usuario
-
     fun deleteUsuario(id: Int) {
         _isLoading.value = true
         viewModelScope.launch {
@@ -92,7 +83,6 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
     }
 
     // Limpiar estados
-
     private fun handleTemporaryError(message: String) {
         _error.value = message
         _isLoading.value = false

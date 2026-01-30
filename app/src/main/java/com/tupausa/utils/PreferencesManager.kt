@@ -5,13 +5,12 @@ import android.content.SharedPreferences
 import com.tupausa.model.Usuario
 
 class PreferencesManager(context: Context) {
-
     private val prefs: SharedPreferences = context.getSharedPreferences(
         Constants.PREFS_NAME,
         Context.MODE_PRIVATE
     )
 
-    // Guardar sesion
+    // Guardar sesión
     fun saveUserSession(usuario: Usuario) {
         prefs.edit().apply {
             putInt(Constants.PREF_USER_ID, usuario.idUsuario)
@@ -28,7 +27,7 @@ class PreferencesManager(context: Context) {
         prefs.edit().clear().apply()
     }
 
-    // Obtener datos y sesion
+    // Obtener datos y sesión
     fun isLoggedIn(): Boolean {
         return prefs.getBoolean(Constants.PREF_IS_LOGGED_IN, false)
     }
@@ -52,11 +51,11 @@ class PreferencesManager(context: Context) {
     fun isAdmin(): Boolean {
         return getUserType() == Constants.USER_TYPE_ADMIN
     }
-
+    // Guardar tono
     fun setSelectedTone(toneResourceId: Int) {
         prefs.edit().putInt(Constants.PREF_SELECTED_TONE, toneResourceId).apply()
     }
-
+    // Obtener tono
     fun getSelectedTone(defaultToneId: Int): Int {
         return prefs.getInt(Constants.PREF_SELECTED_TONE, defaultToneId)
     }

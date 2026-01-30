@@ -45,7 +45,7 @@ fun UserHistorialScreen(
         viewModel.cargarDatos()
     }
 
-    // DIÁLOGO DE CONFIRMACIÓN
+    // Dialog de confirmación para borrar historial
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
@@ -104,7 +104,7 @@ fun UserHistorialScreen(
                 .padding(padding)
                 .padding(16.dp)
         ) {
-            // TARJETAS DE RESUMEN
+            // Cards de resumen
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -136,7 +136,7 @@ fun UserHistorialScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // LISTA DE REGISTROS
+            // Lista de registros
             if (historial.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Aún no tienes actividad registrada.", color = OnSurface)

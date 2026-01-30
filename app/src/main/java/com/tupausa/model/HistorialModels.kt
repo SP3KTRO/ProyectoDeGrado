@@ -1,5 +1,6 @@
 package com.tupausa.model
 
+
 data class HistorialRegistro(
     val id: Int,
     val fecha: Long,
@@ -9,9 +10,7 @@ data class HistorialRegistro(
     val tipoDeteccion: String,
     val rutaEvidencia: String? = null
 )
-
 data class ResumenEstadistico(
     val totalPausas: Int,
     val tiempoTotalMinutos: Int
-    //val rachaDias: Int
 )

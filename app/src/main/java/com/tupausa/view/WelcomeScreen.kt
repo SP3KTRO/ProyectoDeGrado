@@ -28,7 +28,6 @@ fun ScreenWelcome(onNavigateToLogin: () -> Unit) {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        // Fondo de la pantalla
         Image(
             painter = imagePainter,
             contentDescription = null,

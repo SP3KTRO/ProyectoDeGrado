@@ -8,12 +8,9 @@ data class Alarma(
     @PrimaryKey(autoGenerate = true)
     // ID local en el celular
     val id: Int = 0,
-    // Lista de IDs para la rutina
     val idsEjercicios: List<Int>,
-    // Guardamos hora y minuto separados para programar el AlarmManager
     val hora: Int,
     val minuto: Int,
-
     val diasRepeticion: List<Int>,
     val activa: Boolean = true,
     val etiqueta: String = "Pausa Activa",

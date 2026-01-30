@@ -15,6 +15,7 @@ class SyncWorker(
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
+    // Función para sincronizar con la API en segundo plano
     override suspend fun doWork(): Result {
         val context = applicationContext
         val dbHelper = DatabaseHelper(context)
@@ -24,7 +25,7 @@ class SyncWorker(
         // Si no hay usuario logueado, no hacemos nada
         if (userId == -1) return Result.success()
 
-        // 1. Obtener lista de pendientes desde SQLite
+        // Obtener lista de pendientes desde SQLite
         val pendientes = dbHelper.obtenerHistorialNoSincronizado(userId)
 
         if (pendientes.isEmpty()) {
@@ -33,23 +34,20 @@ class SyncWorker(
 
         var errores = 0
 
-        // 2. Iterar y subir uno por uno
+        // Subir uno a uno
         pendientes.forEach { registroLocal ->
             try {
-                // 1. CONVERSIÓN DE FECHAS (Timestamp -> String)
+                // Conversor de fechas - Timestamp -> String
                 val sdfFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val sdfHora = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+                val dateObj = Date(registroLocal.fecha)
+                val fechaStr = sdfFecha.format(dateObj)
 
-                val dateObj = Date(registroLocal.fecha) // Tu fecha local es Long (milisegundos)
-
-                val fechaStr = sdfFecha.format(dateObj)      // Ej: "2025-12-25"
-                val horaInicioStr = sdfHora.format(dateObj)  // Ej: "18:30:00"
-
-                // Calculamos hora fin sumando la duración
+                val horaInicioStr = sdfHora.format(dateObj)
                 val finDateObj = Date(registroLocal.fecha + (registroLocal.duracionSegundos * 1000))
                 val horaFinStr = sdfHora.format(finDateObj)
 
-                // 2. CREAR EL PAYLOAD CORREGIDO
+                // Preparar datos para la API
                 val payload = HistorialEjecucion(
                     idRegistro = 0,
                     idUsuario = userId,
@@ -62,11 +60,9 @@ class SyncWorker(
                     duracion = registroLocal.duracionSegundos
                 )
 
-                // 4. Llamada a Retrofit
                 val response = RetrofitClient.instance.registrarPausa(payload)
 
                 if (response.isSuccessful) {
-                    // 5. Éxito: Marcamos en SQLite local como sincronizado
                     dbHelper.marcarComoSincronizado(registroLocal.id)
                     Log.d("SyncWorker", "Registro ${registroLocal.id} sincronizado.")
                 } else {

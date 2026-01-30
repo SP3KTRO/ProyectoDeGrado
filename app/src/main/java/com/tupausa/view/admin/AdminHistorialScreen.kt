@@ -45,7 +45,7 @@ fun AdminHistorialScreen(
     val historial by viewModel.historialUsuarioSeleccionado.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
-    // Estado para saber qué usuario estamos viendo (null = lista de usuarios)
+    // Estado para controlar el usuario seleccionado
     var usuarioSeleccionado by remember { mutableStateOf<Usuario?>(null) }
 
     LaunchedEffect(Unit) {
@@ -132,9 +132,12 @@ fun AdminHistorialScreen(
                     }
                 }
             } else {
-                // DETALLE DEL HISTORIAL
+                // Detalle del historial del usuario
                 if (historial.isEmpty()) {
-                    Text("No hay registros para este usuario.", color = OnSurface, modifier = Modifier.align(Alignment.Center))
+                    Text("No hay registros para este usuario.",
+                        fontSize = 18.sp,
+                        color = OnSurface,
+                        modifier = Modifier.align(Alignment.Center))
                 } else {
                     LazyColumn(modifier = Modifier
                         .fillMaxSize()

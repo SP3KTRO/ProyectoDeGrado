@@ -20,13 +20,13 @@ class UsuarioRepository(
         private const val TAG = "UsuarioRepository"
     }
 
-    // LOGOUT
+    // Función para cerrar sesión
     fun logout() {
         preferencesManager.clearUserSession()
         Log.d(TAG, "Sesión Cerrada.")
     }
 
-    // LOGIN - Validar con API
+    // Login
     suspend fun login(email: String, password: String): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.getUsuarios()
@@ -39,7 +39,7 @@ class UsuarioRepository(
 
                 if (usuario != null) {
                     saveUsuarioLocal(usuario) // SQLite
-                    preferencesManager.saveUserSession(usuario) // GUARDAR SESIÓN EN PREFS
+                    preferencesManager.saveUserSession(usuario) // Guardar sesión en SharedPreferences
                     Result.success(usuario)
                 } else {
                     Result.failure(Exception("Correo o Contraseña incorrectos"))
@@ -58,8 +58,7 @@ class UsuarioRepository(
         }
     }
 
-    // REGISTRO
-
+    // Registro
     suspend fun register(usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.createUsuario(usuario)
@@ -87,8 +86,9 @@ class UsuarioRepository(
         }
     }
 
+    // Admin
 
-    // ADMIN: Obtener todos los usuarios de la API
+    // Obtener todos los usuarios de la API
     suspend fun getAllUsuariosFromApi(): Result<List<Usuario>> = withContext(Dispatchers.IO) {
         try {
             val response = apiService.getUsuarios()
@@ -110,8 +110,7 @@ class UsuarioRepository(
         }
     }
 
-    // ADMIN: Actualizar usuario (PUT)
-
+    // Actualizar usuario PUT
     suspend fun updateUsuario(id: Int, usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Actualizando usuario con ID: $id")
@@ -142,8 +141,7 @@ class UsuarioRepository(
         }
     }
 
-    // ADMIN: Eliminar usuario (DELETE)
-
+    // Eliminar usuario DELETE
     suspend fun deleteUsuario(id: Int): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Eliminando usuario con ID: $id")
@@ -175,9 +173,8 @@ class UsuarioRepository(
 
     // ==========================================
     // OBTENER USUARIOS DE LA BD LOCAL
-    // ==========================================
 
-    suspend fun getAllUsuariosLocal(): List<Usuario> = withContext(Dispatchers.IO) {
+    /*suspend fun getAllUsuariosLocal(): List<Usuario> = withContext(Dispatchers.IO) {
         val usuarios = mutableListOf<Usuario>()
         val db = dbHelper.readableDatabase
         val cursor = db.query("Usuarios", null, null, null, null, null, "nombre ASC")
@@ -189,12 +186,9 @@ class UsuarioRepository(
         cursor.close()
         Log.d(TAG, "Usuarios locales obtenidos: ${usuarios.size}")
         return@withContext usuarios
-    }
+    }*/
 
-    // ==========================================
-    // GUARDAR USUARIO LOCAL (CACHÉ)
-    // ==========================================
-
+    // Guardar usuario en BD local - caché
     fun saveUsuarioLocal(usuario: Usuario) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
@@ -209,10 +203,7 @@ class UsuarioRepository(
         db.insertWithOnConflict("Usuarios", null, values, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
     }
 
-    // ==========================================
-    // ACTUALIZAR USUARIO LOCAL
-    // ==========================================
-
+    // Actualizar usuario local
     private fun updateUsuarioLocal(usuario: Usuario) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
@@ -234,10 +225,7 @@ class UsuarioRepository(
         }
     }
 
-    // ==========================================
-    // ELIMINAR USUARIO LOCAL
-    // ==========================================
-
+    // Elimimar usuario local
     private fun deleteUsuarioLocal(id: Int) {
         val db = dbHelper.writableDatabase
         val rowsDeleted = db.delete(
@@ -253,9 +241,8 @@ class UsuarioRepository(
 
     // ==========================================
     // HELPER: Cursor a Usuario
-    // ==========================================
 
-    private fun cursorToUsuario(cursor: Cursor): Usuario {
+    /*private fun cursorToUsuario(cursor: Cursor): Usuario {
         return Usuario(
             idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("id_usuario")),
             nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
@@ -263,5 +250,5 @@ class UsuarioRepository(
             contrasena = cursor.getString(cursor.getColumnIndexOrThrow("contrasena")),
             idTipoUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("id_tipo_usuario"))
         )
-    }
+    }*/
 }

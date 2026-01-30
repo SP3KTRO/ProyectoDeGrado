@@ -60,20 +60,20 @@ enum class TipoReto { SHAKE, TAP, FLIP, LONG_PRESS, DOUBLE_TAP, PROXIMITY, DRAW_
 
 class AlarmActivity : ComponentActivity() {
 
+    // Variables de audio
     private var mediaPlayer: MediaPlayer? = null
 
-
-    //VARIABLES PARA SENSORES Y CAMARA
+    //Variables para sensores y cámara
     private lateinit var shakeDetector: ShakeDetector
     private lateinit var flipDetector: FlipDetector
     private lateinit var proximityDetector: ProximityDetector
     private var circleDetector: CircleDetector? = null
 
-    // ESTADO DE LA RUTINA
+    // Estado de la rutina
     private var listaEjerciciosRutina by mutableStateOf<List<Ejercicio>>(emptyList())
     private var indiceEjercicioActual by mutableIntStateOf(0)
 
-    // ESTADO DEL RETO ACTUAL
+    // Estado del reto actual
     private var retoActual by mutableStateOf(TipoReto.SHAKE)
     private var metaRepeticiones by mutableIntStateOf(5)
     private var repeticionesActuales by mutableIntStateOf(0)
@@ -81,7 +81,7 @@ class AlarmActivity : ComponentActivity() {
     // Estado para el intent
     private var intentState by mutableStateOf<Intent?>(null)
 
-    // Launcher de permisos para la camara
+    // Launcher de permisos para la cámara
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
@@ -100,7 +100,7 @@ class AlarmActivity : ComponentActivity() {
         volumeControlStream = AudioManager.STREAM_MUSIC
         intentState = intent
 
-        // CONFIGURACIÓN DE PANTALLA
+        // Configuración de la pantalla invasiva
         configurarPantallaInvasiva()
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
@@ -125,6 +125,7 @@ class AlarmActivity : ComponentActivity() {
                     val repository = (application as TuPausaApplication).ejercicioRepository
                     val todos = repository.getAllEjercicios()
 
+                    // Filtrar los ejercicios según la lista de IDs
                     listaEjerciciosRutina = if (idsRutina.isNotEmpty()) {
                         idsRutina.mapNotNull { id -> todos.find { it.idEjercicio == id } }
                     } else {
@@ -149,7 +150,6 @@ class AlarmActivity : ComponentActivity() {
             com.tupausa.ui.theme.TuPausaTheme(dynamicColor = false) {
                 // Obtenemos el ejercicio actual de la lista
                 val ejercicioActual = listaEjerciciosRutina.getOrNull(indiceEjercicioActual)
-
                 ejercicioActual?.let { ejercicio ->
                     Box(
                         modifier = Modifier
@@ -210,6 +210,7 @@ class AlarmActivity : ComponentActivity() {
                                 }
                             }
                     ) {
+                        // Vista del ejercicio
                         AlarmScreen(
                             ejercicio = ejercicio,
                             infoReto = if (!intent.getBooleanExtra("IS_MANUAL", false))
@@ -300,7 +301,7 @@ class AlarmActivity : ComponentActivity() {
         }
     }
 
-    // BLOQUEO DEL BOTÓN ATRÁS
+    // Toast para el botón atrás
     @SuppressLint("MissingSuperCall")
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
@@ -377,11 +378,10 @@ class AlarmActivity : ComponentActivity() {
         try {
             val cameraProvider = ProcessCameraProvider.getInstance(this).get()
             cameraProvider.unbindAll()
-        } catch (e: Exception) {
-            // Ignorar si falla al detener
-        }
+        } catch (e: Exception) { }
     }
     private fun iniciarDetectorLuz() {
+        //
         Log.d("TuPausa_Debug", "Iniciando detector de luz...")
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -421,7 +421,7 @@ class AlarmActivity : ComponentActivity() {
             try {
                 cameraProvider.unbindAll()
 
-                // Selector explícito para evitar cámaras auxiliares
+                // Selector explícito de cámara trasera
                 val cameraSelector = CameraSelector.Builder()
                     .requireLensFacing(CameraSelector.LENS_FACING_BACK)
                     .build()
@@ -445,6 +445,7 @@ class AlarmActivity : ComponentActivity() {
         } else {
             @Suppress("DEPRECATION")
             window.addFlags(
+                        // Flags para mantener la pantalla encendida
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON or
                         WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON or
@@ -491,11 +492,11 @@ class AlarmActivity : ComponentActivity() {
         try {
             val nombreTono = intent.getStringExtra("ALARM_TONO") ?: "Predeterminado"
             val tonoRecurso = TonosDisponibles.lista.find { it.nombre == nombreTono }?.recurso
-                ?: R.raw.jazz_suave // Fallback si no lo encuentra
+                ?: R.raw.jazz_suave // Fallback
 
-            // Configuración MediaPlayer
+            // Configuración MediaPlayer para audios
             mediaPlayer = MediaPlayer.create(this, tonoRecurso).apply {
-                isLooping = true // Que no deje de sonar hasta completar la rutina
+                isLooping = true
                 setAudioAttributes(
                     AudioAttributes.Builder()
                         .setUsage(AudioAttributes.USAGE_ALARM)

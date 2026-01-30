@@ -58,16 +58,14 @@ fun AlarmaFormDialog(
 
     val idTonoInicial = remember {
         if (alarmaAEditar != null) {
-            // Buscamos el ID basado en el nombre guardado
             TonosDisponibles.lista.find { it.nombre == alarmaAEditar.tonoAlarma }?.recurso
                 ?: TonosDisponibles.lista.first().recurso
         } else {
-            // Si es nueva, usamos el último seleccionado o el primero
             preferencesManager.getSelectedTone(TonosDisponibles.lista.first().recurso)
         }
     }
 
-    // ESTADOS DEL FORMULARIO
+    // Estados del formulario
     val timeState = rememberTimePickerState(
         initialHour = alarmaAEditar?.hora ?: 8,
         initialMinute = alarmaAEditar?.minuto ?: 0
@@ -76,7 +74,7 @@ fun AlarmaFormDialog(
 
     // Tonos
     var selectedToneId by remember { mutableIntStateOf(idTonoInicial) }
-    var showTonoDialog by remember { mutableStateOf(false) } // Controla si se ve el popup
+    var showTonoDialog by remember { mutableStateOf(false) }
 
     // Helper para obtener el nombre actual basado en el ID seleccionado
     val nombreTonoActual = TonosDisponibles.lista.find { it.recurso == selectedToneId }?.nombre ?: "Predeterminado"
@@ -97,7 +95,7 @@ fun AlarmaFormDialog(
         }
     }
 
-    // ESTADO PARA CONTROLAR LA VISTA INTERNA
+    // Estados del Dialog
     var currentStep by remember { mutableStateOf(DialogStep.FORMULARIO) }
 
     AlertDialog(
@@ -186,10 +184,10 @@ fun AlarmaFormDialog(
                             TimeInput(
                                 state = timeState,
                                 colors = TimePickerDefaults.colors(
-                                    // AM PM
+                                    // AM/PM
                                     periodSelectorSelectedContainerColor = OnPrimaryContainer,
                                     periodSelectorUnselectedContainerColor = Gris,
-                                    // Hora y Minutos
+                                    // Hora y minutos
                                     timeSelectorSelectedContainerColor = OnPrimaryContainer,
                                     timeSelectorUnselectedContainerColor = Gris,
                                 )
@@ -217,7 +215,7 @@ fun AlarmaFormDialog(
                                 }
                             }
 
-                            // SELECCIÓN DE TONO
+                            // Selección de tono
                             OutlinedCard(
                                 onClick = { showTonoDialog = true }, // Abre el popup
                                 modifier = Modifier.fillMaxWidth(),
@@ -235,12 +233,11 @@ fun AlarmaFormDialog(
                                             color = Tertiary
                                         )
                                     }
-                                    // Icono de nota musical
                                     Icon(Icons.Default.MusicNote, "Cambiar Tono", tint = OnPrimary)
                                 }
                             }
 
-                            // ETIQUETA
+                            // Etiqueta
                             OutlinedTextField(
                                 value = etiqueta,
                                 onValueChange = { etiqueta = it },
@@ -307,10 +304,10 @@ fun AlarmaFormDialog(
     )
     if (showTonoDialog) {
         SelectorTonoDialog(
-            tonoIdActual = selectedToneId, // Le pasamos el ID actual
+            tonoIdActual = selectedToneId,
             onDismiss = { showTonoDialog = false },
             onTonoSeleccionado = { nuevoId ->
-                selectedToneId = nuevoId // Actualizamos el estado interno
+                selectedToneId = nuevoId
                 showTonoDialog = false
             }
         )

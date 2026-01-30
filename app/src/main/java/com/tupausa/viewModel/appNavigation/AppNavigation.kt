@@ -42,7 +42,7 @@ fun AppNavigation(
     LaunchedEffect(Unit) {
         val usuario = loginViewModel.checkSession()
         if (usuario != null) {
-            // Ya hay sesión, navegar según tipo de usuario
+            // Navegar según tipo de usuario
             val destination = if (usuario.idTipoUsuario == Constants.USER_TYPE_ADMIN) {
                 AppRoutes.ADMIN_DASHBOARD
             } else {
@@ -59,7 +59,8 @@ fun AppNavigation(
         navController = navController,
         startDestination = AppRoutes.WELCOME
     ) {
-        // AUTENTICACIÓN
+        // Bienvenida
+
         composable(AppRoutes.WELCOME) {
             ScreenWelcome(
                 onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) {
@@ -71,16 +72,17 @@ fun AppNavigation(
             )
         }
 
+        // Autenticación
+
         composable(AppRoutes.LOGIN) {
             val loginSuccess by loginViewModel.loginSuccess.observeAsState()
 
-            // Pasar el loginViewModel explícitamente
+            // Pasar el loginViewModel a LoginScreen
             LoginScreen(
                 onNavigateToRegister = { navController.navigate(AppRoutes.REGISTER) },
                 onLoginSuccess = { },
                 loginViewModel = loginViewModel
             )
-            // Observar login exitoso
             LaunchedEffect(loginSuccess) {
                 loginSuccess?.let { usuario ->
                     // Navegar según tipo de usuario
@@ -105,9 +107,7 @@ fun AppNavigation(
             )
         }
 
-        // ==========================================
-        // ADMIN
-        // ==========================================
+        // Admin
 
         composable(AppRoutes.ADMIN_DASHBOARD) {
             AdminDashboardScreen(
@@ -136,21 +136,18 @@ fun AppNavigation(
                 usuarioViewModel.fetchUsuariosFromApi()
             }
 
-            // Mostrar Snackbar de éxito
             LaunchedEffect(operationSuccess) {
                 operationSuccess?.let {
                     if (it.isNotEmpty()) {
-                        //
                         usuarioViewModel.clearOperationSuccess()
                     }
                 }
             }
 
-            // Mostrar Snackbar de error
+            // Mostrar error
             LaunchedEffect(error) {
                 error?.let {
                     if (it.isNotEmpty()) {
-                        //
                         usuarioViewModel.clearError()
                     }
                 }
@@ -169,7 +166,6 @@ fun AppNavigation(
                 }
             )
 
-            // Diálogo de edición
             if (showEditDialog && usuarioToEdit != null) {
                 EditarUsuarioDialog(
                     usuario = usuarioToEdit!!,
@@ -220,7 +216,6 @@ fun AppNavigation(
         }
 
         composable(AppRoutes.ADMIN_HISTORIAL) {
-            // Usamos el ViewModel de Android para que se cree correctamente
             val adminVM: AdminHistorialViewModel = viewModel(
                 factory = AdminHistorialViewModelFactory((
                         LocalContext.current.applicationContext as TuPausaApplication).historialRepository
@@ -232,9 +227,7 @@ fun AppNavigation(
             )
         }
 
-        // ==========================================
-        // USUARIO
-        // ==========================================
+        // Usuario
 
         composable(AppRoutes.USER_DASHBOARD) {
             UserDashboardScreen(

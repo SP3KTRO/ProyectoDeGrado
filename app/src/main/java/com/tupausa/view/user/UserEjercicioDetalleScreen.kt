@@ -55,7 +55,7 @@ fun UserEjercicioDetalleScreen(
 ) {
     val context = LocalContext.current
 
-    // CONFIGURACIÓN DEL VIEWMODEL Y SCHEDULER (Necesarios para guardar la alarma)
+    // Configuración de AlarmScheduler
     val app = context.applicationContext as TuPausaApplication
     val scheduler = remember { AlarmScheduler(context) }
 
@@ -67,13 +67,13 @@ fun UserEjercicioDetalleScreen(
         )
     )
 
-    // ESTADOS
+    // Estados
     var showAlarmaDialog by remember { mutableStateOf(false) }
-    val listaEjercicios by viewModel.ejerciciosReales.collectAsState()
+    val listaEjercicios by viewModel.ejercicios.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
-    // CONFIGURACIÓN DE COIL (GIFs)
+    // Configuración de Coil para cargar Gif
     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
     val imageLoader = remember {
         ImageLoader.Builder(context)
@@ -117,7 +117,7 @@ fun UserEjercicioDetalleScreen(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // HEADER CON GIF ANIMADO
+            // Header con GIF
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -159,7 +159,7 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // CONTENEDOR DE INFORMACIÓN
+            // Contenido del Ejercicio
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(
@@ -195,7 +195,7 @@ fun UserEjercicioDetalleScreen(
                             text = ejercicio.getNivelDisplayName()
                         )
                     }
-                    Divider()
+                    HorizontalDivider()
                     // Descripción
                     SectionTitle("Descripción")
                     Text(
@@ -203,7 +203,7 @@ fun UserEjercicioDetalleScreen(
                         fontSize = 16.sp,
                         color = OnPrimary
                     )
-                    Divider()
+                    HorizontalDivider()
                     // Instrucciones
                     SectionTitle("Cómo realizarlo")
                     val instrucciones = ejercicio.getInstruccionesList()
@@ -244,12 +244,12 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // BOTONES
+            // Botones
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // PROGRAMAR ALARMA
+                // Programar alarma
                 FilledTonalButton(
                     onClick = { showAlarmaDialog = true },
                     modifier = Modifier.height(56.dp),
@@ -265,7 +265,7 @@ fun UserEjercicioDetalleScreen(
                     )
                 }
 
-                // COMENZAR EJERCICIO
+                // Comenzar ejercicio
                 Button(
                     onClick = {
                         val intent = Intent(context, AlarmActivity::class.java).apply {
@@ -297,7 +297,7 @@ fun UserEjercicioDetalleScreen(
             Spacer(modifier = Modifier.height(16.dp))
         }
 
-        // LÓGICA DEL DIÁLOGO FLOTANTE
+        // Dialog de Alarma
         if (showAlarmaDialog) {
             val preAlarma = Alarma(
                 idsEjercicios = listOf(ejercicio.idEjercicio),
@@ -316,7 +316,7 @@ fun UserEjercicioDetalleScreen(
                 listaEjercicios = listaEjercicios,
                 onDismiss = { showAlarmaDialog = false },
                 onConfirm = { hora, min, dias, etiqueta, tipo, tono, idsEjercicios ->
-                    // Guardamos la nueva alarma
+                    // Guardar la nueva alarma
                     val nuevaAlarma = Alarma(
                         idsEjercicios = idsEjercicios,
                         hora = hora,

@@ -7,26 +7,24 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
 @Database(entities = [Alarma::class], version = 1, exportSchema = false)
-@TypeConverters(Converters::class) // ¡Importante! Aquí registramos tu traductor de Listas
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
-    // Aquí exponemos los DAOs (nuestras herramientas)
+    // Implementación de los DAO
     abstract fun alarmaDao(): AlarmaDao
 
-    // Patron Singleton (Para que solo exista UNA base de datos en toda la app)
+    // Companion object para definir constantes y nombres de tablas (Singleton)
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
-
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "tupausa_database" // Nombre del archivo físico en el celular
+                    "tupausa_database"
                 )
-                    // Esto permite que si cambias la base de datos, borre la vieja y empiece de cero
-                    // (Util en desarrollo para evitar crashes por cambios de columnas)
+                    // Fallback para migraciones de versión si la estructura de la base de datos cambia
                     .fallbackToDestructiveMigration()
                     .build()
                 INSTANCE = instance

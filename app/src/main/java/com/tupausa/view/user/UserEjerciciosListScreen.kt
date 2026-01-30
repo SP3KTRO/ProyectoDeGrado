@@ -42,7 +42,7 @@ fun UserEjerciciosListScreen(
 ) {
     var selectedFilter by remember { mutableStateOf("TODOS") }
 
-    // Lógica de filtrado
+    // Filtrar ejercicios según el filtro seleccionado
     val filteredEjercicios = when (selectedFilter) {
         "TODOS" -> ejercicios
         else -> ejercicios.filter { it.tipoEjercicio == selectedFilter }
@@ -71,7 +71,7 @@ fun UserEjerciciosListScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Filtros (Scroll Horizontal)
+            // Filtros - Scroll Horizontal
             FilterChips(
                 selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it }
@@ -319,7 +319,6 @@ fun UserEjercicioCard(
     }
 }
 
-// Funciones auxiliares
 fun getIconoPorTipo(tipo: String): ImageVector {
     return when (tipo) {
         "OJOS" -> Icons.Default.Visibility

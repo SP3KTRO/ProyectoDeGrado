@@ -2,7 +2,6 @@ package com.tupausa.repository
 
 import android.content.ContentValues
 import android.database.Cursor
-import android.database.sqlite.SQLiteDatabase
 import android.util.Log
 import com.tupausa.database.DatabaseHelper
 import com.tupausa.model.Ejercicio
@@ -15,10 +14,7 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
         private const val TAG = "EjercicioRepository"
     }
 
-    // ==========================================
-    // LECTURA (GET)
-    // ==========================================
-
+    // Obetener los ejercicios
     suspend fun getAllEjercicios(): List<Ejercicio> = withContext(Dispatchers.IO) {
         val ejercicios = mutableListOf<Ejercicio>()
         val db = dbHelper.readableDatabase
@@ -82,10 +78,7 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
         return@withContext ejercicio
     }
 
-    // ==========================================
-    // ESCRITURA (POST / PUT / DELETE)
-    // ==========================================
-
+    // POST / PUT / DELETE
     suspend fun insertEjercicio(ejercicio: Ejercicio): Long = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase
         val values = ContentValues().apply {
@@ -136,9 +129,7 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
         return@withContext rows
     }
 
-    // ==========================================
-    // HELPER: Mapeo de columnas nuevas
-    // ==========================================
+    // Helper para mapeo de columnas nuevas
     private fun cursorToEjercicio(cursor: Cursor): Ejercicio {
         return Ejercicio(
             idEjercicio = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COL_ID_EJERCICIO)),

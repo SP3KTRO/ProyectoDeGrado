@@ -61,7 +61,7 @@ fun UserAlarmasScreen(
 
     // DATOS
     val alarmas by viewModel.alarmas.collectAsState()
-    val listaEjercicios by viewModel.ejerciciosReales.collectAsState()
+    val listaEjercicios by viewModel.ejercicios.collectAsState()
 
     // ESTADOS DE UI
     var showCreateDialog by remember { mutableStateOf(false) }

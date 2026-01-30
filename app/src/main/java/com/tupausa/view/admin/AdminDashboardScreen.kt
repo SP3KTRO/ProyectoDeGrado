@@ -68,10 +68,10 @@ fun AdminDashboardScreen(
             text = {
                 Column {
                     Text("Versión: 1.0.0", color = OnPrimary, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Text("Desarrollado por:\nDaniel Callejas & Brayan Acosta", color = OnPrimary)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Proyecto de Grado de Tecnología en Sistematización de datos 💻", color = OnPrimary)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text("Tecnología en Sistematización de datos.", color = OnPrimary)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text("Universidad Distrital Francisco José de Caldas.", color = OnPrimary)
                 }
@@ -179,7 +179,7 @@ fun AdminDashboardScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Tarjeta: Ver Usuarios
+            // Card - Usuarios
             AdminMenuCard(
                 title = "Usuarios",
                 description = "Ver y editar la lista de todos los usuarios registrados",
@@ -188,7 +188,7 @@ fun AdminDashboardScreen(
                 onClick = onNavigateToUsersList
             )
 
-            // Tarjeta: Ejercicios
+            // Card - Ejercicios
             AdminMenuCard(
                 title = "Ejercicios",
                 description = "Ver lista de ejercicios disponibles",
@@ -197,7 +197,7 @@ fun AdminDashboardScreen(
                 onClick = onNavigateToEjercicios
             )
 
-            // Tarjeta: Historial
+            // Card - Historial
             AdminMenuCard(
                 title = "Registros",
                 description = "Ver registros de actividad de los usuarios",

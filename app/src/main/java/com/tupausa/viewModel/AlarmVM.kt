@@ -1,6 +1,5 @@
 package com.tupausa.viewModel
 
-import androidx.compose.foundation.layout.size
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -24,7 +23,7 @@ class AlarmasViewModel(
     private val ejercicioRepository: EjercicioRepository
 ) : ViewModel() {
 
-    // 1. Lista de Alarmas (Room)
+    // Lista de Alarmas - Room
     val alarmas: StateFlow<List<Alarma>> = repository.todasLasAlarmas
         .stateIn(
             scope = viewModelScope,
@@ -32,19 +31,15 @@ class AlarmasViewModel(
             initialValue = emptyList()
         )
 
-    // 2. Lista de Ejercicios Reales (SQLite)
-    private val _ejerciciosReales = MutableStateFlow<List<Ejercicio>>(emptyList())
-    val ejerciciosReales: StateFlow<List<Ejercicio>> = _ejerciciosReales.asStateFlow()
+    private val _ejercicios = MutableStateFlow<List<Ejercicio>>(emptyList())
+    val ejercicios: StateFlow<List<Ejercicio>> = _ejercicios.asStateFlow()
 
-    // --- NUEVA LÓGICA PARA RUTINAS ---
-
-    // Lista de IDs seleccionados para la rutina actual
     private val _ejerciciosSeleccionadosIds = MutableStateFlow<List<Int>>(emptyList())
     val ejerciciosSeleccionadosIds = _ejerciciosSeleccionadosIds.asStateFlow()
 
     // Valida si la rutina cumple con el mínimo de 4 ejercicios
     val puedeGuardarRutina: StateFlow<Boolean> = _ejerciciosSeleccionadosIds
-        .combine(_ejerciciosReales) { seleccionados, _ ->
+        .combine(_ejercicios) { seleccionados, _ ->
             seleccionados.size >= 4
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
@@ -56,7 +51,7 @@ class AlarmasViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val lista = ejercicioRepository.getAllEjercicios()
-                _ejerciciosReales.value = lista
+                _ejercicios.value = lista
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -82,15 +77,13 @@ class AlarmasViewModel(
         _ejerciciosSeleccionadosIds.value = alarma.idsEjercicios
     }
 
-    // Guardar nueva alarma (o editar existente)
+    // Guardar nueva alarma o editar existente
     fun guardarAlarma(alarma: Alarma) {
         viewModelScope.launch {
             // Aseguramos que la alarma lleve los ejercicios seleccionados
-
             if (alarma.id != 0) {
                 scheduler.cancelar(alarma)
             }
-
             val id = repository.insertar(alarma)
             val alarmaGuardada = alarma.copy(id = id.toInt())
 
@@ -100,7 +93,7 @@ class AlarmasViewModel(
             limpiarSeleccion()
         }
     }
-
+    // Actualizar alarma
     fun toggleAlarma(alarma: Alarma) {
         val nuevaAlarma = alarma.copy(activa = !alarma.activa)
         viewModelScope.launch {

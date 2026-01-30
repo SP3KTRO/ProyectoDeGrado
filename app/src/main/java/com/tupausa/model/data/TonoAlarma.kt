@@ -7,7 +7,6 @@ data class TonoAlarma(
     val nombre: String,
     @RawRes val recurso: Int
 )
-
 object TonosDisponibles {
     val lista = listOf(
         TonoAlarma("Predeterminado", R.raw.jazz_suave),

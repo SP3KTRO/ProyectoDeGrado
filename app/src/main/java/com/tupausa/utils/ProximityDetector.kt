@@ -18,11 +18,11 @@ class ProximityDetector(context: Context) {
     fun start(onTrigger: () -> Unit) {
         if (proximitySensor == null) return
 
+        // Listener de sensores
         sensorEventListener = object : SensorEventListener {
             override fun onSensorChanged(event: SensorEvent) {
                 val distance = event.values[0]
-                // Si la distancia es menor al rango máximo, detectamos "cerca"
-                if (distance < proximitySensor.maximumRange) {
+                if (distance < proximitySensor.maximumRange) {  // Si la distancia es menor al rango máximo, detectamos cerca
                     onTrigger()
                 }
             }
