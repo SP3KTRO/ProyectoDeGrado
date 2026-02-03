@@ -4,7 +4,7 @@ import androidx.compose.ui.graphics.Color
 
 //Paleta de colores
 
-val Primary = Color(0xFFC01C1C) // Container error
+val Primary = Color(0xFFC01C1C) // Error
 val OnPrimary = Color(0xFFFFFFFF) // Texto claro
 val PrimaryContainer = Color(0xFFADACAC) // Gris Claro
 val OnPrimaryContainer = Color(0xFF560202) // Buttons y color base

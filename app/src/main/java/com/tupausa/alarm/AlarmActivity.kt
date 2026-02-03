@@ -313,22 +313,22 @@ class AlarmActivity : ComponentActivity() {
         retoActual = valores[Random.nextInt(valores.size)]
 
         metaRepeticiones = when (retoActual) {
-            TipoReto.SHAKE -> 5  // Sacudir 5 veces
-            TipoReto.TAP -> 8    // Tocar 8 veces
-            TipoReto.FLIP -> 1   // Voltear 1 vez
-            TipoReto.LONG_PRESS -> 4  // Mantener presionado 3 veces
-            TipoReto.DOUBLE_TAP -> 5  // Hacer doble click 5 veces
+            TipoReto.SHAKE -> 5     // Sacudir 5 veces
+            TipoReto.TAP -> 8       // Tocar 8 veces
+            TipoReto.FLIP -> 1      // Voltear 1 vez
+            TipoReto.LONG_PRESS -> 4     // Mantener presionado 3 veces
+            TipoReto.DOUBLE_TAP -> 5    // Hacer doble click 5 veces
             TipoReto.PROXIMITY -> 4    // Pasar la mano 3 veces
             TipoReto.MULTI_TAP -> 3    // Tocar con varios dedos 3 veces
             TipoReto.DRAW_CIRCLE -> 1  // Dibujar 1 círculos
-            TipoReto.FIND_LIGHT -> 1 // Encontrar la luz
+            TipoReto.FIND_LIGHT -> 1  // Encontrar la luz
         }
     }
 
     private fun obtenerTextoReto(reto: TipoReto): String = when (reto) {
         TipoReto.SHAKE -> "¡Sacude el celular!📳"
         TipoReto.TAP -> "¡Toca la pantalla!👆"
-        TipoReto.FLIP -> "¡Voltea el celular!🔄"
+        TipoReto.FLIP -> "¡Voltea el celular boca abajo!🔄"
         TipoReto.LONG_PRESS -> "¡Mantén presionado 1 seg!👆"
         TipoReto.DOUBLE_TAP -> "¡Haz Doble-Toque rápido!👆"
         TipoReto.PROXIMITY -> "¡Pasa la mano sobre la cámara frontal!👋"

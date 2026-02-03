@@ -171,23 +171,6 @@ class UsuarioRepository(
         }
     }
 
-    // ==========================================
-    // OBTENER USUARIOS DE LA BD LOCAL
-
-    /*suspend fun getAllUsuariosLocal(): List<Usuario> = withContext(Dispatchers.IO) {
-        val usuarios = mutableListOf<Usuario>()
-        val db = dbHelper.readableDatabase
-        val cursor = db.query("Usuarios", null, null, null, null, null, "nombre ASC")
-        if (cursor.moveToFirst()) {
-            do {
-                usuarios.add(cursorToUsuario(cursor))
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-        Log.d(TAG, "Usuarios locales obtenidos: ${usuarios.size}")
-        return@withContext usuarios
-    }*/
-
     // Guardar usuario en BD local - caché
     fun saveUsuarioLocal(usuario: Usuario) {
         val db = dbHelper.writableDatabase
@@ -239,10 +222,8 @@ class UsuarioRepository(
         }
     }
 
-    // ==========================================
-    // HELPER: Cursor a Usuario
-
-    /*private fun cursorToUsuario(cursor: Cursor): Usuario {
+    // Obtener usuario local
+    private fun cursorToUsuario(cursor: Cursor): Usuario {
         return Usuario(
             idUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("id_usuario")),
             nombre = cursor.getString(cursor.getColumnIndexOrThrow("nombre")),
@@ -250,5 +231,5 @@ class UsuarioRepository(
             contrasena = cursor.getString(cursor.getColumnIndexOrThrow("contrasena")),
             idTipoUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("id_tipo_usuario"))
         )
-    }*/
+    }
 }

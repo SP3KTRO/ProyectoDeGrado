@@ -15,7 +15,7 @@ import com.tupausa.R
 
 class AlarmReceiver : BroadcastReceiver() {
 
-    @SuppressLint("SuspiciousIndentation")
+    @SuppressLint("SuspiciousIndentation", "FullScreenIntentPolicy")
     override fun onReceive(context: Context, intent: Intent) {
 
         // Wakwlock para despertar el cpu
