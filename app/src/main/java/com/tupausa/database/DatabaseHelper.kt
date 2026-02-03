@@ -1,267 +1,439 @@
 package com.tupausa.database
 
+import android.content.ContentValues
 import android.content.Context
+import com.tupausa.model.HistorialRegistro
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
+    // Companion object para definir constantes y nombres de tablas
     companion object {
         private const val DATABASE_NAME = "tupausa_database.db"
-        private const val DATABASE_VERSION = 1
-        private const val TAG = "DatabaseHelper" // Etiqueta para los logs
+        private const val DATABASE_VERSION = 3
+
+        // Definición de tablas y columnas
+
+        // Tabla Tipo_usuario
+        const val TABLE_TIPO_USUARIO = "Tipo_usuario"
+        const val COL_ID_TIPO_USUARIO = "id_tipo_usuario"
+        const val COL_TIPO = "tipo"
+
+        // Tabla Usuarios
+        const val TABLE_USUARIOS = "Usuarios"
+        const val COL_ID_USUARIO = "id_usuario"
+        const val COL_NOMBRE = "nombre"
+        const val COL_CORREO = "correo_electronico"
+        const val COL_CONTRASENA = "contrasena"
+        const val COL_FK_TIPO_USUARIO = "id_tipo_usuario"
+
+        // Tabla Ejercicios
+        const val TABLE_EJERCICIOS = "Ejercicios"
+        const val COL_ID_EJERCICIO = "id_ejercicio"
+        const val COL_NOMBRE_EJERCICIO = "nombre_ejercicio"
+        const val COL_DESCRIPCION = "descripcion"
+        const val COL_TIPO_EJERCICIO = "tipo_ejercicio"
+        const val COL_NIVEL_INTENSIDAD = "nivel_intensidad"
+        const val COL_DURACION = "duracion_segundos"
+        const val COL_URL_IMAGEN = "url_imagen_guia"
+        const val COL_INSTRUCCIONES = "instrucciones"
+        const val COL_BENEFICIOS = "beneficios"
+
+        // Tabla Config_Notificaciones
+        const val TABLE_CONFIG_NOTIF = "Config_Notificaciones"
+        const val COL_ID_NOTIF = "id_notificacion"
+        const val COL_TONO = "nombre_tono"
+
+        // Tabla Historial_Ejecucion
+        const val TABLE_HISTORIAL = "Historial_Ejecucion"
+        const val COL_ID_REGISTRO = "id_registro"
+        const val COL_FECHA_REALIZACION = "fecha_realizacion"
+        const val COL_DURACION_REAL_SEG = "duracion_real_seg"
+        const val COL_SE_DETECTO_MOV = "se_detecto_movimiento"
+        const val COL_TIPO_DETECCION = "tipo_deteccion_usado"
+        const val COL_SINCRONIZADO = "sincronizado"
+        const val COL_RUTA_EVIDENCIA = "ruta_evidencia"
+    }
+    // Implementación de métodos de SQLiteOpenHelper
+    override fun onConfigure(db: SQLiteDatabase) {
+        super.onConfigure(db)
+        db.setForeignKeyConstraintsEnabled(true)
     }
 
-    override fun onCreate(db: SQLiteDatabase?) {
-        Log.d(TAG, "Creando base de datos...")
+    override fun onCreate(db: SQLiteDatabase) {
+        // Crear Tipo_usuario
+        db.execSQL("CREATE TABLE $TABLE_TIPO_USUARIO ($COL_ID_TIPO_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, $COL_TIPO TEXT)")
 
-        try {
-            // Crear tabla Tipo_usuario
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Tipo_usuario (
-                    id_tipo_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL
+        // Crear Usuarios
+        val createUsuarios = ("CREATE TABLE $TABLE_USUARIOS ("
+                + "$COL_ID_USUARIO INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "$COL_NOMBRE TEXT NOT NULL, "
+                + "$COL_CORREO TEXT UNIQUE NOT NULL, "
+                + "$COL_CONTRASENA TEXT NOT NULL, "
+                + "$COL_FK_TIPO_USUARIO INTEGER, "
+                + "FOREIGN KEY($COL_FK_TIPO_USUARIO) REFERENCES $TABLE_TIPO_USUARIO($COL_ID_TIPO_USUARIO))")
+        db.execSQL(createUsuarios)
+
+        // Crear Ejercicios
+        val createEjercicios = ("CREATE TABLE $TABLE_EJERCICIOS ("
+                + "$COL_ID_EJERCICIO INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "$COL_NOMBRE_EJERCICIO TEXT NOT NULL, "
+                + "$COL_DESCRIPCION TEXT NOT NULL, "
+                + "$COL_TIPO_EJERCICIO TEXT NOT NULL, "
+                + "$COL_NIVEL_INTENSIDAD TEXT NOT NULL, "
+                + "$COL_URL_IMAGEN TEXT, "
+                + "$COL_DURACION INTEGER, "
+                + "$COL_INSTRUCCIONES TEXT, "
+                + "$COL_BENEFICIOS TEXT)")
+        db.execSQL(createEjercicios)
+
+        // Crear Historial_Ejecucion
+        val createHistorial = ("CREATE TABLE $TABLE_HISTORIAL ("
+                + "$COL_ID_REGISTRO INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "$COL_ID_USUARIO INTEGER, "
+                + "$COL_ID_EJERCICIO INTEGER, "
+                + "$COL_FECHA_REALIZACION INTEGER, "
+                + "$COL_DURACION_REAL_SEG INTEGER, "
+                + "$COL_SE_DETECTO_MOV INTEGER DEFAULT 0, "
+                + "$COL_TIPO_DETECCION TEXT, "
+                + "$COL_SINCRONIZADO INTEGER DEFAULT 0, "
+                + "$COL_RUTA_EVIDENCIA TEXT, "
+                + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE, "
+                + "FOREIGN KEY($COL_ID_EJERCICIO) REFERENCES $TABLE_EJERCICIOS($COL_ID_EJERCICIO))")
+        db.execSQL(createHistorial)
+
+        // Crear Config_Notificaciones
+        val createConfig = ("CREATE TABLE $TABLE_CONFIG_NOTIF ("
+                + "$COL_ID_NOTIF INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "$COL_ID_USUARIO INTEGER, "
+                + "$COL_TONO TEXT, "
+                + "FOREIGN KEY($COL_ID_USUARIO) REFERENCES $TABLE_USUARIOS($COL_ID_USUARIO) ON DELETE CASCADE)")
+        db.execSQL(createConfig)
+
+        insertarDatosIniciales(db)
+    }
+
+    private fun insertarDatosIniciales(db: SQLiteDatabase) {
+        db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Estudiante')")
+        db.execSQL("INSERT INTO $TABLE_TIPO_USUARIO ($COL_TIPO) VALUES ('Administrador')")
+
+        val ejercicios = listOf(
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Rotación de Cuello")
+                put(COL_DESCRIPCION, "Alivia la tensión cervical con rotaciones suaves de cabeza")
+                put(COL_TIPO_EJERCICIO, "CUELLO")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_cuello_rotacion")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate derecho con la espalda recta|Gira lentamente la cabeza hacia la derecha|Mantén la posición 5 segundos|Regresa al centro|Repite hacia la izquierda|Realiza 5 repeticiones completas"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Tipo_usuario creada correctamente.")
-
-            // Crear tabla Usuarios
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Usuarios (
-                    id_usuario INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nombre TEXT NOT NULL,
-                    correo_electronico TEXT UNIQUE NOT NULL,
-                    contrasena TEXT NOT NULL,
-                    id_tipo_usuario INTEGER,
-                    FOREIGN KEY (id_tipo_usuario) REFERENCES Tipo_usuario(id_tipo_usuario)
+                put(
+                    COL_BENEFICIOS,
+                    "Reduce tensión cervical, mejora movilidad del cuello, previene dolores de cabeza"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Usuarios creada correctamente.")
-
-            // Crear tabla Estado_pausa
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Estado_pausa (
-                    id_estado_pausa INTEGER PRIMARY KEY AUTOINCREMENT,
-                    estado TEXT NOT NULL
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento de Muñecas")
+                put(
+                    COL_DESCRIPCION,
+                    "Previene el síndrome del túnel carpiano y alivia tensión en manos"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Estado_pausa creada correctamente.")
-
-            // Crear tabla Pausas_activas
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Pausas_activas (
-                    id_pausa INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_usuario INTEGER,
-                    fecha TEXT NOT NULL,
-                    hora TEXT NOT NULL,
-                    duracion INTEGER NOT NULL,
-                    id_estado_pausa INTEGER,
-                    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
-                    FOREIGN KEY (id_estado_pausa) REFERENCES Estado_pausa(id_estado_pausa)
+                put(COL_TIPO_EJERCICIO, "MUÑECAS")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 45)
+                put(COL_URL_IMAGEN, "gif_munecas")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Extiende el brazo frente a ti con la palma hacia arriba|Con la otra mano, tira suavemente de los dedos hacia atrás|Mantén el estiramiento 10 segundos|Haz lo mismo con la palma hacia abajo|Cambia de mano|Realiza 3 series en cada mano"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Pausas_activas creada correctamente.")
-
-            // Crear tabla Nombre_ejercicio
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Nombre_ejercicio (
-                    id_nombre_ejer INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nombre_ejercicio TEXT NOT NULL
+                put(
+                    COL_BENEFICIOS,
+                    "Previene lesiones por movimientos repetitivos, alivia dolor en muñecas"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Nombre_ejercicio creada correctamente.")
-
-            // Crear tabla Descripcion_ejercicio
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Descripcion_ejercicio (
-                    id_descripcion INTEGER PRIMARY KEY AUTOINCREMENT,
-                    descripcion TEXT NOT NULL
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Regla 20-20-20 para Ojos")
+                put(COL_DESCRIPCION, "Descansa tu vista del monitor para prevenir fatiga visual")
+                put(COL_TIPO_EJERCICIO, "OJOS")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 20)
+                put(COL_URL_IMAGEN, "gif_ojos")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Cada 20 minutos de trabajo|Mira algo a 20 pies de distancia (6 metros)|Mantén la mirada durante 20 segundos|Parpadea varias veces|Vuelve a tu trabajo"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Descripcion_ejercicio creada correctamente.")
-
-            // Crear tabla Tipo_ejercicio
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Tipo_ejercicio (
-                    id_tipo_ejercicio INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL
+                put(COL_BENEFICIOS, "Reduce fatiga visual, previene ojo seco, mejora enfoque")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento de Espalda Alta")
+                put(COL_DESCRIPCION, "Alivia la tensión en la parte superior de la espalda")
+                put(COL_TIPO_EJERCICIO, "ESPALDA")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 90)
+                put(COL_URL_IMAGEN, "gif_espalda")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie, entrelaza las manos frente a ti|Estira los brazos hacia adelante redondeando la espalda|Mantén 15 segundos|Lleva las manos por encima de la cabeza|Inclínate suavemente a cada lado|Repite 3 veces"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Tipo_ejercicio creada correctamente.")
-
-            // Crear tabla Nivel_intensidad
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Nivel_intensidad (
-                    id_nivel_intensidad INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nivel TEXT NOT NULL
+                put(COL_BENEFICIOS, "Mejora postura, alivia dolor lumbar, aumenta flexibilidad")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Respiración Profunda 4-4-6")
+                put(COL_DESCRIPCION, "Reduce el estrés mediante respiración controlada")
+                put(COL_TIPO_EJERCICIO, "RESPIRACIÓN")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 120)
+                put(COL_URL_IMAGEN, "gif_respiracion")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate cómodamente con la espalda recta|Inhala por la nariz contando hasta 4|Mantén el aire contando hasta 4|Exhala por la boca contando hasta 6|Repite 5 veces"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Nivel_intensidad creada correctamente.")
-
-            // Crear tabla Ejercicios
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Ejercicios (
-                    id_ejercicio INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_nombre_ejer INTEGER,
-                    id_descripcion INTEGER,
-                    id_tipo_ejercicio INTEGER,
-                    id_nivel_intensidad INTEGER,
-                    FOREIGN KEY (id_nombre_ejer) REFERENCES Nombre_ejercicio(id_nombre_ejer),
-                    FOREIGN KEY (id_descripcion) REFERENCES Descripcion_ejercicio(id_descripcion),
-                    FOREIGN KEY (id_tipo_ejercicio) REFERENCES Tipo_ejercicio(id_tipo_ejercicio),
-                    FOREIGN KEY (id_nivel_intensidad) REFERENCES Nivel_intensidad(id_nivel_intensidad)
+                put(
+                    COL_BENEFICIOS,
+                    "Reduce ansiedad, mejora concentración, regula presión arterial"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Ejercicios creada correctamente.")
-
-            // Crear tabla Registro_pausa
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Registro_pausa (
-                    id_registro INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_pausa INTEGER,
-                    fecha_realizacion TEXT NOT NULL,
-                    hora_inicio TEXT NOT NULL,
-                    hora_fin TEXT NOT NULL,
-                    FOREIGN KEY (id_pausa) REFERENCES Pausas_activas(id_pausa)
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento de Hombros")
+                put(COL_DESCRIPCION, "Libera tensión en hombros y trapecios")
+                put(COL_TIPO_EJERCICIO, "HOMBROS")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_hombros")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Cruza el brazo derecho sobre el pecho|Con la mano izquierda, presiona suavemente el codo derecho|Mantén 15 segundos|Haz círculos con los hombros 10 veces|Cambia de brazo"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Registro_pausa creada correctamente.")
-
-            // Crear tabla Tipo_deteccion
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Tipo_deteccion (
-                    id_tipo_deteccion INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tipo TEXT NOT NULL
+                put(COL_BENEFICIOS, "Alivia tensión en hombros, mejora movilidad")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Sentadillas de Escritorio")
+                put(COL_DESCRIPCION, "Activa piernas y glúteos sin salir del espacio de trabajo")
+                put(COL_TIPO_EJERCICIO, "PIERNAS")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 90)
+                put(COL_URL_IMAGEN, "gif_sentadilla")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie, separa los pies al ancho de hombros|Baja como si fueras a sentarte|Mantén espalda recta|Sube lentamente|Realiza 10-15 repeticiones"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Tipo_deteccion creada correctamente.")
-
-            // Crear tabla Deteccion_movimientos
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Deteccion_movimientos (
-                    id_movimiento INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_registro INTEGER,
-                    fecha TEXT NOT NULL,
-                    id_tipo_deteccion INTEGER,
-                    resultado_validacion TEXT,
-                    video BLOB,
-                    FOREIGN KEY (id_registro) REFERENCES Registro_pausa(id_registro),
-                    FOREIGN KEY (id_tipo_deteccion) REFERENCES Tipo_deteccion(id_tipo_deteccion)
+                put(COL_BENEFICIOS, "Mejora circulación, fortalece piernas, activa metabolismo")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento Cat-Cow")
+                put(COL_DESCRIPCION, "Moviliza toda la columna vertebral")
+                put(COL_TIPO_EJERCICIO, "ESPALDA")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 75)
+                put(COL_URL_IMAGEN, "gif_cat_cow")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Apoya manos y rodillas en el suelo|Inhala arqueando la espalda|Exhala redondeando la espalda|Alterna entre ambas posiciones|Realiza 10 repeticiones"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Deteccion_movimientos creada correctamente.")
-
-            // Crear tabla Historial_pausas
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Historial_pausas (
-                    id_historial INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_usuario INTEGER,
-                    tiempo_total INTEGER NOT NULL,
-                    id_tipo_deteccion INTEGER,
-                    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
-                    FOREIGN KEY (id_tipo_deteccion) REFERENCES Tipo_deteccion(id_tipo_deteccion)
+                put(COL_BENEFICIOS, "Mejora flexibilidad espinal, alivia tensión lumbar")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento de Pectorales")
+                put(COL_DESCRIPCION, "Contrarresta la postura encorvada del escritorio")
+                put(COL_TIPO_EJERCICIO, "GENERAL")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_pectorales")
+                put(
+                    COL_INSTRUCCIONES,
+                    "De pie junto a una pared|Coloca el antebrazo en la pared|Gira el cuerpo alejándote del brazo|Mantén 20 segundos|Repite del otro lado"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Historial_pausas creada correctamente.")
-
-            // Crear tabla Estadisticas_generales
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Estadisticas_generales (
-                    id_estadistica INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_usuario INTEGER,
-                    frecuencias_pausas TEXT NOT NULL,
-                    id_tipo_deteccion INTEGER,
-                    porcentaje_cumplimiento REAL NOT NULL,
-                    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
-                    FOREIGN KEY (id_tipo_deteccion) REFERENCES Tipo_deteccion(id_tipo_deteccion)
+                put(COL_BENEFICIOS, "Mejora postura, abre pecho, facilita respiración")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Ejercicio de Dedos y Manos")
+                put(COL_DESCRIPCION, "Previene fatiga por uso prolongado del teclado")
+                put(COL_TIPO_EJERCICIO, "MUÑECAS")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 45)
+                put(COL_URL_IMAGEN, "gif_dedos")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Abre y cierra las manos 10 veces|Toca cada dedo con el pulgar|Haz círculos con las muñecas|Sacude las manos 10 segundos|Repite 2 veces"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Estadisticas_generales creada correctamente.")
-
-            // Crear tabla Frecuencia_notificacion
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Frecuencia_notificacion (
-                    id_frecuencia INTEGER PRIMARY KEY AUTOINCREMENT,
-                    frecuencia TEXT NOT NULL
+                put(COL_BENEFICIOS, "Previene calambres, mejora destreza, aumenta circulación")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Marcha en el Sitio")
+                put(COL_DESCRIPCION, "Reactiva tu circulación sanguínea y eleva tu energía")
+                put(COL_TIPO_EJERCICIO, "CARDIO SUAVE")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_marcha")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Ponte de pie con espacio suficiente|Levanta las rodillas alternadamente como si marcharas|Mueve los brazos al ritmo de las piernas|Mantén un ritmo constante|Respira fluidamente por la nariz"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Frecuencia_notificacion creada correctamente.")
-
-            // Crear tabla Horario_notificacion
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Horario_notificacion (
-                    id_horario INTEGER PRIMARY KEY AUTOINCREMENT,
-                    horario TEXT NOT NULL
+                put(
+                    COL_BENEFICIOS,
+                    "Mejora el retorno venoso, despierta el cerebro, aumenta la energía"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Horario_notificacion creada correctamente.")
-
-            // Crear tabla Tono_notificacion
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Tono_notificacion (
-                    id_tono INTEGER PRIMARY KEY AUTOINCREMENT,
-                    tono TEXT NOT NULL
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Rotación de Tobillos")
+                put(COL_DESCRIPCION, "Mejora la circulación en los pies y previene hinchazón")
+                put(COL_TIPO_EJERCICIO, "PIES")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_tobillos")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate y levanta un pie del suelo|Dibuja círculos grandes con la punta del pie|Haz 10 círculos hacia la derecha|Haz 10 círculos hacia la izquierda|Repite con el otro pie"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Tono_notificacion creada correctamente.")
-
-            // Crear tabla Notificaciones
-            db?.execSQL("""
-                CREATE TABLE IF NOT EXISTS Notificaciones (
-                    id_notificacion INTEGER PRIMARY KEY AUTOINCREMENT,
-                    id_usuario INTEGER,
-                    id_frecuencia INTEGER,
-                    id_horario INTEGER,
-                    id_tono INTEGER,
-                    FOREIGN KEY (id_usuario) REFERENCES Usuarios(id_usuario),
-                    FOREIGN KEY (id_frecuencia) REFERENCES Frecuencia_notificacion(id_frecuencia),
-                    FOREIGN KEY (id_horario) REFERENCES Horario_notificacion(id_horario),
-                    FOREIGN KEY (id_tono) REFERENCES Tono_notificacion(id_tono)
+                put(
+                    COL_BENEFICIOS,
+                    "Previene la retención de líquidos, fortalece tobillos, evita calambres"
                 )
-            """.trimIndent())
-            Log.d(TAG, "Tabla Notificaciones creada correctamente.")
+            }
+        )
 
-            Log.d(TAG, "Base de datos creada correctamente.")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error al crear la base de datos: ${e.message}")
+        ejercicios.forEach { values ->
+            db.insert(TABLE_EJERCICIOS, null, values)
         }
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        Log.d(TAG, "Actualizando base de datos de la versión $oldVersion a $newVersion...")
-
-        try {
-            // Eliminar y recrear las tablas si la versión cambia
-            db?.execSQL("DROP TABLE IF EXISTS Tipo_usuario")
-            db?.execSQL("DROP TABLE IF EXISTS Usuarios")
-            db?.execSQL("DROP TABLE IF EXISTS Estado_pausa")
-            db?.execSQL("DROP TABLE IF EXISTS Pausas_activas")
-            db?.execSQL("DROP TABLE IF EXISTS Nombre_ejercicio")
-            db?.execSQL("DROP TABLE IF EXISTS Descripcion_ejercicio")
-            db?.execSQL("DROP TABLE IF EXISTS Tipo_ejercicio")
-            db?.execSQL("DROP TABLE IF EXISTS Nivel_intensidad")
-            db?.execSQL("DROP TABLE IF EXISTS Ejercicios")
-            db?.execSQL("DROP TABLE IF EXISTS Registro_pausa")
-            db?.execSQL("DROP TABLE IF EXISTS Tipo_deteccion")
-            db?.execSQL("DROP TABLE IF EXISTS Deteccion_movimientos")
-            db?.execSQL("DROP TABLE IF EXISTS Historial_pausas")
-            db?.execSQL("DROP TABLE IF EXISTS Estadisticas_generales")
-            db?.execSQL("DROP TABLE IF EXISTS Frecuencia_notificacion")
-            db?.execSQL("DROP TABLE IF EXISTS Horario_notificacion")
-            db?.execSQL("DROP TABLE IF EXISTS Tono_notificacion")
-            db?.execSQL("DROP TABLE IF EXISTS Notificaciones")
-            Log.d(TAG, "Tablas eliminadas correctamente.")
-
-            onCreate(db)
-            Log.d(TAG, "Base de datos actualizada correctamente.")
-        } catch (e: Exception) {
-            Log.e(TAG, "Error al actualizar la base de datos: ${e.message}")
+    fun obtenerTotalPausas(userId: Int): Int {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT COUNT(*) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?",
+            arrayOf(userId.toString())
+        )
+        var total = 0
+        if (cursor.moveToFirst()) {
+            total = cursor.getInt(0)
         }
+        cursor.close()
+        return total
     }
 
-    override fun onOpen(db: SQLiteDatabase?) {
-        super.onOpen(db)
-        Log.d(TAG, "Base de datos abierta correctamente.")
+    fun obtenerTiempoTotalMinutos(userId: Int): Int {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery(
+            "SELECT SUM($COL_DURACION_REAL_SEG) FROM $TABLE_HISTORIAL WHERE $COL_ID_USUARIO = ?",
+            arrayOf(userId.toString())
+        )
+        var totalSegundos = 0
+        if (cursor.moveToFirst()) {
+            totalSegundos = cursor.getInt(0)
+        }
+        cursor.close()
+        return totalSegundos / 60
+    }
+
+    fun insertarHistorial(
+        idUsuario: Int,
+        idEjercicio: Int,
+        duracionSegundos: Int,
+        tipoDeteccion: String = "MANUAL",
+        rutaEvidencia: String? = null
+    ): Long {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COL_ID_USUARIO, idUsuario)
+            put(COL_ID_EJERCICIO, idEjercicio)
+            put(COL_FECHA_REALIZACION, System.currentTimeMillis())
+            put(COL_DURACION_REAL_SEG, duracionSegundos)
+            put(COL_SE_DETECTO_MOV, 0)
+            put(COL_TIPO_DETECCION, tipoDeteccion)
+            put(COL_SINCRONIZADO, 0)
+            put(COL_RUTA_EVIDENCIA, rutaEvidencia)
+        }
+        val id = db.insert(TABLE_HISTORIAL, null, values)
+        db.close()
+        return id
+    }
+
+    fun obtenerHistorialPorUsuario(userId: Int): List<HistorialRegistro> {
+        val lista = ArrayList<HistorialRegistro>()
+        val db = this.readableDatabase
+
+        val query = """
+        SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION, h.$COL_RUTA_EVIDENCIA
+        FROM $TABLE_HISTORIAL h
+        INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
+        WHERE h.$COL_ID_USUARIO = ?
+        ORDER BY h.$COL_FECHA_REALIZACION DESC
+    """
+
+        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+        if (cursor.moveToFirst()) {
+            do {
+                val item = HistorialRegistro(
+                    id = cursor.getInt(0),
+                    fecha = cursor.getLong(1),
+                    nombreEjercicio = cursor.getString(2),
+                    idEjercicio = cursor.getInt(3),
+                    duracionSegundos = cursor.getInt(4),
+                    tipoDeteccion = cursor.getString(5),
+                    rutaEvidencia = cursor.getString(6)
+                )
+                lista.add(item)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
+    }
+
+    fun obtenerHistorialNoSincronizado(userId: Int): List<HistorialRegistro> {
+        val lista = ArrayList<HistorialRegistro>()
+        val db = this.readableDatabase
+
+        val query = """
+        SELECT h.$COL_ID_REGISTRO, h.$COL_FECHA_REALIZACION, e.$COL_NOMBRE_EJERCICIO, 
+               h.$COL_ID_EJERCICIO, h.$COL_DURACION_REAL_SEG, h.$COL_TIPO_DETECCION, h.$COL_RUTA_EVIDENCIA
+        FROM $TABLE_HISTORIAL h
+        INNER JOIN $TABLE_EJERCICIOS e ON h.$COL_ID_EJERCICIO = e.$COL_ID_EJERCICIO
+        WHERE h.$COL_ID_USUARIO = ? AND h.$COL_SINCRONIZADO = 0
+    """
+
+        val cursor = db.rawQuery(query, arrayOf(userId.toString()))
+        if (cursor.moveToFirst()) {
+            do {
+                val item = HistorialRegistro(
+                    id = cursor.getInt(0),
+                    fecha = cursor.getLong(1),
+                    nombreEjercicio = cursor.getString(2),
+                    idEjercicio = cursor.getInt(3),
+                    duracionSegundos = cursor.getInt(4),
+                    tipoDeteccion = cursor.getString(5),
+                    rutaEvidencia = cursor.getString(6)
+                )
+                lista.add(item)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return lista
+    }
+
+    fun marcarComoSincronizado(idRegistro: Int) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COL_SINCRONIZADO, 1)
+        }
+        db.update(TABLE_HISTORIAL, values, "$COL_ID_REGISTRO = ?", arrayOf(idRegistro.toString()))
+        db.close()
+    }
+
+    fun borrarTodoElHistorial(idUsuario: Int): Int {
+        val db = this.writableDatabase
+        return db.delete(TABLE_HISTORIAL, "$COL_ID_USUARIO = ?", arrayOf(idUsuario.toString()))
+    }
+
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_HISTORIAL")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_CONFIG_NOTIF")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_EJERCICIOS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_USUARIOS")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_TIPO_USUARIO")
+        onCreate(db)
     }
 }

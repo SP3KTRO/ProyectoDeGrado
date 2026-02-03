@@ -4,232 +4,80 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import com.tupausa.model.Usuario
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import com.tupausa.ui.theme.TuPausaTheme
-import com.tupausa.view.LoginScreen
-import com.tupausa.viewModel.RegisterScreen
-import com.tupausa.viewModel.TuPausaViewModel
-import com.tupausa.viewModel.appNavigation.AppRoutes
-import com.tupausa.viewmodel.TuPausaViewModelFactory
+import com.tupausa.viewModel.*
+import com.tupausa.viewModel.appNavigation.*
+import com.tupausa.utils.SyncWorker
+import androidx.work.Constraints
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import java.util.concurrent.TimeUnit
+import androidx.work.OneTimeWorkRequest // Test
+
 
 class MainActivity : ComponentActivity() {
 
-    // Obtén una instancia del ViewModel usando el Factory
-    private val tuPausaViewModel: TuPausaViewModel by viewModels {
-        TuPausaViewModelFactory((application as TuPausaApplication).repository)
-    }
+    private val app by lazy { application as TuPausaApplication }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Configura la UI con Jetpack Compose
+        // Programar la sincronizacipon de datos a S3 cuando haya internet
+        programarSincronizacion()
+
         setContent {
             TuPausaTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                Box(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    AppNavigation(viewModel = tuPausaViewModel)
-                }
-            }
-        }
-    }
-}
+                    // Background de la app
+                    Image(
+                        painter = painterResource(id = R.drawable.fondo),
+                        contentDescription = "Fondo de la app",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
 
-// Navegación de la aplicación
-@Composable
-fun AppNavigation(viewModel: TuPausaViewModel) {
-    val navController = rememberNavController()
-
-    NavHost(
-        navController = navController,
-        startDestination = AppRoutes.LOGIN // La pantalla de Login será la primera
-    ) {
-        // Pantalla de Login
-        composable(AppRoutes.LOGIN) {
-            LoginScreen(
-                onNavigateToRegister = { navController.navigate(AppRoutes.REGISTER) },
-                onLoginSuccess = { navController.navigate(AppRoutes.USUARIOS_LIST) }
-            )
-        }
-
-        // Pantalla de Registro
-        composable(AppRoutes.REGISTER) {
-            RegisterScreen(
-                onNavigateToLogin = { navController.navigate(AppRoutes.LOGIN) }
-            )
-        }
-
-        // Pantalla de Bienvenida
-        composable(AppRoutes.WELCOME) {
-            ScreenWelcome(
-                onNavigateToUsuarioList = { navController.navigate(AppRoutes.USUARIOS_LIST) }
-            )
-        }
-
-        // Pantalla de Lista de Usuarios
-        composable(AppRoutes.USUARIOS_LIST) {
-            val usuarios by viewModel.usuarios.observeAsState(emptyList())
-            val isLoading by viewModel.isLoading.observeAsState(false)
-            val error by viewModel.error.observeAsState()
-
-            // Cargar usuarios desde la API al entrar en esta pantalla
-            LaunchedEffect(Unit) {
-                viewModel.fetchUsuariosFromApi()
-            }
-
-            UsuarioList(
-                usuarios = usuarios,
-                isLoading = isLoading,
-                error = error,
-                onRetry = { viewModel.fetchUsuariosFromApi() }
-            )
-        }
-    }
-}
-
-// Pantalla de Bienvenida
-@Composable
-fun ScreenWelcome(onNavigateToUsuarioList: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Bienvenido a TuPausa",
-                style = MaterialTheme.typography.headlineMedium
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(onClick = onNavigateToUsuarioList) {
-                Text("Ver Lista de Usuarios")
-            }
-        }
-    }
-}
-
-// Pantalla de Lista de Usuarios
-@Composable
-fun UsuarioList(
-    usuarios: List<Usuario>,
-    isLoading: Boolean,
-    error: String?,
-    onRetry: () -> Unit
-) {
-    // Muestra un Snackbar si hay un error
-    if (!error.isNullOrEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.BottomCenter
-        ) {
-            Snackbar(
-                modifier = Modifier.padding(16.dp),
-                action = {
-                    Button(onClick = onRetry) {
-                        Text("Reintentar")
+                    // Navegación de la app
+                    val usuarioViewModel: UsuarioViewModel by viewModels {
+                        UsuarioViewModelFactory(app.usuarioRepository)
                     }
+                    val loginViewModel: LoginViewModel by viewModels()
+                    val ejercicioViewModel: EjercicioViewModel by viewModels()
+
+                    AppNavigation(
+                        usuarioViewModel = usuarioViewModel,
+                        loginViewModel = loginViewModel,
+                        ejercicioViewModel = ejercicioViewModel
+                    )
                 }
-            ) {
-                Text(text = error)
             }
         }
     }
 
-    // Muestra un indicador de carga si los datos se están cargando
-    if (isLoading) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-    } else {
-        // Muestra la lista de usuarios
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-        ) {
-            items(usuarios) { usuario ->
-                UsuarioItem(usuario = usuario)
-            }
-        }
+    // Función para programar la sincronización de datos a S3
+    private fun programarSincronizacion() {
+        // Restricciones - solo ejecutar si hay conexión a Internet
+        val restricciones = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+        // Sincronización cada hora
+        val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(1, TimeUnit.HOURS)
+            .setConstraints(restricciones)
+            .build()
+        // Encolamos si ya existe una ejecución programada con el mismo nombre
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "SincronizacionHistorial",
+            ExistingPeriodicWorkPolicy.KEEP,
+            syncRequest
+        )
     }
-}
-
-// Ítem de Usuario
-@Composable
-fun UsuarioItem(usuario: Usuario) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = "Nombre: ${usuario.nombre}",
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Correo: ${usuario.correoElectronico}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Contraseña: ${usuario.contrasena}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "Tipo de Usuario: ${usuario.idTipoUsuario}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "ID de Usuario: ${usuario.idUsuario}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-// Rutas de la aplicación
-object AppRoutes {
-    const val LOGIN = "login"
-    const val REGISTER = "register"
-    const val WELCOME = "welcome"
-    const val USUARIOS_LIST = "usuarios_list"
 }

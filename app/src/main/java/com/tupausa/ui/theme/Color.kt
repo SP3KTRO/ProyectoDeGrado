@@ -2,13 +2,18 @@ package com.tupausa.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+//Paleta de colores
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val Primary = Color(0xFFC01C1C) // Error
+val OnPrimary = Color(0xFFFFFFFF) // Texto claro
+val PrimaryContainer = Color(0xFFADACAC) // Gris Claro
+val OnPrimaryContainer = Color(0xFF560202) // Buttons y color base
+val Surface = Color(0xFFFFD5AE) //Texto alternativo
+val OnSurface = Color(0xFF251010) //Texto oscuro
+val OnSurfaceVariant = Color(0xFFA23030) // Variante rojo suave
+val Secondary = Color(0xFF1A1A1A) // Card oscura
+val OnSecondary = Color(0xFFC4BFBF) // Card clara
+val Tertiary = Color(0xFFD98C09) // Amarillo quemado
+val Outline = Color(0xFFE0B89A) // Texto Outline
+val Gris = Color(0xFF4B4B4B)
 
-val MainColor = Color(0xFF615555)
-var SecondColor = Color(0xFF929292)
