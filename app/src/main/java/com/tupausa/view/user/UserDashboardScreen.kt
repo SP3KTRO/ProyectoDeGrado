@@ -179,7 +179,7 @@ fun UserDashboardScreen(
 
             // Bienvenida
             Text(
-                text = "Cuídate mientras estudias 💻",
+                text = "Cuídate mientras estudias",
                 fontSize = 19.sp,
                 fontWeight = FontWeight.Light,
                 color = OnSurface
@@ -189,7 +189,7 @@ fun UserDashboardScreen(
 
             // Card - Ver Ejercicios
             UserMenuCard(
-                title = "Ejercicios",
+                title = "Pausas Activas",
                 description = "Explora ejercicios de pausas activas",
                 icon = painterResource(id = R.drawable.exercise),
                 iconTint = Color.Unspecified,
@@ -199,7 +199,7 @@ fun UserDashboardScreen(
             // Card - Mis Alarmas
             UserMenuCard(
                 title = "Mis Alarmas",
-                description = "Programa tus pausas activas",
+                description = "Programa tus rutinas de pausas activas",
                 icon = painterResource(id = R.drawable.reloj),
                 iconTint = Color.Unspecified,
                 onClick = onNavigateToAlarmas

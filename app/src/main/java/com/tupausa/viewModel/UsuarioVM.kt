@@ -7,8 +7,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.tupausa.model.Usuario
 import com.tupausa.repository.UsuarioRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
 
@@ -78,6 +80,26 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
                 }
             } catch (e: Exception) {
                 handleTemporaryError("Error de red inesperado")
+            }
+        }
+    }
+
+    // Guardar preferencias de limitaciones físicas en local
+    fun guardarPreferenciasOnboarding(idUsuario: Int, limitaciones: String, onComplete: () -> Unit) {
+        _isLoading.value = true
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                repository.guardarPreferenciasLocales(idUsuario, limitaciones)
+
+                // Volvemos al hilo principal para actualizar la UI y navegar
+                withContext(Dispatchers.Main) {
+                    _isLoading.value = false
+                    onComplete()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    handleTemporaryError("Error al guardar las preferencias. Intenta de nuevo.")
+                }
             }
         }
     }

@@ -15,11 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tupausa.TuPausaApplication
-import com.tupausa.database.RetrofitClient
 import com.tupausa.model.Usuario
-import com.tupausa.repository.EjercicioRepository
-import com.tupausa.repository.HistorialRepository
-import com.tupausa.repository.UsuarioRepository
 import com.tupausa.utils.Constants
 import com.tupausa.view.*
 import com.tupausa.view.admin.*
@@ -46,7 +42,11 @@ fun AppNavigation(
             val destination = if (usuario.idTipoUsuario == Constants.USER_TYPE_ADMIN) {
                 AppRoutes.ADMIN_DASHBOARD
             } else {
-                AppRoutes.USER_DASHBOARD
+                if (usuario.onboardingCompletado) {
+                    AppRoutes.USER_DASHBOARD
+                } else {
+                    AppRoutes.ONBOARDING
+                }
             }
             navController.navigate(destination) {
                 popUpTo(0)
@@ -89,7 +89,11 @@ fun AppNavigation(
                     val destination = if (usuario.idTipoUsuario == Constants.USER_TYPE_ADMIN) {
                         AppRoutes.ADMIN_DASHBOARD
                     } else {
-                        AppRoutes.USER_DASHBOARD
+                        if (usuario.onboardingCompletado) {
+                            AppRoutes.USER_DASHBOARD
+                        } else {
+                            AppRoutes.ONBOARDING
+                        }
                     }
 
                     navController.navigate(destination) {
@@ -277,6 +281,27 @@ fun AppNavigation(
                     ejercicio = it,
                     onBack = { navController.popBackStack() }
                 )
+            }
+        }
+
+        composable(AppRoutes.ONBOARDING){
+            val usuarioActual = loginViewModel.loginSuccess.value ?: loginViewModel.checkSession()
+            if (usuarioActual != null) {
+                OnboardingScreen(
+                    idUsuario = usuarioActual.idUsuario,
+                    usuarioViewModel = usuarioViewModel,
+                    onOnboardingComplete = {
+                        navController.navigate(AppRoutes.USER_DASHBOARD) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                )
+            } else {
+                LaunchedEffect(Unit) {
+                    navController.navigate(AppRoutes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
             }
         }
 

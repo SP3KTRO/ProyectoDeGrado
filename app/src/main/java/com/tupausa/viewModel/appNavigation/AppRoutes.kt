@@ -16,6 +16,7 @@ object AppRoutes {
 
     // Usuario
     const val USER_DASHBOARD = "user_dashboard"
+    const val ONBOARDING = "onboarding"
     const val USER_EJERCICIOS = "user_ejercicios"
     const val USER_EJERCICIO_DETALLE = "user_ejercicio_detalle/{ejercicioId}"
     const val USER_ALARMAS = "user_alarmas"

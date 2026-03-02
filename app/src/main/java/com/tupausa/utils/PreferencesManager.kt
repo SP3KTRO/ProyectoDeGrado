@@ -22,6 +22,26 @@ class PreferencesManager(context: Context) {
         }
     }
 
+
+    // Guardar que el onboarding se completó y las limitaciones
+    fun saveOnboardingPreferences(limitaciones: String) {
+        prefs.edit().apply {
+            putBoolean(Constants.PREF_ONBOARDING_COMPLETED, true)
+            putString(Constants.PREF_LIMITACIONES, limitaciones)
+            apply()
+        }
+    }
+
+    // Comprobar si ya completó el onboarding
+    fun isOnboardingCompleted(): Boolean {
+        return prefs.getBoolean(Constants.PREF_ONBOARDING_COMPLETED, false)
+    }
+
+    // Obtener las limitaciones como String
+    fun getLimitaciones(): String {
+        return prefs.getString(Constants.PREF_LIMITACIONES, "") ?: ""
+    }
+
     // Logout
     fun clearUserSession() {
         prefs.edit().clear().apply()

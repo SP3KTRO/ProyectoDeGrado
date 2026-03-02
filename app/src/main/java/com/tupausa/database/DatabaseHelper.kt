@@ -11,7 +11,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     // Companion object para definir constantes y nombres de tablas
     companion object {
         private const val DATABASE_NAME = "tupausa_database.db"
-        private const val DATABASE_VERSION = 3
+        private const val DATABASE_VERSION = 4
 
         // Definición de tablas y columnas
 
@@ -19,13 +19,15 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val TABLE_TIPO_USUARIO = "Tipo_usuario"
         const val COL_ID_TIPO_USUARIO = "id_tipo_usuario"
         const val COL_TIPO = "tipo"
-
         // Tabla Usuarios
         const val TABLE_USUARIOS = "Usuarios"
         const val COL_ID_USUARIO = "id_usuario"
         const val COL_NOMBRE = "nombre"
         const val COL_CORREO = "correo_electronico"
         const val COL_CONTRASENA = "contrasena"
+        const val COL_ONBOARDING_COMPLETADO = "onboarding_completado"
+        const val COL_LIMITACIONES = "limitaciones"
+
         const val COL_FK_TIPO_USUARIO = "id_tipo_usuario"
 
         // Tabla Ejercicios
@@ -72,6 +74,8 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 + "$COL_CORREO TEXT UNIQUE NOT NULL, "
                 + "$COL_CONTRASENA TEXT NOT NULL, "
                 + "$COL_FK_TIPO_USUARIO INTEGER, "
+                + "$COL_ONBOARDING_COMPLETADO INTEGER DEFAULT 0, " // 0 es false, 1 es true
+                + "$COL_LIMITACIONES TEXT DEFAULT '', "
                 + "FOREIGN KEY($COL_FK_TIPO_USUARIO) REFERENCES $TABLE_TIPO_USUARIO($COL_ID_TIPO_USUARIO))")
         db.execSQL(createUsuarios)
 
@@ -223,22 +227,22 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 put(COL_BENEFICIOS, "Mejora circulación, fortalece piernas, activa metabolismo")
             },
             ContentValues().apply {
-                put(COL_NOMBRE_EJERCICIO, "Estiramiento Cat-Cow")
-                put(COL_DESCRIPCION, "Moviliza toda la columna vertebral")
+                put(COL_NOMBRE_EJERCICIO, "Torsión Espinal en Silla")
+                put(COL_DESCRIPCION, "Libera la tensión de la zona lumbar y media de la espalda sin levantarte")
                 put(COL_TIPO_EJERCICIO, "ESPALDA")
                 put(COL_NIVEL_INTENSIDAD, "MEDIO")
-                put(COL_DURACION, 75)
-                put(COL_URL_IMAGEN, "gif_cat_cow")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_espalda_torsion")
                 put(
                     COL_INSTRUCCIONES,
-                    "Apoya manos y rodillas en el suelo|Inhala arqueando la espalda|Exhala redondeando la espalda|Alterna entre ambas posiciones|Realiza 10 repeticiones"
+                    "Siéntate de lado en tu silla con la espalda recta|Cruza la pierna derecha sobre la izquierda|Gira el torso hacia la derecha sujetando el respaldo de la silla|Mantén 15 segundos respirando profundo|Regresa al centro lentamente|Cambia de posición y repite hacia el lado izquierdo"
                 )
-                put(COL_BENEFICIOS, "Mejora flexibilidad espinal, alivia tensión lumbar")
+                put(COL_BENEFICIOS, "Mejora movilidad de la columna, alivia dolor lumbar crónico, relaja la musculatura paravertebral")
             },
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Estiramiento de Pectorales")
                 put(COL_DESCRIPCION, "Contrarresta la postura encorvada del escritorio")
-                put(COL_TIPO_EJERCICIO, "GENERAL")
+                put(COL_TIPO_EJERCICIO, "HOMBROS")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_pectorales")
@@ -280,7 +284,7 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             ContentValues().apply {
                 put(COL_NOMBRE_EJERCICIO, "Rotación de Tobillos")
                 put(COL_DESCRIPCION, "Mejora la circulación en los pies y previene hinchazón")
-                put(COL_TIPO_EJERCICIO, "PIES")
+                put(COL_TIPO_EJERCICIO, "PIERNAS")
                 put(COL_NIVEL_INTENSIDAD, "BAJO")
                 put(COL_DURACION, 60)
                 put(COL_URL_IMAGEN, "gif_tobillos")
@@ -292,12 +296,88 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     COL_BENEFICIOS,
                     "Previene la retención de líquidos, fortalece tobillos, evita calambres"
                 )
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Estiramiento Lateral de Cuello")
+                put(COL_DESCRIPCION, "Libera la tensión acumulada en los laterales del cuello y trapecio superior")
+                put(COL_TIPO_EJERCICIO, "CUELLO")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_cuello_lateral")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate derecho y relaja los hombros|Inclina lentamente la cabeza llevando la oreja derecha hacia el hombro derecho|Coloca tu mano derecha sobre la cabeza para dar un ligero peso (sin jalar)|Mantén el estiramiento 15 segundos|Regresa al centro y cambia de lado|Realiza 2 repeticiones por lado"
+                )
+                put(COL_BENEFICIOS, "Disminuye rigidez cervical, alivia dolor tensional, mejora la postura de la cabeza")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Gimnasia Visual en Cruz")
+                put(COL_DESCRIPCION, "Fortalece los músculos oculares tras pasar horas enfocando un punto fijo")
+                put(COL_TIPO_EJERCICIO, "OJOS")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 45)
+                put(COL_URL_IMAGEN, "gif_ojos_cruz")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Siéntate con la cabeza recta y quieta (no la muevas)|Mira lo más arriba que puedas por 3 segundos|Mira hacia abajo por 3 segundos|Mira al extremo derecho por 3 segundos|Mira al extremo izquierdo por 3 segundos|Cierra los ojos fuerte, relaja y repite 3 veces"
+                )
+                put(COL_BENEFICIOS, "Flexibiliza músculos oculares, mejora la lubricación, reduce cefaleas tensionales")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Respiración Abdominal")
+                put(COL_DESCRIPCION, "Activa tu sistema de relajación profundo para reducir el estrés del código")
+                put(COL_TIPO_EJERCICIO, "RESPIRACIÓN")
+                put(COL_NIVEL_INTENSIDAD, "BAJO")
+                put(COL_DURACION, 120)
+                put(COL_URL_IMAGEN, "gif_resp_abdominal")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Coloca una mano sobre tu pecho y otra sobre tu estómago|Inhala profundamente por la nariz sintiendo cómo se infla tu estómago|Asegúrate de que la mano del pecho casi no se mueva|Exhala lentamente por la boca hundiendo el estómago|Repite concentradamente por 2 minutos"
+                )
+                put(COL_BENEFICIOS, "Activa el nervio vago, oxigena el cerebro, libera tensión diafragmática")
+            },
+            ContentValues().apply {
+                put(COL_NOMBRE_EJERCICIO, "Paso Lateral con Brazos")
+                put(COL_DESCRIPCION, "Eleva tu ritmo cardíaco suavemente sin impacto ni ruido")
+                put(COL_TIPO_EJERCICIO, "CARDIO SUAVE")
+                put(COL_NIVEL_INTENSIDAD, "MEDIO")
+                put(COL_DURACION, 60)
+                put(COL_URL_IMAGEN, "gif_paso_lateral")
+                put(
+                    COL_INSTRUCCIONES,
+                    "Ponte de pie con los pies juntos y brazos a los lados|Da un paso a la derecha mientras elevas ambos brazos sobre la cabeza|Regresa a la posición inicial bajando los brazos|Da un paso a la izquierda elevando los brazos de nuevo|Repite a un ritmo constante durante el tiempo establecido"
+                )
+                put(
+                    COL_BENEFICIOS,
+                    "Activa el sistema cardiovascular, oxigena todo el cuerpo, mejora la coordinación"
+                )
             }
         )
 
         ejercicios.forEach { values ->
             db.insert(TABLE_EJERCICIOS, null, values)
         }
+    }
+
+    fun guardarPreferenciasUsuario(idUsuario: Int, limitaciones: String) {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put(COL_ONBOARDING_COMPLETADO, 1) // Ya completó el cuestionario
+            put(COL_LIMITACIONES, limitaciones)
+        }
+        db.update(TABLE_USUARIOS, values, "$COL_ID_USUARIO = ?", arrayOf(idUsuario.toString()))
+        db.close()
+    }
+
+    fun obtenerLimitacionesUsuario(idUsuario: Int): List<String> {
+        val db = this.readableDatabase
+        var limitaciones = ""
+        val cursor = db.rawQuery("SELECT $COL_LIMITACIONES FROM $TABLE_USUARIOS WHERE $COL_ID_USUARIO = ?", arrayOf(idUsuario.toString()))
+        if (cursor.moveToFirst()) {
+            limitaciones = cursor.getString(0) ?: ""
+        }
+        cursor.close()
+        return if (limitaciones.isNotEmpty()) limitaciones.split(",") else emptyList()
     }
 
     fun obtenerTotalPausas(userId: Int): Int {

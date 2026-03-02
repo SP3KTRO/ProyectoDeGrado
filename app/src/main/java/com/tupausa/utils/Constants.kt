@@ -13,10 +13,12 @@ object Constants {
     const val PREF_IS_LOGGED_IN = "is_logged_in"
     const val PREF_USER_TYPE = "user_type"
     const val PREF_SELECTED_TONE = "selected_tone"
+    const val  PREF_LIMITACIONES = "limitaciones"
+    const val  PREF_ONBOARDING_COMPLETED = "onboarding_completed"
 
     // Base de datos
     const val DATABASE_NAME = "tupausa_database.db"
-    const val DATABASE_VERSION = 2
+    const val DATABASE_VERSION = 4
 
     // Tipos de usuario
     const val USER_TYPE_REGULAR = 1

@@ -39,6 +39,7 @@ import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.Surface
 import com.tupausa.ui.theme.Tertiary
+import com.tupausa.utils.PreferencesManager
 import com.tupausa.viewModel.AlarmasViewModel
 import com.tupausa.viewModel.AlarmasViewModelFactory
 
@@ -58,6 +59,15 @@ fun UserAlarmasScreen(
             app.ejercicioRepository
         )
     )
+
+    val preferencesManager = remember { PreferencesManager(context) }
+    val limitaciones = remember {
+        val limStr = preferencesManager.getLimitaciones()
+        if (limStr.isNotEmpty()) limStr.split(",") else emptyList()
+    }
+    LaunchedEffect(Unit) {
+        viewModel.cargarEjercicios(limitaciones)
+    }
 
     // DATOS
     val alarmas by viewModel.alarmas.collectAsState()
@@ -124,7 +134,7 @@ fun UserAlarmasScreen(
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         text = "No tienes alarmas",
-                        fontSize = 20.sp,
+                        fontSize = 22.sp,
                         color = OnSurface
                     )
                 }
@@ -152,6 +162,7 @@ fun UserAlarmasScreen(
                 context = context,
                 alarmaAEditar = alarmaAEditar,
                 listaEjercicios = listaEjercicios,
+                listaArlarmas = alarmas,
                 onDismiss = {
                     showCreateDialog = false
                     alarmaAEditar = null

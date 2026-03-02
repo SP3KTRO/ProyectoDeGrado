@@ -190,7 +190,7 @@ fun AdminDashboardScreen(
 
             // Card - Ejercicios
             AdminMenuCard(
-                title = "Ejercicios",
+                title = "Pausas Activas",
                 description = "Ver lista de ejercicios disponibles",
                 icon = painterResource(id = R.drawable.exercise),
                 iconTint = Color.Unspecified,

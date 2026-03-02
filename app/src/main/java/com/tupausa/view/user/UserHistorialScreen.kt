@@ -139,7 +139,9 @@ fun UserHistorialScreen(
             // Lista de registros
             if (historial.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aún no tienes actividad registrada.", color = OnSurface)
+                    Text("Aún no tienes actividad registrada.",
+                        fontSize = 20.sp,
+                        color = OnSurface)
                 }
             } else {
                 LazyColumn(

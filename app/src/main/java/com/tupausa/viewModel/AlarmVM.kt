@@ -43,14 +43,10 @@ class AlarmasViewModel(
             seleccionados.size >= 4
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), false)
 
-    init {
-        cargarEjercicios()
-    }
-
-    private fun cargarEjercicios() {
+    fun cargarEjercicios(limitaciones: List<String>) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val lista = ejercicioRepository.getAllEjercicios()
+                val lista = ejercicioRepository.getAllEjercicios(limitaciones)
                 _ejercicios.value = lista
             } catch (e: Exception) {
                 e.printStackTrace()

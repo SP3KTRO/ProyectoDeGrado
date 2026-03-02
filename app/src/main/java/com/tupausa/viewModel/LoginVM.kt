@@ -31,11 +31,12 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
 
         viewModelScope.launch {
             try {
+                // El repositorio ya se encarga de llamar a la API y guardar en SQLite
                 val result = repository.login(correoElectronico, contrasena)
 
                 result.onSuccess { usuario ->
                     // Guardar sesión
-                    preferencesManager.saveUserSession(usuario)
+                    usuario.onboardingCompletado = preferencesManager.isOnboardingCompleted()
 
                     _loginSuccess.value = usuario
                     _isLoading.value = false
@@ -58,13 +59,15 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             val userEmail = preferencesManager.getUserEmail()
             val userType = preferencesManager.getUserType()
 
-            Usuario(
+            val usuario = Usuario(
                 idUsuario = userId,
                 nombre = userName,
                 correoElectronico = userEmail,
                 contrasena = "",
                 idTipoUsuario = userType
             )
+            usuario.onboardingCompletado = preferencesManager.isOnboardingCompleted()
+            usuario
         } else null
     }
 

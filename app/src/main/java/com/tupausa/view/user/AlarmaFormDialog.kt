@@ -21,8 +21,10 @@ import androidx.compose.ui.graphics.Color.Companion
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.tupausa.model.data.Alarma
@@ -42,7 +44,7 @@ import com.tupausa.ui.theme.Tertiary
 import com.tupausa.utils.PreferencesManager
 import com.tupausa.utils.rememberDrawableId
 
-private enum class DialogStep { FORMULARIO, SELECCION_EJERCICIO }
+private enum class DialogStep { FORMULARIO, TIPO_RUTINA, SELECCION_CATEGORIAS, SELECCION_EJERCICIOS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,11 +52,16 @@ fun AlarmaFormDialog(
     context: Context,
     alarmaAEditar: Alarma? = null,
     listaEjercicios: List<Ejercicio>,
+    listaArlarmas: List<Alarma>,
     onDismiss: () -> Unit,
     onConfirm: (Int, Int, List<Int>, String, String, String, List<Int>) -> Unit
 ) {
     // Preparación de estado del tono
     val preferencesManager = remember { PreferencesManager(context) }
+
+    val tieneTunelCarpo = remember {
+        preferencesManager.getLimitaciones().contains("TIENE_TUNEL_CARPO")
+    }
 
     val idTonoInicial = remember {
         if (alarmaAEditar != null) {
@@ -95,78 +102,172 @@ fun AlarmaFormDialog(
         }
     }
 
-    // Estados del Dialog
     var currentStep by remember { mutableStateOf(DialogStep.FORMULARIO) }
 
+    // Categorías disponibles
+    val categoriasDisponibles = remember(listaEjercicios) { listaEjercicios.map { it.tipoEjercicio }.distinct() }
+    var esRutinaPersonalizada by remember { mutableStateOf(false) }
+    val categoriasSeleccionadas = remember { mutableStateListOf<String>() }
+    var zonaMostrandoMensaje by remember { mutableStateOf<String?>(null) }
+
+    // Precargar datos si estamos editando
+    LaunchedEffect(alarmaAEditar, listaEjercicios) {
+        if (alarmaAEditar != null && listaEjercicios.isNotEmpty()) {
+            val ejerciciosDeAlarma = listaEjercicios.filter { it.idEjercicio in alarmaAEditar.idsEjercicios }
+            val cats = ejerciciosDeAlarma.map { it.tipoEjercicio }.distinct()
+            categoriasSeleccionadas.clear()
+            categoriasSeleccionadas.addAll(cats)
+            // Si tiene todas las categorías, asumimos que es personalizada
+            esRutinaPersonalizada = cats.size == categoriasDisponibles.size
+        }
+    }
+
+    // Validación de ejercicios
+    val mensajeValidacionEjercicios by remember {
+        derivedStateOf {
+            if (selectedExerciseIds.size < 4) "Mínimo 4 ejercicios en total (${selectedExerciseIds.size}/4)."
+            else
+                "" // Vacío significa que es correcto
+        }
+    }
+    // Validación de alarmas - Tiempo y días
+    val mensajeValidacionTiempo by remember {
+        derivedStateOf {
+            val minutosNuevos = timeState.hour * 60 + timeState.minute
+            val alarmasAComparar = listaArlarmas.filter { it.id != (alarmaAEditar?.id ?: -1) }
+
+            for (alarma in alarmasAComparar) {
+                val diasAlarmaExistente = alarma.diasRepeticion
+
+                val diasCoinciden = when {
+                    selectedDays.isEmpty() || diasAlarmaExistente.isEmpty() -> true
+                    else -> selectedDays.intersect(diasAlarmaExistente.toSet()).isNotEmpty()
+                }
+
+                if (diasCoinciden) {
+                    val minutosExistente = alarma.hora * 60 + alarma.minuto
+                    val diffAbs = kotlin.math.abs(minutosNuevos - minutosExistente)
+                    val diffReal = kotlin.math.min(diffAbs, 1440 - diffAbs)
+
+                    if (diffReal == 0) {
+                        return@derivedStateOf "Ya tienes una rutina exactamente a esta hora en esos días."
+                    } else if (diffReal < 90) {
+                        val horaConflicto = String.format("%02d:%02d", alarma.hora, alarma.minuto)
+                        return@derivedStateOf "Debes dejar 90 min de descanso. Choca con rutina de $horaConflicto."
+                    }
+                }
+            }
+            "" // Vacío significa que el horario es válido
+        }
+    }
+
+    // Mensaje Categoria
+    if (zonaMostrandoMensaje != null) {
+        AlertDialog(
+            properties = DialogProperties(dismissOnClickOutside = false),
+            onDismissRequest = { zonaMostrandoMensaje = null },
+            containerColor = Secondary,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.HealthAndSafety, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.padding(end = 8.dp))
+                    Text("Recomendación", color = OnPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = { Text(obtenerMensajeZona(zonaMostrandoMensaje!!), color = OnPrimary, fontSize = 16.sp) },
+            confirmButton = {
+                Button(
+                    onClick = { zonaMostrandoMensaje = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                ) {
+                    Text("OK", color = OnPrimary)
+                }
+            }
+        )
+    }
+
     AlertDialog(
+        properties = DialogProperties(dismissOnClickOutside = false),
         containerColor = Secondary,
         onDismissRequest = onDismiss,
-        modifier = Modifier
-            .fillMaxWidth(0.95f)
-            .heightIn(max = 650.dp),
+        modifier = Modifier.fillMaxWidth(0.95f).heightIn(max = 750.dp),
         confirmButton = {
-            if (currentStep == DialogStep.FORMULARIO) {
-                val puedeGuardar = selectedExerciseIds.size >= 4
-                Column(horizontalAlignment = Alignment.End) {
-                    if (!puedeGuardar && selectedExerciseIds.isNotEmpty()) {
-                        Text(
-                            "Mínimo 4 ejercicios",
-                            color = OnSurfaceVariant,
-                            fontSize = 12.sp,
-                            modifier = Modifier.padding(bottom = 4.dp)
-                        )
-                    }
+            when (currentStep) {
+                DialogStep.FORMULARIO -> {
+                    // Validaciones para crear y guardar la alarma
+                    val puedeGuardar = mensajeValidacionEjercicios.isEmpty() && mensajeValidacionTiempo.isEmpty()
+                        Button(
+                            enabled = puedeGuardar,
+                            onClick = {
+                                preferencesManager.setSelectedTone(selectedToneId)
+                                onConfirm(
+                                    timeState.hour, timeState.minute, selectedDays.toList(),
+                                    etiqueta.ifEmpty { "Mi Rutina" }, "RUTINA", nombreTonoActual, selectedExerciseIds.toList()
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                        ) {
+                            Text(if (alarmaAEditar == null) "Crear" else "Guardar", color = OnPrimary)
+                        }
+                }
+                DialogStep.TIPO_RUTINA -> {
                     Button(
-                        enabled = puedeGuardar,
                         onClick = {
-                            preferencesManager.setSelectedTone(selectedToneId)
-                            onConfirm(
-                                timeState.hour,
-                                timeState.minute,
-                                selectedDays.toList(),
-                                etiqueta.ifEmpty { "Mi Rutina" },
-                                "RUTINA",
-                                nombreTonoActual,
-                                selectedExerciseIds.toList()
-                            )
+                            if (esRutinaPersonalizada) currentStep = DialogStep.SELECCION_EJERCICIOS
+                            else currentStep = DialogStep.SELECCION_CATEGORIAS
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
                     ) {
-                        Text(
-                            if (alarmaAEditar == null) "Crear" else "Guardar",
-                            color = OnPrimary
-                        )
+                        Text("Siguiente", color = OnPrimary)
                     }
                 }
-            } else {
-                // Botón "Listo" en la pantalla de selección
-                Button(
-                    onClick = { currentStep = DialogStep.FORMULARIO },
-                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
-                ) {
-                    Text("Listo (${selectedExerciseIds.size})", color = OnPrimary)
+                DialogStep.SELECCION_CATEGORIAS -> {
+                    Button(
+                        enabled = categoriasSeleccionadas.size >= 2,
+                        onClick = { currentStep = DialogStep.SELECCION_EJERCICIOS },
+                        colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                    ) {
+                        Text("Siguiente", color = OnPrimary)
+                    }
+                }
+                DialogStep.SELECCION_EJERCICIOS -> {
+                    Column(horizontalAlignment = Alignment.End) {
+                        if (mensajeValidacionEjercicios.isNotEmpty()) {
+                            Text(mensajeValidacionEjercicios, color = Color.Red, fontSize = 12.sp, modifier = Modifier.padding(bottom = 4.dp))
+                        }
+                        Button(
+                            enabled = mensajeValidacionEjercicios.isEmpty(),
+                            onClick = { currentStep = DialogStep.FORMULARIO },
+                            colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                        ) {
+                            Text("Listo (${selectedExerciseIds.size})", color = OnPrimary)
+                        }
+                    }
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = {
-                if (currentStep == DialogStep.SELECCION_EJERCICIO) {
-                    currentStep = DialogStep.FORMULARIO
-                } else {
-                    onDismiss()
+                when (currentStep) {
+                    DialogStep.SELECCION_EJERCICIOS -> {
+                        if (esRutinaPersonalizada) currentStep = DialogStep.TIPO_RUTINA
+                        else currentStep = DialogStep.SELECCION_CATEGORIAS
+                    }
+                    DialogStep.SELECCION_CATEGORIAS -> currentStep = DialogStep.TIPO_RUTINA
+                    DialogStep.TIPO_RUTINA -> currentStep = DialogStep.FORMULARIO
+                    DialogStep.FORMULARIO -> onDismiss()
                 }
             }) {
-                Text(
-                    if (currentStep == DialogStep.SELECCION_EJERCICIO) "Volver" else "Cancelar",
-                    color = OnPrimary
-                )
+                Text(if (currentStep == DialogStep.FORMULARIO) "Cancelar" else "Atrás", color = OnPrimary)
             }
         },
         title = {
             Text(
-                text = if (currentStep == DialogStep.FORMULARIO)
-                    (if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma")
-                else "Arma tu rutina (mín. 4)",
+                text = when (currentStep) {
+                    DialogStep.FORMULARIO -> if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma"
+                    DialogStep.TIPO_RUTINA -> "Tipo de Rutina"
+                    DialogStep.SELECCION_CATEGORIAS -> "Selecciona las categorías"
+                    DialogStep.SELECCION_EJERCICIOS -> "Arma tu rutina"
+                },
                 color = OnPrimary
             )
         },
@@ -194,14 +295,11 @@ fun AlarmaFormDialog(
                             )
                             // Seleeción de rutina
                             OutlinedCard(
-                                onClick = { currentStep = DialogStep.SELECCION_EJERCICIO },
+                                onClick = { currentStep = DialogStep.TIPO_RUTINA },
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = CardDefaults.outlinedCardColors(containerColor = Color.Transparent)
                             ) {
-                                Row(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+                                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text("Rutina seleccionada:", fontSize = 12.sp, color = OnPrimary)
                                         Text(
@@ -268,31 +366,151 @@ fun AlarmaFormDialog(
                                     )
                                 }
                             }
+                            if (mensajeValidacionTiempo.isNotEmpty()) {
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = mensajeValidacionTiempo,
+                                    color = Color.Red,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                                )
+                            }
+                        }
+                    }
+                    DialogStep.TIPO_RUTINA -> {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text("¿Cómo quieres armar tu rutina?",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontSize = 20.sp,
+                                color = OnPrimary,
+                                modifier = Modifier.padding(bottom = 16.dp))
+
+                            if (tieneTunelCarpo) {
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Surface),
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                                ) {
+                                    Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.HealthAndSafety, contentDescription = null, tint = OnSurface)
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Text("💡 Recomendación:\nHaz ejercicios de muñecas.",
+                                            color = OnSurface, fontSize = 13.sp, lineHeight = 18.sp)
+                                    }
+                                }
+                            }
+
+                            Card(
+                                onClick = { esRutinaPersonalizada = false },
+                                colors = CardDefaults.cardColors(containerColor = if (!esRutinaPersonalizada) OnPrimaryContainer.copy(alpha = 0.2f) else Color.Transparent),
+                                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
+                                    RadioButton(selected = !esRutinaPersonalizada, onClick = { esRutinaPersonalizada = false })
+                                    Column {
+                                        Text("Por zonas específicas",
+                                            color = OnPrimary,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold)
+                                        Text("Crea tu rutina de acuerdo a la zonas del cuerpo que desees trabajar.",
+                                            color = Surface,
+                                            fontSize = 14.sp)
+                                    }
+                                }
+                            }
+
+                            Card(
+                                onClick = { esRutinaPersonalizada = true },
+                                colors = CardDefaults.cardColors(containerColor = if (esRutinaPersonalizada) OnPrimaryContainer.copy(alpha = 0.2f) else Color.Transparent),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(8.dp)) {
+                                    RadioButton(selected = esRutinaPersonalizada, onClick = { esRutinaPersonalizada = true })
+                                    Column {
+                                        Text("Personalizada",
+                                            color = OnPrimary,
+                                            fontSize = 18.sp,
+                                            fontWeight = FontWeight.Bold)
+                                        Text("Verás la lista de todos los ejercicios.",
+                                            color = Surface, fontSize = 14.sp)
+                                    }
+                                }
+                            }
                         }
                     }
 
-                    DialogStep.SELECCION_EJERCICIO -> {
-                        Column {
-                            Text(
-                                "Seleccionados: ${selectedExerciseIds.size}/4 mínimo",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = if (selectedExerciseIds.size < 4) OnSurfaceVariant else Tertiary,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-                            Box(modifier = Modifier.heightIn(max = 400.dp)) {
-                                LazyColumn(
-                                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    DialogStep.SELECCION_CATEGORIAS -> {
+                        Column(modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState())) {
+                            Text("Selecciona mínimo 2 zonas del cuerpo a trabajar:",
+                                fontSize = 16.sp, color = OnPrimary, modifier = Modifier.padding(bottom = 16.dp))
+
+                            categoriasDisponibles.forEach { cat ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                                    colors = CardDefaults.cardColors(containerColor = Secondary)
                                 ) {
-                                    items(listaEjercicios) { ejercicio ->
-                                        val isSelected = selectedExerciseIds.contains(ejercicio.idEjercicio)
-                                        SelectableEjercicioCard(
-                                            ejercicio = ejercicio,
-                                            isSelected = isSelected,
-                                            onClick = {
-                                                if (isSelected) selectedExerciseIds.remove(ejercicio.idEjercicio)
-                                                else selectedExerciseIds.add(ejercicio.idEjercicio)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth().padding(start = 8.dp, top = 4.dp, bottom = 4.dp, end = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Checkbox(
+                                            checked = categoriasSeleccionadas.contains(cat),
+                                            onCheckedChange = { isChecked ->
+                                                if (isChecked) {
+                                                    categoriasSeleccionadas.add(cat)
+                                                } else {
+                                                    categoriasSeleccionadas.remove(cat)
+                                                }
                                             }
                                         )
+                                        Text(
+                                            text = getNombreAmigable(cat),
+                                            color = OnPrimary,
+                                            fontWeight = if (categoriasSeleccionadas.contains(cat)) FontWeight.Bold else FontWeight.Normal,
+                                            fontSize = 16.sp
+                                        )
+
+                                        Spacer(modifier = Modifier.weight(1f))
+
+                                        IconButton(onClick = { zonaMostrandoMensaje = cat }) {
+                                            Icon(
+                                                imageVector = Icons.Default.HelpOutline,
+                                                contentDescription = "Información de la zona",
+                                                tint = Tertiary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            if (categoriasSeleccionadas.size < 2) {
+                                Text("Aún necesitas seleccionar ${2 - categoriasSeleccionadas.size} zona(s) más.", color = Tertiary, fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                            }
+                        }
+                    }
+
+                    DialogStep.SELECCION_EJERCICIOS -> {
+                        val ejerciciosAMostrar = if (esRutinaPersonalizada) listaEjercicios else listaEjercicios.filter { it.tipoEjercicio in categoriasSeleccionadas }
+                        val ejerciciosAgrupados = ejerciciosAMostrar.groupBy { it.tipoEjercicio }
+
+                        Column {
+                            Box(modifier = Modifier.heightIn(max = 400.dp)) {
+                                LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    ejerciciosAgrupados.forEach { (tipo, lista) ->
+                                        item {
+                                            Text(getNombreAmigable(tipo), fontWeight = FontWeight.Bold, color = Tertiary, modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
+                                        }
+                                        items(lista) { ejercicio ->
+                                            val isSelected = selectedExerciseIds.contains(ejercicio.idEjercicio)
+                                            SelectableEjercicioCard(
+                                                ejercicio = ejercicio,
+                                                isSelected = isSelected,
+                                                onClick = {
+                                                    if (isSelected) selectedExerciseIds.remove(ejercicio.idEjercicio)
+                                                    else selectedExerciseIds.add(ejercicio.idEjercicio)
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
@@ -377,6 +595,19 @@ fun SelectableEjercicioCard(
     }
 }
 
+fun obtenerMensajeZona(zona: String): String {
+    return when (zona.uppercase()) {
+        "CUELLO" -> "Estos ejercicios son ideales si sientes tensión en el cuello por mirar la pantalla durante largos periodos."
+        "HOMBROS" -> "Recomendados para aliviar la rigidez en los hombros causada por mantener una postura encorvada."
+        "MUÑECAS" -> "Ayudan a reducir la sobrecarga en las muñecas provocada por el uso frecuente del teclado o el mouse."
+        "ESPALDA" -> "Ideales para disminuir la tensión lumbar asociada a permanecer sentado por mucho tiempo."
+        "PIERNAS" -> "Favorecen la circulación y previenen la rigidez muscular tras largos periodos de inactividad."
+        "OJOS" -> "Contribuyen a reducir la fatiga visual generada por la exposición prolongada a pantallas."
+        "RESPIRACIÓN" -> "Ayudan a disminuir la tensión acumulada y mejorar la oxigenación durante la jornada."
+        "CARDIO SUAVE" -> "Recomendado para activar el cuerpo y contrarrestar el sedentarismo prolongado."
+        else -> "Ejercicios clave para esta zona del cuerpo."
+    }
+}
 @Composable
 fun SelectorTonoDialog(
     tonoIdActual: Int,
@@ -422,6 +653,7 @@ fun SelectorTonoDialog(
     }
 
     AlertDialog(
+        properties = DialogProperties(dismissOnClickOutside = false),
         onDismissRequest = onDismiss,
         title = { Text("Elige un tono", color = OnPrimary) },
         containerColor = Secondary,

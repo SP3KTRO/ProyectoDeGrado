@@ -40,6 +40,10 @@ class UsuarioRepository(
                 if (usuario != null) {
                     saveUsuarioLocal(usuario) // SQLite
                     preferencesManager.saveUserSession(usuario) // Guardar sesión en SharedPreferences
+
+                    // Al hacer login, intentamos recuperar si ya había hecho el onboarding en local
+                    recuperarEstadoOnboardingLocal(usuario.idUsuario)
+
                     Result.success(usuario)
                 } else {
                     Result.failure(Exception("Correo o Contraseña incorrectos"))
@@ -171,9 +175,67 @@ class UsuarioRepository(
         }
     }
 
+    // Guardar preferencias del Onboarding
+    suspend fun guardarPreferenciasLocales(idUsuario: Int, limitaciones: String) = withContext(Dispatchers.IO) {
+        try {
+            // Guardar en SQLite usando el DatabaseHelper
+            dbHelper.guardarPreferenciasUsuario(idUsuario, limitaciones)
+
+            // Actualizar la sesión actual en SharedPreferences
+            preferencesManager.saveOnboardingPreferences(limitaciones)
+
+            Log.d(TAG, "Preferencias de onboarding guardadas localmente")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error guardando preferencias locales: ${e.message}")
+            throw e
+        }
+    }
+
+    // Metodo auxiliar para cuando el usuario hace login en un dispositivo nuevo o limpia caché
+    private fun recuperarEstadoOnboardingLocal(idUsuario: Int) {
+        try {
+            val db = dbHelper.readableDatabase
+            val cursor = db.rawQuery(
+                "SELECT ${DatabaseHelper.COL_ONBOARDING_COMPLETADO}," +
+                        "${DatabaseHelper.COL_LIMITACIONES} FROM ${DatabaseHelper.TABLE_USUARIOS} WHERE ${DatabaseHelper.COL_ID_USUARIO} = ?",
+                arrayOf(idUsuario.toString())
+            )
+
+            if (cursor.moveToFirst()) {
+                val completado = cursor.getInt(0) == 1
+                val limitaciones = cursor.getString(1) ?: ""
+
+                if (completado) {
+                    preferencesManager.saveOnboardingPreferences(limitaciones)
+                }
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error recuperando estado de onboarding: ${e.message}")
+        }
+    }
+
     // Guardar usuario en BD local - caché
     fun saveUsuarioLocal(usuario: Usuario) {
         val db = dbHelper.writableDatabase
+
+        var onboardingGuardado = 0
+        var limitacionesGuardadas = ""
+
+        try {
+            val cursor = db.rawQuery(
+                "SELECT onboarding_completado, limitaciones FROM ${DatabaseHelper.TABLE_USUARIOS} WHERE ${DatabaseHelper.COL_ID_USUARIO} = ?",
+                arrayOf(usuario.idUsuario.toString())
+            )
+            if (cursor.moveToFirst()) {
+                onboardingGuardado = cursor.getInt(0)
+                limitacionesGuardadas = cursor.getString(1) ?: ""
+            }
+            cursor.close()
+        } catch (e: Exception) {
+            Log.e(TAG, "Error rescatando datos locales antes de actualizar: ${e.message}")
+        }
+
         val values = ContentValues().apply {
             if (usuario.idUsuario > 0) {
                 put("id_usuario", usuario.idUsuario)
@@ -182,6 +244,10 @@ class UsuarioRepository(
             put("correo_electronico", usuario.correoElectronico)
             put("contrasena", usuario.contrasena)
             put("id_tipo_usuario", usuario.idTipoUsuario)
+
+            // Inyectar los datos locales que no vienen de AWS
+            put("onboarding_completado", onboardingGuardado)
+            put("limitaciones", limitacionesGuardadas)
         }
         db.insertWithOnConflict("Usuarios", null, values, android.database.sqlite.SQLiteDatabase.CONFLICT_REPLACE)
     }

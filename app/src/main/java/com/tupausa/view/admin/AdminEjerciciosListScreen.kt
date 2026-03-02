@@ -43,7 +43,7 @@ fun AdminEjerciciosScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Gestión de Ejercicios") },
+                title = { Text("Pausas Activas") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
@@ -193,10 +193,9 @@ fun getAdminIconoPorTipo(tipo: String): ImageVector {
         "CUELLO", "HOMBROS" -> Icons.Default.Face
         "ESPALDA" -> Icons.Default.AccessibilityNew
         "MUNECAS", "BRAZOS" -> Icons.Default.PanTool
-        "PIERNAS", "PIES" -> Icons.AutoMirrored.Filled.DirectionsWalk
+        "PIERNAS" -> Icons.AutoMirrored.Filled.DirectionsWalk
         "RESPIRACION" -> Icons.Default.Air
         "CARDIO_SUAVE" -> Icons.AutoMirrored.Filled.DirectionsRun
-        "ESTIRAMIENTO_GENERAL" -> Icons.Default.SelfImprovement
         else -> Icons.Default.FitnessCenter
     }
 }
@@ -204,7 +203,6 @@ fun getAdminIconoPorTipo(tipo: String): ImageVector {
 fun getAdminNombreAmigable(tipo: String): String {
     return when (tipo) {
         "CARDIO_SUAVE" -> "Cardio"
-        "ESTIRAMIENTO_GENERAL" -> "General"
         "MUNECAS" -> "Muñecas"
         else -> tipo.lowercase().replaceFirstChar { it.uppercase() }
     }

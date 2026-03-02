@@ -16,6 +16,8 @@ data class Usuario(
     @SerializedName("correo_electronico") val correoElectronico: String,
     @SerializedName("contrasena") val contrasena: String,
     @SerializedName("id_tipo_usuario") val idTipoUsuario: Int, // Default 1 (Estudiante)
+    @Transient var onboardingCompletado: Boolean = false,
+    @Transient var limitaciones: String = ""
 ) : Serializable
 
 data class Ejercicio(

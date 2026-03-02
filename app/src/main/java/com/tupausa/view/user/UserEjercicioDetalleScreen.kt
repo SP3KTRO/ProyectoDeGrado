@@ -55,23 +55,8 @@ fun UserEjercicioDetalleScreen(
 ) {
     val context = LocalContext.current
 
-    // Configuración de AlarmScheduler
-    val app = context.applicationContext as TuPausaApplication
-    val scheduler = remember { AlarmScheduler(context) }
-
-    val viewModel: AlarmasViewModel = viewModel(
-        factory = AlarmasViewModelFactory(
-            app.alarmaRepository,
-            scheduler,
-            app.ejercicioRepository
-        )
-    )
-
     // Estados
-    var showAlarmaDialog by remember { mutableStateOf(false) }
-    val listaEjercicios by viewModel.ejercicios.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
 
     // Configuración de Coil para cargar Gif
     val drawableId = rememberDrawableId(ejercicio.urlImagenGuia)
@@ -244,27 +229,11 @@ fun UserEjercicioDetalleScreen(
                 }
             }
 
-            // Botones
+            // Boton
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.Center
             ) {
-                // Programar alarma
-                FilledTonalButton(
-                    onClick = { showAlarmaDialog = true },
-                    modifier = Modifier.height(56.dp),
-                    shape = MaterialTheme.shapes.large,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Tertiary
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Alarm,
-                        contentDescription = "Programar Alarma",
-                        tint = OnSurface,
-                    )
-                }
-
                 // Comenzar ejercicio
                 Button(
                     onClick = {
@@ -295,49 +264,6 @@ fun UserEjercicioDetalleScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-        }
-
-        // Dialog de Alarma
-        if (showAlarmaDialog) {
-            val preAlarma = Alarma(
-                idsEjercicios = listOf(ejercicio.idEjercicio),
-                hora = 8,
-                minuto = 0,
-                diasRepeticion = emptyList(),
-                etiqueta = ejercicio.nombreEjercicio,
-                tipoEjercicio = ejercicio.tipoEjercicio,
-                tonoAlarma = "Predeterminado",
-                activa = true
-            )
-
-            AlarmaFormDialog(
-                context = context,
-                alarmaAEditar = preAlarma,
-                listaEjercicios = listaEjercicios,
-                onDismiss = { showAlarmaDialog = false },
-                onConfirm = { hora, min, dias, etiqueta, tipo, tono, idsEjercicios ->
-                    // Guardar la nueva alarma
-                    val nuevaAlarma = Alarma(
-                        idsEjercicios = idsEjercicios,
-                        hora = hora,
-                        minuto = min,
-                        diasRepeticion = dias,
-                        etiqueta = etiqueta,
-                        tipoEjercicio = tipo,
-                        tonoAlarma = tono,
-                        activa = true
-                    )
-                    viewModel.guardarAlarma(nuevaAlarma)
-                    showAlarmaDialog = false
-
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "¡Alarma programada con éxito!",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                }
-            )
         }
     }
 }

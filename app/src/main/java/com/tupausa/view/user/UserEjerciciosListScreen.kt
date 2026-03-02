@@ -1,5 +1,6 @@
 package com.tupausa.view.user
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -30,6 +31,7 @@ import com.tupausa.ui.theme.Tertiary
 import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.Surface
+import com.tupausa.utils.PreferencesManager
 import com.tupausa.utils.rememberDrawableId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,7 +54,7 @@ fun UserEjerciciosListScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Ejercicios") },
+                title = { Text("Pausas Activas") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
@@ -72,7 +74,7 @@ fun UserEjerciciosListScreen(
                 .padding(padding)
         ) {
             // Filtros - Scroll Horizontal
-            FilterChips(
+            FiltroDesplegable (
                 selectedFilter = selectedFilter,
                 onFilterSelected = { selectedFilter = it }
             )
@@ -130,68 +132,95 @@ fun UserEjerciciosListScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FilterChips(
+fun FiltroDesplegable(
     selectedFilter: String,
     onFilterSelected: (String) -> Unit
 ) {
-    val filters = listOf(
-        "TODOS",
-        "CUELLO",
-        "HOMBROS",
-        "MUÑECAS",
-        "ESPALDA",
-        "PIERNAS",
-        "PIES",
-        "OJOS",
-        "RESPIRACIÓN",
-        "CARDIO SUAVE",
-        "GENERAL"
+    val context = LocalContext.current
+
+    // Obtenemos las limitaciones para no mostrar esas opciones en el menú
+    val preferencesManager = remember { PreferencesManager(context) }
+    val limitacionesList = remember {
+        val limStr = preferencesManager.getLimitaciones()
+        if (limStr.isNotEmpty()) limStr.split(",") else emptyList()
+    }
+
+    // Lista original
+    val todosLosFiltros = listOf(
+        "TODOS", "CUELLO", "HOMBROS", "MUÑECAS", "ESPALDA",
+        "PIERNAS", "OJOS", "RESPIRACIÓN", "CARDIO SUAVE"
     )
 
-    LazyRow(
+    // Filtramos la lista
+    val filters = todosLosFiltros.filter { it == "TODOS" || !limitacionesList.contains(it) }
+
+    // Estado para saber si el menú está abierto o cerrado
+    var expanded by remember { mutableStateOf(false) }
+
+    // Función de ayuda para los nombres amigables
+    val obtenerNombreAmigable = { filtro: String ->
+        when (filtro) {
+            "TODOS" -> "Ver todo"
+            "CUELLO" -> "Cuello"
+            "ESPALDA" -> "Espalda"
+            "HOMBROS" -> "Hombros"
+            "MUÑECAS" -> "Manos / Muñecas"
+            "OJOS" -> "Ojos"
+            "PIERNAS" -> "Pies / Piernas"
+            "RESPIRACIÓN" -> "Respiración"
+            "CARDIO SUAVE" -> "Cardio"
+            else -> filtro
+        }
+    }
+
+    // Contenedor del Dropdown
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        items(filters.size) { index ->
-            val filter = filters[index]
-            val isSelected = selectedFilter == filter
-            FilterChip(
-                selected = isSelected,
-                onClick = { onFilterSelected(filter) },
-                label = {
-                    Text(
-                        text = when (filter) {
-                            "TODOS" -> "Todos"
-                            "CUELLO" -> "Cuello"
-                            "ESPALDA" -> "Espalda"
-                            "HOMBROS" -> "Hombros"
-                            "MUÑECAS" -> "Muñecas"
-                            "OJOS" -> "Ojos"
-                            "PIERNAS" -> "Piernas"
-                            "PIES" -> "Pies"
-                            "RESPIRACIÓN" -> "Respiración"
-                            "CARDIO SUAVE" -> "Cardio"
-                            "GENERAL" -> "General"
-                            else -> filter
-                        }
-                    )
-                },
-                colors = FilterChipDefaults.filterChipColors(
-                    containerColor = Secondary,
-                    labelColor = OnPrimary,
-                    selectedContainerColor = OnPrimaryContainer,
-                    selectedLabelColor = OnPrimary
-                ),
-                border = FilterChipDefaults.filterChipBorder(
-                    enabled = true,
-                    selected = isSelected,
-                    borderColor = OnSecondary,
-                    selectedBorderColor = Color.Transparent,
-                    borderWidth = 1.dp
+        // El campo de texto visible que el usuario toca
+        OutlinedTextField(
+            value = obtenerNombreAmigable(selectedFilter),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text("Categoría de ejercicios", color = OnSurface) },
+            trailingIcon = {
+                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
+            },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth(),
+            colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(
+                focusedContainerColor = Secondary,
+                unfocusedContainerColor = Secondary,
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = OnSecondary,
+            ),
+            shape = MaterialTheme.shapes.medium
+        )
+
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier.background(Secondary)
+        ) {
+            filters.forEach { filter ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = obtenerNombreAmigable(filter),
+                            color = OnPrimary
+                        )
+                    },
+                    onClick = {
+                        onFilterSelected(filter)
+                        expanded = false // Cerramos el menú al seleccionar
+                    }
                 )
-            )
+            }
         }
     }
 }
@@ -325,10 +354,9 @@ fun getIconoPorTipo(tipo: String): ImageVector {
         "CUELLO", "HOMBROS" -> Icons.Default.Face
         "ESPALDA" -> Icons.Default.AccessibilityNew
         "MUNECAS" -> Icons.Default.PanTool
-        "PIERNAS", "PIES" -> Icons.AutoMirrored.Filled.DirectionsWalk
+        "PIERNAS" -> Icons.AutoMirrored.Filled.DirectionsWalk
         "RESPIRACION" -> Icons.Default.Air
         "CARDIO_SUAVE" -> Icons.AutoMirrored.Filled.DirectionsRun
-        "ESTIRAMIENTO_GENERAL" -> Icons.Default.SelfImprovement
         else -> Icons.Default.FitnessCenter
     }
 }
@@ -336,7 +364,6 @@ fun getIconoPorTipo(tipo: String): ImageVector {
 fun getNombreAmigable(tipo: String): String {
     return when (tipo) {
         "CARDIO_SUAVE" -> "Cardio"
-        "ESTIRAMIENTO_GENERAL" -> "General"
         "MUNECAS" -> "Muñecas"
         else -> tipo.lowercase().replaceFirstChar { it.uppercase() }
     }

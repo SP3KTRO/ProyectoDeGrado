@@ -15,13 +15,40 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
     }
 
     // Obetener los ejercicios
-    suspend fun getAllEjercicios(): List<Ejercicio> = withContext(Dispatchers.IO) {
+    suspend fun getAllEjercicios(limitaciones: List<String> = emptyList()): List<Ejercicio> = withContext(Dispatchers.IO) {
         val ejercicios = mutableListOf<Ejercicio>()
         val db = dbHelper.readableDatabase
 
+        var selection: String? = null
+        val selectionArgs = mutableListOf<String>()
+        val conditions = mutableListOf<String>()
+
+        // 1. Filtramos las categorías normales (quitando el tag secreto)
+        val tiposAExcluir = limitaciones.filter { it != "NO_PIE" }
+        if (tiposAExcluir.isNotEmpty()) {
+            val placeholders = tiposAExcluir.joinToString(",") { "?" }
+            conditions.add("${DatabaseHelper.COL_TIPO_EJERCICIO} NOT IN ($placeholders)")
+            selectionArgs.addAll(tiposAExcluir)
+        }
+
+        // 2. Si tiene el tag "NO_PIE", filtramos por el NOMBRE EXACTO de los ejercicios
+        if (limitaciones.contains("NO_PIE")) {
+            conditions.add("${DatabaseHelper.COL_NOMBRE_EJERCICIO} NOT IN (?, ?)")
+            selectionArgs.add("Estiramiento de Espalda Alta")
+            selectionArgs.add("Estiramiento de Pectorales")
+        }
+
+        // Unimos todas las condiciones con un AND
+        if (conditions.isNotEmpty()) {
+            selection = conditions.joinToString(" AND ")
+        }
+
         val cursor = db.query(
             DatabaseHelper.TABLE_EJERCICIOS,
-            null, null, null, null, null,
+            null,
+            selection,
+            if (selectionArgs.isNotEmpty()) selectionArgs.toTypedArray() else null,
+            null, null,
             "${DatabaseHelper.COL_NOMBRE_EJERCICIO} ASC"
         )
 
@@ -70,14 +97,37 @@ class EjercicioRepository(private val dbHelper: DatabaseHelper) {
         return@withContext ejercicios
     }
 
-    suspend fun getEjercicioAleatorio(): Ejercicio? = withContext(Dispatchers.IO) {
+    suspend fun getEjercicioAleatorio(limitaciones: List<String> = emptyList()): Ejercicio? = withContext(Dispatchers.IO) {
         val db = dbHelper.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM ${DatabaseHelper.TABLE_EJERCICIOS} ORDER BY RANDOM() LIMIT 1", null)
+
+        var query = "SELECT * FROM ${DatabaseHelper.TABLE_EJERCICIOS}"
+        val selectionArgs = mutableListOf<String>()
+        val conditions = mutableListOf<String>()
+
+        val tiposAExcluir = limitaciones.filter { it != "NO_PIE" }
+        if (tiposAExcluir.isNotEmpty()) {
+            val placeholders = tiposAExcluir.joinToString(",") { "?" }
+            conditions.add("${DatabaseHelper.COL_TIPO_EJERCICIO} NOT IN ($placeholders)")
+            selectionArgs.addAll(tiposAExcluir)
+        }
+
+        if (limitaciones.contains("NO_PIE")) {
+            conditions.add("${DatabaseHelper.COL_NOMBRE_EJERCICIO} NOT IN (?, ?)")
+            selectionArgs.add("Estiramiento de Espalda Alta")
+            selectionArgs.add("Estiramiento de Pectorales")
+        }
+
+        if (conditions.isNotEmpty()) {
+            query += " WHERE " + conditions.joinToString(" AND ")
+        }
+
+        query += " ORDER BY RANDOM() LIMIT 1"
+
+        val cursor = db.rawQuery(query, if (selectionArgs.isNotEmpty()) selectionArgs.toTypedArray() else null)
         val ejercicio = if (cursor.moveToFirst()) cursorToEjercicio(cursor) else null
         cursor.close()
         return@withContext ejercicio
     }
-
     // POST / PUT / DELETE
     suspend fun insertEjercicio(ejercicio: Ejercicio): Long = withContext(Dispatchers.IO) {
         val db = dbHelper.writableDatabase

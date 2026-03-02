@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 class EjercicioViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = (application as TuPausaApplication).ejercicioRepository
+    private val preferencesManager = (application as TuPausaApplication).preferencesManager
     private val _ejercicios = MutableLiveData<List<Ejercicio>>()
     val ejercicios: LiveData<List<Ejercicio>> get() = _ejercicios
     private val _ejercicioSeleccionado = MutableLiveData<Ejercicio?>()
@@ -23,12 +24,22 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
     private val _mensaje = MutableLiveData<String?>()
     val mensaje: LiveData<String?> get() = _mensaje
 
-    // Cargar ejercicios
+    // Limitaciones usuario
+    private fun getLimitacionesUsuario(): List<String> {
+        val limitacionesString = preferencesManager.getLimitaciones()
+        return if (limitacionesString.isNotEmpty()) {
+            limitacionesString.split(",")
+        } else {
+            emptyList()
+        }
+    }
+    //Cargar Ejercicio
     fun loadEjercicios() {
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val ejerciciosList = repository.getAllEjercicios()
+                val limitaciones = getLimitacionesUsuario()
+                val ejerciciosList = repository.getAllEjercicios(limitaciones)
                 _ejercicios.value = ejerciciosList
             } catch (e: Exception) {
                 _error.value = "Error al cargar ejercicios: ${e.message}"
@@ -56,8 +67,13 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val ejerciciosList = repository.getEjerciciosByTipo(tipo)
-                _ejercicios.value = ejerciciosList
+                val limitaciones = getLimitacionesUsuario()
+                if (limitaciones.contains(tipo)) {
+                    _ejercicios.value = emptyList()
+                } else {
+                    val ejerciciosList = repository.getEjerciciosByTipo(tipo)
+                    _ejercicios.value = ejerciciosList
+                }
             } catch (e: Exception) {
                 _error.value = "Error al filtrar ejercicios: ${e.message}"
             } finally {
@@ -71,7 +87,8 @@ class EjercicioViewModel(application: Application) : AndroidViewModel(applicatio
         _isLoading.value = true
         viewModelScope.launch {
             try {
-                val ejercicio = repository.getEjercicioAleatorio()
+                val limitaciones = getLimitacionesUsuario()
+                val ejercicio = repository.getEjercicioAleatorio(limitaciones)
                 _ejercicioSeleccionado.value = ejercicio
             } catch (e: Exception) {
                 _error.value = "Error al obtener ejercicio aleatorio: ${e.message}"
