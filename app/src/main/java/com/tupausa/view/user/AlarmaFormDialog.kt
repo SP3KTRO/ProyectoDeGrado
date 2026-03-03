@@ -83,6 +83,9 @@ fun AlarmaFormDialog(
     var selectedToneId by remember { mutableIntStateOf(idTonoInicial) }
     var showTonoDialog by remember { mutableStateOf(false) }
 
+    // Info
+    var showIntervaloInfo by remember { mutableStateOf(false) }
+
     // Helper para obtener el nombre actual basado en el ID seleccionado
     val nombreTonoActual = TonosDisponibles.lista.find { it.recurso == selectedToneId }?.nombre ?: "Predeterminado"
 
@@ -161,6 +164,42 @@ fun AlarmaFormDialog(
         }
     }
 
+    // Diálogo informativo sobre las alarmas
+    if (showIntervaloInfo) {
+        AlertDialog(
+            properties = DialogProperties(dismissOnClickOutside = false),
+            onDismissRequest = { showIntervaloInfo = false },
+            containerColor = Secondary,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.AccessTime,
+                        contentDescription = null,
+                        tint = Tertiary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text("Tiempo de Descanso", color = Surface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Text(
+                    text = "Para que tus pausas activas sean realmente efectivas y cuides tu salud, te recomendamos dejar un intervalo mínimo de 90 minutos entre cada rutina.\n\n¡Evita la fatiga y mantén tu energía al máximo durante tu jornada!",
+                    color = OnPrimary,
+                    fontSize = 16.sp,
+                    lineHeight = 22.sp
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = { showIntervaloInfo = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                ) {
+                    Text("Entendido", color = OnPrimary)
+                }
+            }
+        )
+    }
+
     // Mensaje Categoria
     if (zonaMostrandoMensaje != null) {
         AlertDialog(
@@ -170,7 +209,7 @@ fun AlarmaFormDialog(
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.HealthAndSafety, contentDescription = null, tint = OnSurfaceVariant, modifier = Modifier.padding(end = 8.dp))
-                    Text("Recomendación", color = OnPrimary, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                    Text("Recomendación", color = Surface, fontSize = 20.sp, fontWeight = FontWeight.Bold)
                 }
             },
             text = { Text(obtenerMensajeZona(zonaMostrandoMensaje!!), color = OnPrimary, fontSize = 16.sp) },
@@ -261,15 +300,33 @@ fun AlarmaFormDialog(
             }
         },
         title = {
-            Text(
-                text = when (currentStep) {
-                    DialogStep.FORMULARIO -> if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma"
-                    DialogStep.TIPO_RUTINA -> "Tipo de Rutina"
-                    DialogStep.SELECCION_CATEGORIAS -> "Selecciona las categorías"
-                    DialogStep.SELECCION_EJERCICIOS -> "Arma tu rutina"
-                },
-                color = OnPrimary
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = when (currentStep) {
+                        DialogStep.FORMULARIO -> if (alarmaAEditar == null) "Nueva Alarma" else "Editar Alarma"
+                        DialogStep.TIPO_RUTINA -> "Tipo de Rutina"
+                        DialogStep.SELECCION_CATEGORIAS -> "Selecciona las categorías"
+                        DialogStep.SELECCION_EJERCICIOS -> "Arma tu rutina"
+                    },
+                    color = OnPrimary,
+                    modifier = Modifier.weight(1f)
+                )
+
+                // Botón de información en la esquina superior derecha
+                IconButton(
+                    onClick = { showIntervaloInfo = true },
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.HelpOutline,
+                        contentDescription = "Información de intervalos",
+                        tint = Tertiary
+                    )
+                }
+            }
         },
         text = {
             Crossfade(targetState = currentStep, label = "dialog_transition") { step ->
@@ -598,13 +655,13 @@ fun SelectableEjercicioCard(
 fun obtenerMensajeZona(zona: String): String {
     return when (zona.uppercase()) {
         "CUELLO" -> "Estos ejercicios son ideales si sientes tensión en el cuello por mirar la pantalla durante largos periodos."
-        "HOMBROS" -> "Recomendados para aliviar la rigidez en los hombros causada por mantener una postura encorvada."
-        "MUÑECAS" -> "Ayudan a reducir la sobrecarga en las muñecas provocada por el uso frecuente del teclado o el mouse."
-        "ESPALDA" -> "Ideales para disminuir la tensión lumbar asociada a permanecer sentado por mucho tiempo."
-        "PIERNAS" -> "Favorecen la circulación y previenen la rigidez muscular tras largos periodos de inactividad."
-        "OJOS" -> "Contribuyen a reducir la fatiga visual generada por la exposición prolongada a pantallas."
-        "RESPIRACIÓN" -> "Ayudan a disminuir la tensión acumulada y mejorar la oxigenación durante la jornada."
-        "CARDIO SUAVE" -> "Recomendado para activar el cuerpo y contrarrestar el sedentarismo prolongado."
+        "HOMBROS" -> "Ejercicios recomendados para aliviar la rigidez en los hombros causada por mantener una postura encorvada."
+        "MUÑECAS" -> "Estos ejercicios ayudan a reducir la sobrecarga en las muñecas provocada por el uso frecuente del teclado o el mouse."
+        "ESPALDA" -> "Ejercicios ideales para disminuir la tensión lumbar asociada a permanecer sentado por mucho tiempo."
+        "PIERNAS" -> "Estos ejercicios favorecen la circulación y previenen la rigidez muscular tras largos periodos de inactividad."
+        "OJOS" -> "Estos ejercicios contribuyen a reducir la fatiga visual generada por la exposición prolongada a pantallas."
+        "RESPIRACIÓN" -> "Estos ejercicios ayudan a disminuir la tensión acumulada y mejorar la oxigenación durante la jornada."
+        "CARDIO SUAVE" -> "Ejercicios recomendados para activar el cuerpo y contrarrestar el sedentarismo prolongado."
         else -> "Ejercicios clave para esta zona del cuerpo."
     }
 }

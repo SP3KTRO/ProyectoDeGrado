@@ -1,6 +1,9 @@
 package com.tupausa.view.user
 
-import android.R
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -13,20 +16,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tupausa.model.HistorialRegistro
+import com.tupausa.model.RutinaHistorial
+import com.tupausa.model.DiaStat
 import com.tupausa.ui.theme.*
 import com.tupausa.viewModel.HistorialViewModel
-import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -35,10 +44,13 @@ fun UserHistorialScreen(
     onBack: () -> Unit,
     viewModel: HistorialViewModel = viewModel()
 ) {
-    val historial by viewModel.historialList.collectAsState()
+    val rutinas by viewModel.rutinasList.collectAsState()
     val resumen by viewModel.resumen.collectAsState()
+    val statsSemana by viewModel.statsSemana.collectAsState()
+    val mensajeMotivacional by viewModel.mensajeMotivacional.collectAsState()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var rutinaSeleccionada by remember { mutableStateOf<RutinaHistorial?>(null) }
 
     // Cargar datos al entrar
     LaunchedEffect(Unit) {
@@ -51,19 +63,59 @@ fun UserHistorialScreen(
             onDismissRequest = { showDeleteDialog = false },
             containerColor = Secondary,
             title = { Text("¿Borrar historial?", color = OnPrimary) },
-            text = { Text("Esta acción eliminará todos tus registros locales de pausas activas. No se puede deshacer.", color = OnPrimary) },
+            text = { Text("Esta acción eliminará todos tus registros locales. No se puede deshacer.", color = OnPrimary) },
             confirmButton = {
-                TextButton(onClick = {
-                    viewModel.borrarHistorial()
-                    showDeleteDialog = false
-                }) {
+                TextButton(onClick = { viewModel.borrarHistorial(); showDeleteDialog = false }) {
                     Text("Borrar todo", color = Tertiary)
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancelar", color = OnPrimary)
+                TextButton(onClick = { showDeleteDialog = false }) { Text("Cancelar", color = OnPrimary) }
+            }
+        )
+    }
+
+    // Detalle de Rutina
+    rutinaSeleccionada?.let { rutina ->
+        AlertDialog(
+            onDismissRequest = { rutinaSeleccionada = null },
+            containerColor = Secondary,
+            title = {
+                Text("Detalle de la Rutina", color = OnPrimary, fontWeight = FontWeight.Bold)
+            },
+            text = {
+                Column(modifier = Modifier.fillMaxWidth()) {
+
+                    Text(rutina.fechaFormateada, color = PrimaryContainer, fontSize = 14.sp, modifier = Modifier.padding(bottom = 16.dp))
+
+                    Box(modifier = Modifier.heightIn(max = 300.dp)) {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+                            items(rutina.ejercicios) { ej ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(OnPrimaryContainer.copy(alpha = 0.1f),
+                                            RoundedCornerShape(8.dp)).padding(8.dp)
+                                ) {
+                                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Tertiary, modifier = Modifier.size(20.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(ej.nombreEjercicio, color = OnPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                                        Text("${ej.duracionSegundos} segundos", color = Surface, fontSize = 12.sp)
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
+            },
+            confirmButton = {
+                Button(
+                    onClick = { rutinaSeleccionada = null },
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                ) { Text("Cerrar", color = OnPrimary) }
             }
         )
     }
@@ -72,83 +124,105 @@ fun UserHistorialScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Mi Historial") },
+                title = { Text("Mi Progreso") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
-                    }
+                    IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver") }
                 },
                 actions = {
-                    // BOTÓN DE BORRAR
-                    if (historial.isNotEmpty()) {
+                    if (rutinas.isNotEmpty()) {
                         IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Borrar todo",
-                                tint = OnSurfaceVariant
-                            )
+                            Icon(Icons.Default.Delete, "Borrar todo", tint = OnSurfaceVariant)
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = OnSurface,
-                    navigationIconContentColor = OnSurface
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent, titleContentColor = OnSurface, navigationIconContentColor = OnSurface)
             )
         }
     ) { padding ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp)
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)
         ) {
-            // Cards de resumen
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            // Dashboard con scroll
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Total Pausas",
-                    value = resumen.totalPausas.toString(),
-                    icon = Icons.Default.CheckCircle,
-                    color = OnPrimary
-                )
-                StatCard(
-                    modifier = Modifier.weight(1f),
-                    title = "Minutos Totales",
-                    value = resumen.tiempoTotalMinutos.toString(),
-                    icon = Icons.Default.AccessTime,
-                    color = Surface
-                )
-            }
-
-            Spacer(modifier = Modifier.height(22.dp))
-
-            Text(
-                text = "Historial Reciente",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = OnSurface
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Lista de registros
-            if (historial.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Aún no tienes actividad registrada.",
-                        fontSize = 20.sp,
-                        color = OnSurface)
+                // Cards de resumen global
+                item {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        StatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Rutinas Completadas",
+                            value = rutinas.size.toString(),
+                            icon = Icons.Default.EmojiEvents, color = Tertiary
+                        )
+                        StatCard(
+                            modifier = Modifier.weight(1f),
+                            title = "Minutos Totales",
+                            value = resumen.tiempoTotalMinutos.toString(),
+                            icon = Icons.Default.Timer, color = OnPrimary
+                        )
+                    }
                 }
-            } else {
-                LazyColumn(
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(historial) { item ->
-                        HistorialItemView(item)
+
+                // Gráfica semanal
+                if (statsSemana.isNotEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Secondary)
+                        ) {
+                            Column(modifier = Modifier.padding(16.dp)) {
+                                Text("Últimos 7 Días",
+                                    fontWeight = FontWeight.Bold,
+                                    color = OnPrimary,
+                                    fontSize = 18.sp,
+                                    modifier = Modifier
+                                        .padding(bottom = 16.dp)
+                                )
+                                GraficaSemanal(statsSemana)
+                            }
+                        }
+                    }
+                }
+
+                // Mensaje motivacional
+                if (mensajeMotivacional.isNotEmpty()) {
+                    item {
+                        Card(
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = CardDefaults.cardColors(containerColor = Surface)
+                        ) {
+                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = OnSurface)
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(mensajeMotivacional, color = OnSurface, fontSize = 14.sp, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic)
+                            }
+                        }
+                    }
+                }
+
+                // Lista de rutinas
+                item {
+                    Text("Historial Detallado",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp,
+                        color = OnSurface,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
+
+                if (rutinas.isEmpty()) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                            Text("Aún no tienes actividad registrada.", fontSize = 18.sp, color = OnSurface)
+                        }
+                    }
+                } else {
+                    items(rutinas) { rutina ->
+                        RutinaItemView(rutina = rutina, onClick = { rutinaSeleccionada = rutina })
                     }
                 }
             }
@@ -157,87 +231,112 @@ fun UserHistorialScreen(
 }
 
 @Composable
-fun StatCard(
-    modifier: Modifier = Modifier,
-    title: String,
-    value: String,
-    icon: ImageVector,
-    color: Color
-) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = Secondary)
+fun GraficaSemanal(stats: List<DiaStat>) {
+    val maxMinutos = stats.maxOf { it.minutosTotales }.coerceAtLeast(1)
+    val alturaMaximaGrafica = 120.dp
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(alturaMaximaGrafica + 40.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly,
+        verticalAlignment = Alignment.Bottom
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(imageVector = icon, contentDescription = null, tint = color)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(text = value, fontSize = 24.sp, fontWeight = FontWeight.Bold, color = color)
-            Text(text = title, fontSize = 12.sp, color = color)
+        stats.forEach { stat ->
+            val heightPercent by animateFloatAsState(
+                targetValue = stat.minutosTotales.toFloat() / maxMinutos.toFloat(),
+                animationSpec = tween(durationMillis = 1000), label = "grafica_anim"
+            )
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxHeight()
+            ) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                    contentAlignment = Alignment.BottomCenter
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Bottom
+                    ) {
+                        if (stat.minutosTotales > 0) {
+                            Text(
+                                text = stat.minutosTotales.toString(),
+                                fontSize = 10.sp,
+                                color = OnPrimary,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .width(24.dp)
+                                .height(alturaMaximaGrafica * heightPercent)
+                                .clip(RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp))
+                                .background(if (stat.minutosTotales > 0) Tertiary else PrimaryContainer.copy(alpha = 0.2f))
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Text(
+                    text = stat.nombreDia,
+                    fontSize = 12.sp,
+                    color = OnPrimary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
     }
 }
 
 @Composable
-fun HistorialItemView(item: HistorialRegistro) {
-    val dateFormat = SimpleDateFormat("dd MMM, HH:mm", Locale.getDefault())
-    val fechaStr = dateFormat.format(Date(item.fecha))
+fun StatCard(modifier: Modifier = Modifier, title: String, value: String, icon: ImageVector, color: Color) {
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = Secondary)) {
+        Column(modifier = Modifier.padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(imageVector = icon, contentDescription = null, tint = color, modifier = Modifier.size(28.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(text = value, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color)
+            Text(text = title, fontSize = 14.sp, color = color, textAlign = TextAlign.Center)
+        }
+    }
+}
 
+@Composable
+fun RutinaItemView(rutina: RutinaHistorial, onClick: () -> Unit) {
     Card(
-        colors = CardDefaults.cardColors(
-            containerColor = Secondary
-        )
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = Secondary),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono lateral
             Surface(
-                shape = MaterialTheme.shapes.small,
-                color = OnSecondary,
-                modifier = Modifier.size(40.dp)
+                shape = RoundedCornerShape(12.dp),
+                color = OnPrimary,
+                modifier = Modifier.size(48.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.History,
-                        contentDescription = null,
-                        tint = OnSurface
-                    )
+                    Icon(imageVector = Icons.Default.FitnessCenter, contentDescription = null, tint = OnSurface)
                 }
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.nombreEjercicio,
-                    fontWeight = FontWeight.Bold,
-                    color = OnPrimary
-                )
-                Text(
-                    text = fechaStr,
-                    fontSize = 12.sp,
-                    color = PrimaryContainer
-                )
+                Text(text = "Rutina Completada", fontWeight = FontWeight.Bold, color = OnPrimary, fontSize = 16.sp)
+                Text(text = rutina.fechaFormateada, fontSize = 12.sp, color = PrimaryContainer)
+                Text(text = "${rutina.ejercicios.size} ejercicios realizados", fontSize = 12.sp, color = Surface, modifier = Modifier.padding(top = 4.dp))
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${item.duracionSegundos}s",
-                    fontWeight = FontWeight.Bold,
-                    color = Tertiary
-                )
-                Text(
-                    text = if(item.tipoDeteccion == "MANUAL") "Manual" else "Sensor",
-                    fontSize = 10.sp,
-                    color = Surface
-                )
+                val minutos = rutina.duracionTotalSegundos / 60
+                val segundos = rutina.duracionTotalSegundos % 60
+                val tiempoTexto = if (minutos > 0) "${minutos}m ${segundos}s" else "${segundos}s"
+
+                Text(text = tiempoTexto, fontWeight = FontWeight.Bold, color = Tertiary, fontSize = 14.sp)
             }
         }
     }

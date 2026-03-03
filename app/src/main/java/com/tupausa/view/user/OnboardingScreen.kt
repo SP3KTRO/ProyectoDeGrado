@@ -301,7 +301,7 @@ fun PasoTunelCarpo(
                 Icon(Icons.Default.Info, contentDescription = "Info", tint = OnSurface)
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
-                    text = "Los ejercicios terapéuticos para las muñecas que te ayudarán a aliviar la tensión y mejorar tus síntomas.",
+                    text = "Te sugeriremos ejercicios para las muñecas que ayudarán a aliviar la tensión y mejorar tus síntomas",
                     color = OnSurface,
                     fontSize = 16.sp
                 )

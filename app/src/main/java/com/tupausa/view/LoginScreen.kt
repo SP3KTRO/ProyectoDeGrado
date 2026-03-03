@@ -180,7 +180,8 @@ fun LoginScreen(
                     )
                 } else {
                     Text(
-                        "Iniciar sesión", fontSize = 16.sp,
+                        "Iniciar sesión",
+                        fontSize = 16.sp,
                         color = OnPrimary
                     )
                 }
@@ -196,7 +197,9 @@ fun LoginScreen(
                     contentColor = Primary
                 )
             ) {
-                Text("¿No tienes cuenta? Regístrate")
+                Text("¿No tienes cuenta? Regístrate",
+                    fontSize = 16.sp
+                )
             }
         }
     }

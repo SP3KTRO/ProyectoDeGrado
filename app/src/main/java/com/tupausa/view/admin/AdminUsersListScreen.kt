@@ -219,7 +219,7 @@ fun UsuarioCardWithActions(
                     IconButton(
                         onClick = onDelete,
                         colors = IconButtonDefaults.iconButtonColors(
-                            contentColor = PrimaryContainer
+                            contentColor = OnSurfaceVariant
                         )
                     ) {
                         Icon(

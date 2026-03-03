@@ -187,7 +187,7 @@ fun UserDashboardScreen(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Card - Ver Ejercicios
+            // Card Pausas
             UserMenuCard(
                 title = "Pausas Activas",
                 description = "Explora ejercicios de pausas activas",
@@ -196,19 +196,19 @@ fun UserDashboardScreen(
                 onClick = onNavigateToEjercicios
             )
 
-            // Card - Mis Alarmas
+            // Card Rutinas
             UserMenuCard(
-                title = "Mis Alarmas",
-                description = "Programa tus rutinas de pausas activas",
+                title = "Mis Rutinas",
+                description = "Programa alarmas para tus rutinas de pausas activas",
                 icon = painterResource(id = R.drawable.reloj),
                 iconTint = Color.Unspecified,
                 onClick = onNavigateToAlarmas
             )
 
-            // Card - Mi Historial
+            // Card Historial
             UserMenuCard(
                 title = "Mi Historial",
-                description = "Revisa tu progreso y estadísticas",
+                description = "Revisa tu historial, progreso y estadísticas",
                 icon = painterResource(id = R.drawable.historial),
                 iconTint = Color.Unspecified,
                 onClick = onNavigateToHistorial

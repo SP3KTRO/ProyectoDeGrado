@@ -36,6 +36,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.OnPrimaryContainer
@@ -345,7 +346,8 @@ fun RegisterScreen(
                 } else {
                     Text(
                         "Registrarse",
-                        color = OnPrimary
+                        color = OnPrimary,
+                        fontSize = 16.sp
                     )
                 }
             }
@@ -359,7 +361,7 @@ fun RegisterScreen(
                     contentColor = Primary
                 )
             ) {
-                Text("¿Ya tienes una cuenta? Inicia sesión")
+                Text("¿Ya tienes una cuenta? Inicia sesión", fontSize = 16.sp)
             }
 
             // Mostrar alerta de registro exitoso

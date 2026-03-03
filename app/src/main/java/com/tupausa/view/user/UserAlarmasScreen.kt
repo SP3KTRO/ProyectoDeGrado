@@ -100,7 +100,7 @@ fun UserAlarmasScreen(
         containerColor = Color.Transparent,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Alarmas") },
+                title = { Text("Mis Rutinas") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Volver")
@@ -133,8 +133,8 @@ fun UserAlarmasScreen(
                     Text("⏰", fontSize = 64.sp)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "No tienes alarmas",
-                        fontSize = 22.sp,
+                        text = "No tienes alarmas programadas.",
+                        fontSize = 20.sp,
                         color = OnSurface
                     )
                 }
