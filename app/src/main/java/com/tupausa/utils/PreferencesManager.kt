@@ -3,6 +3,7 @@ package com.tupausa.utils
 import android.content.Context
 import android.content.SharedPreferences
 import com.tupausa.model.Usuario
+import java.util.concurrent.TimeUnit
 
 class PreferencesManager(context: Context) {
     private val prefs: SharedPreferences = context.getSharedPreferences(
@@ -22,7 +23,6 @@ class PreferencesManager(context: Context) {
         }
     }
 
-
     // Guardar que el onboarding se completó y las limitaciones
     fun saveOnboardingPreferences(limitaciones: String) {
         prefs.edit().apply {
@@ -40,6 +40,25 @@ class PreferencesManager(context: Context) {
     // Obtener las limitaciones como String
     fun getLimitaciones(): String {
         return prefs.getString(Constants.PREF_LIMITACIONES, "") ?: ""
+    }
+
+    // Guardar la fecha exacta en la que terminó el Onboarding
+    fun setUltimaActualizacionPreferencias(timeInMillis: Long) {
+        prefs.edit().putLong("ultima_actualizacion_prefs", timeInMillis).apply()
+    }
+
+    // Calcular cuántos días faltan para poder volver a hacer el OnBoarding - 20 días
+    fun diasRestantesParaActualizarPreferencias(): Int {
+        val ultimaVez = prefs.getLong("ultima_actualizacion_prefs", 0L)
+
+        // Si es 0, significa que nunca lo ha hecho o es su primera vez
+        if (ultimaVez == 0L) return 0
+
+        val diffMilisegundos = System.currentTimeMillis() - ultimaVez
+        val diasPasados = TimeUnit.MILLISECONDS.toDays(diffMilisegundos).toInt()
+
+        val diasRestantes = 20 - diasPasados
+        return if (diasRestantes > 0) diasRestantes else 0
     }
 
     // Logout

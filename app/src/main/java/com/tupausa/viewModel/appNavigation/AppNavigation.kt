@@ -28,7 +28,7 @@ import com.tupausa.viewModel.UsuarioViewModel
 
 @Composable
 fun AppNavigation(
-    usuarioViewModel: UsuarioViewModel,
+    usuarioViewModel: UsuarioViewModel = viewModel(),
     loginViewModel: LoginViewModel = viewModel(),
     ejercicioViewModel: EjercicioViewModel = viewModel()
 ) {
@@ -115,6 +115,7 @@ fun AppNavigation(
 
         composable(AppRoutes.ADMIN_DASHBOARD) {
             AdminDashboardScreen(
+                usuarioViewModel = usuarioViewModel,
                 onNavigateToUsersList = { navController.navigate(AppRoutes.ADMIN_USERS_LIST) },
                 onNavigateToEjercicios = { navController.navigate(AppRoutes.ADMIN_EJERCICIOS) },
                 onNavigateToHistorial = { navController.navigate(AppRoutes.ADMIN_HISTORIAL) },
@@ -161,28 +162,10 @@ fun AppNavigation(
                 usuarios = usuarios,
                 isLoading = isLoading,
                 onBack = { navController.popBackStack() },
-                onEditUsuario = { usuario ->
-                    usuarioToEdit = usuario
-                    showEditDialog = true
-                },
                 onDeleteUsuario = { usuario ->
                     usuarioViewModel.deleteUsuario(usuario.idUsuario)
                 }
             )
-
-            if (showEditDialog && usuarioToEdit != null) {
-                EditarUsuarioDialog(
-                    usuario = usuarioToEdit!!,
-                    onDismiss = { showEditDialog = false },
-                    onConfirm = { usuarioActualizado ->
-                        usuarioViewModel.updateUsuario(
-                            usuarioActualizado.idUsuario,
-                            usuarioActualizado
-                        )
-                        showEditDialog = false
-                    }
-                )
-            }
         }
 
         composable(AppRoutes.ADMIN_EJERCICIOS) {
@@ -235,6 +218,7 @@ fun AppNavigation(
 
         composable(AppRoutes.USER_DASHBOARD) {
             UserDashboardScreen(
+                usuarioViewModel = usuarioViewModel,
                 onNavigateToEjercicios = { navController.navigate(AppRoutes.USER_EJERCICIOS) },
                 onNavigateToAlarmas = { navController.navigate(AppRoutes.USER_ALARMAS) },
                 onNavigateToHistorial = { navController.navigate(AppRoutes.USER_HISTORIAL) },
@@ -243,6 +227,9 @@ fun AppNavigation(
                     navController.navigate(AppRoutes.LOGIN) {
                         popUpTo(0) { inclusive = true }
                     }
+                },
+                onRehacerOnboarding = {
+                    navController.navigate(AppRoutes.ONBOARDING)
                 }
             )
         }

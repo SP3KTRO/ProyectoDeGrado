@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -25,37 +26,66 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.TuPausaApplication
+import com.tupausa.model.Usuario
 import com.tupausa.ui.theme.Secondary
 import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.OnPrimary
 import com.tupausa.ui.theme.Surface
 import com.tupausa.ui.theme.Tertiary
+import com.tupausa.viewModel.UsuarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserDashboardScreen(
+    usuarioViewModel: UsuarioViewModel,
     onNavigateToEjercicios: () -> Unit,
     onNavigateToAlarmas: () -> Unit,
     onNavigateToHistorial: () -> Unit,
+    onRehacerOnboarding: () -> Unit,
     onLogout: () -> Unit,
 ) {
     // Obtener nombre del usuario desde PreferencesManager
     val context = LocalContext.current
     val app = context.applicationContext as TuPausaApplication
-    val userName = app.preferencesManager.getUserName()
+    val preferencesManager = remember { app.preferencesManager }
 
-    // Estado para controlar el diálogo de Acerca de
+    // Obtenemos los datos del usuario logueado
+    val usuarioActual = remember {
+        Usuario(
+            idUsuario = preferencesManager.getUserId(),
+            nombre = preferencesManager.getUserName(),
+            correoElectronico = preferencesManager.getUserEmail(),
+            contrasena = "", // Por seguridad no se guarda en SharedPreferences
+            idTipoUsuario = preferencesManager.getUserType(),
+            onboardingCompletado = preferencesManager.isOnboardingCompleted(),
+            limitaciones = preferencesManager.getLimitaciones()
+        )
+    }
+
+    // Estados
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showPerfilDialog by remember { mutableStateOf(false) }
+    var showSuccessAlert by remember { mutableStateOf(false) }
 
-    // Función para enviar correo
+    // Días restantes para el cuestionario
+    var diasRestantes by remember { mutableIntStateOf(usuarioViewModel.getDiasRestantesPreferencias()) }
+
+    // Soporte
     val sendEmail = {
         val intent = Intent(Intent.ACTION_SENDTO).apply {
             data = Uri.parse("mailto:")
             putExtra(Intent.EXTRA_EMAIL, arrayOf("jdcallejasc@udistrital.edu.co", "bacostap@udistrital.edu.co"))
-            putExtra(Intent.EXTRA_SUBJECT, "Soporte TuPausa - Usuario: $userName")
+            putExtra(Intent.EXTRA_SUBJECT, "Soporte TuPausa - Usuario: ${usuarioActual.nombre}")
         }
         context.startActivity(Intent.createChooser(intent, "Enviar correo con..."))
+    }
+
+    // Survey de feedback
+    val openFeedbackForm = {
+        val url = "https://docs.google.com/forms/d/e/1FAIpQLSdBRPcLIRbKVR-RUDGRVRMJrFLR0rj5Nyj-ez1Ggg7sYJoSew/viewform?usp=dialog"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+        context.startActivity(intent)
     }
 
     // Dialog Acerca De
@@ -83,6 +113,59 @@ fun UserDashboardScreen(
         )
     }
 
+    // Dialog de perfil
+    if (showPerfilDialog) {
+        EditarPerfilDialog(
+            usuario = usuarioActual,
+            diasRestantesPreferencias = diasRestantes,
+            onDismiss = { showPerfilDialog = false },
+            onConfirmDatos = { nuevoNombre, nuevoEmail, nuevaPass ->
+                // Creamos el objeto actualizado
+                val usuarioActualizado = usuarioActual.copy(
+                    nombre = nuevoNombre,
+                    correoElectronico = nuevoEmail,
+                    contrasena = nuevaPass
+                )
+                // Llamamos a la API
+                usuarioViewModel.updateUsuario(usuarioActualizado.idUsuario, usuarioActualizado)
+
+                // Actualizamos SharedPreferences inmediatamente para que la UI (el saludo) cambie sin tener que hacer relogin
+                preferencesManager.saveUserSession(usuarioActualizado)
+
+                showPerfilDialog = false
+                showSuccessAlert = true
+            },
+            onRehacerOnboarding = {
+                showPerfilDialog = false
+                onRehacerOnboarding()
+            }
+        )
+    }
+
+    // Alert de éxito
+    if (showSuccessAlert) {
+        AlertDialog(
+            onDismissRequest = { showSuccessAlert = false },
+            containerColor = Secondary,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Tertiary, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("¡Actualización Exitosa!", color = OnPrimary, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = { Text("Tus datos de perfil se han modificado correctamente.", color = OnPrimary) },
+            confirmButton = {
+                Button(
+                    onClick = { showSuccessAlert = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                ) {
+                    Text("Entendido", color = OnPrimary)
+                }
+            }
+        )
+    }
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -96,6 +179,14 @@ fun UserDashboardScreen(
                     contentScale = ContentScale.Fit
                 ) },
                 actions = {
+                    IconButton(onClick = {
+                        // Actualizamos los días antes de mostrar el diálogo
+                        diasRestantes = usuarioViewModel.getDiasRestantesPreferencias()
+                        showPerfilDialog = true
+                    }) {
+                        Icon(Icons.Default.AccountCircle, "Mi Perfil", tint = OnPrimary)
+                    }
+
                     IconButton(onClick = onLogout) {
                         Icon(Icons.Default.ExitToApp, "Cerrar Sesión", tint = OnPrimary)
                     }
@@ -138,6 +229,25 @@ fun UserDashboardScreen(
                             Text("Soporte", fontSize = 10.sp, color = OnPrimary)
                         }
                     }
+                    Surface(
+                        onClick = { openFeedbackForm() },
+                        shape = RoundedCornerShape(8.dp),
+                        color = OnPrimaryContainer,
+                        modifier = Modifier.size(55.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Star,
+                                tint = OnPrimary,
+                                contentDescription = "Feedback",
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Text("Califícanos", fontSize = 10.sp, color = OnPrimary)
+                        }
+                    }
                     // Acerca de / Versión
                     Surface(
                         onClick = { showAboutDialog = true },
@@ -171,7 +281,7 @@ fun UserDashboardScreen(
         ) {
             // Saludo personalizado
             Text(
-                text = "¡Hola ${userName}!",
+                text = "¡Hola ${preferencesManager.getUserName()}!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = OnSurface

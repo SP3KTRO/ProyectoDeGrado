@@ -46,6 +46,7 @@ import com.tupausa.ui.theme.Outline
 import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
+import com.tupausa.utils.Constants
 import com.tupausa.viewModel.RegisterViewModel
 
 @Composable
@@ -71,6 +72,18 @@ fun RegisterScreen(
     var contrasenaError by remember { mutableStateOf("") }
     var confirmarContrasenaError by remember { mutableStateOf("") }
 
+    val dominiosPermitidos = setOf(
+        "gmail.com",
+        "hotmail.com",
+        "outlook.com",
+        "yahoo.com",
+        "yahoo.es",
+        "live.com",
+        "icloud.com",
+        "msn.com",
+        "udistrital.edu.co"
+    )
+
     // Manejar el botón de retroceso
     BackHandler {
         onNavigateToLogin()
@@ -83,8 +96,41 @@ fun RegisterScreen(
     }
 
     fun isValidEmail(email: String): Boolean {
-        val emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.(com|co)\$".toRegex()
-        return email.matches(emailRegex)
+        // Verificamos que tenga el formato básico
+        if (!email.matches(Constants.EMAIL_REGEX.toRegex())) {
+            return false
+        }
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            return false
+        }
+        // Extraemos el dominio
+        val partes = email.split("@")
+        if (partes.size != 2) return false
+
+        val dominio = partes[1].lowercase()
+
+        val dominiosMalEscritos = setOf(
+            "gamil.com", "gmail.con", "gmai.com", "gmal.com", "gmail.coom",
+            "hotmial.com", "hotmai.com", "homail.com", "hotmail.con",
+            "outlok.com", "outlook.con", "outloo.com",
+            "yaho.com", "yahoo.con", "yahoo.com.coo"
+        )
+        if (dominiosMalEscritos.contains(dominio)) return false
+
+        val correosBasura = setOf(
+            "yopmail.com", "10minutemail.com", "mailinator.com",
+            "guerrillamail.com", "tempmail.com", "temp-mail.org", "throwawaymail.com"
+        )
+        if (correosBasura.contains(dominio)) return false
+
+        val esDominioInstitucional = dominio.endsWith(".edu.co") ||
+                dominio.endsWith(".edu") ||
+                dominio.endsWith(".gov.co") ||
+                dominio.endsWith(".org.co") ||
+                dominio.endsWith(".mil.co")
+
+        // Verificamos si está en nuestra lista blanca o es institucional
+        return dominiosPermitidos.contains(dominio) || esDominioInstitucional
     }
 
     fun isValidPassword(password: String): Boolean {
@@ -178,7 +224,7 @@ fun RegisterScreen(
                 onValueChange = { newValue ->
                     correoElectronico = filterEmail(newValue) // Filtrar caracteres no permitidos
                     correoError = if (!isValidEmail(correoElectronico)) {
-                        "El correo electrónico debe tener un formato válido (ejemplo@dominio.com)."
+                        "Usa un proveedor válido (ej. gmail.com, outlook.com) o un correo institucional (.edu.co)."
                     } else {
                         ""
                     }

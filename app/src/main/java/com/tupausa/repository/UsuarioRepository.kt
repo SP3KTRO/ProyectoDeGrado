@@ -90,8 +90,6 @@ class UsuarioRepository(
         }
     }
 
-    // Admin
-
     // Obtener todos los usuarios de la API
     suspend fun getAllUsuariosFromApi(): Result<List<Usuario>> = withContext(Dispatchers.IO) {
         try {
@@ -117,13 +115,22 @@ class UsuarioRepository(
     // Actualizar usuario PUT
     suspend fun updateUsuario(id: Int, usuario: Usuario): Result<Usuario> = withContext(Dispatchers.IO) {
         try {
-            Log.d(TAG, "Actualizando usuario con ID: $id")
-            val response = apiService.updateUsuario(usuario)
+            // Validador: Si la contraseña viene vacía, recuperamos la actual de la base de datos local
+            val contrasenaFinal = if (usuario.contrasena.isEmpty()) {
+                getContrasenaLocal(id) ?: ""
+            } else {
+                usuario.contrasena
+            }
+
+            val usuarioAActualizar = usuario.copy(contrasena = contrasenaFinal)
+
+            Log.d(TAG, "Actualizando usuario con ID: $id. Contraseña actualizada: ${usuario.contrasena.isNotEmpty()}")
+            val response = apiService.updateUsuario(usuarioAActualizar)
 
             if (response.isSuccessful) {
-                updateUsuarioLocal(usuario)
-                Log.d(TAG, "Usuario actualizado exitosamente: ${usuario.nombre}")
-                Result.success(usuario)
+                updateUsuarioLocal(usuarioAActualizar)
+                Log.d(TAG, "Usuario actualizado exitosamente: ${usuarioAActualizar.nombre}")
+                Result.success(usuarioAActualizar)
             } else {
                 val errorMsg = when (response.code()) {
                     404 -> "Usuario no encontrado"
@@ -143,6 +150,20 @@ class UsuarioRepository(
             }
             Result.failure(Exception(errorPersonalizado))
         }
+    }
+
+    private fun getContrasenaLocal(id: Int): String? {
+        val db = dbHelper.readableDatabase
+        var contrasena: String? = null
+        val cursor = db.rawQuery(
+            "SELECT contrasena FROM Usuarios WHERE id_usuario = ?",
+            arrayOf(id.toString())
+        )
+        if (cursor.moveToFirst()) {
+            contrasena = cursor.getString(0)
+        }
+        cursor.close()
+        return contrasena
     }
 
     // Eliminar usuario DELETE
@@ -181,8 +202,9 @@ class UsuarioRepository(
             // Guardar en SQLite usando el DatabaseHelper
             dbHelper.guardarPreferenciasUsuario(idUsuario, limitaciones)
 
-            // Actualizar la sesión actual en SharedPreferences
+            // Actualizar la sesión actual
             preferencesManager.saveOnboardingPreferences(limitaciones)
+            preferencesManager.setUltimaActualizacionPreferencias(System.currentTimeMillis())
 
             Log.d(TAG, "Preferencias de onboarding guardadas localmente")
         } catch (e: Exception) {
@@ -297,5 +319,10 @@ class UsuarioRepository(
             contrasena = cursor.getString(cursor.getColumnIndexOrThrow("contrasena")),
             idTipoUsuario = cursor.getInt(cursor.getColumnIndexOrThrow("id_tipo_usuario"))
         )
+    }
+
+    // Dias restantes para cambiar las preferencias
+    fun getDiasRestantesPreferencias(): Int {
+        return preferencesManager.diasRestantesParaActualizarPreferencias()
     }
 }

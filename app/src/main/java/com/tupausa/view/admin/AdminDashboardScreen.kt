@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.AdminPanelSettings
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
@@ -29,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.tupausa.R
 import com.tupausa.TuPausaApplication
+import com.tupausa.model.Usuario
 import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.OnPrimary
@@ -37,10 +40,12 @@ import com.tupausa.ui.theme.Surface
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.OnSurfaceVariant
 import com.tupausa.ui.theme.Tertiary
+import com.tupausa.viewModel.UsuarioViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdminDashboardScreen(
+    usuarioViewModel: UsuarioViewModel,
     onNavigateToUsersList: () -> Unit,
     onNavigateToEjercicios: () -> Unit,
     onNavigateToHistorial: () -> Unit,
@@ -49,10 +54,23 @@ fun AdminDashboardScreen(
     // Obtener nombre del usuario desde PreferencesManager
     val context = LocalContext.current
     val app = context.applicationContext as TuPausaApplication
-    val userName = app.preferencesManager.getUserName()
+    val preferencesManager = remember { app.preferencesManager }
 
-    // Estado para controlar el diálogo de "Acerca de"
+    val usuarioActual = remember {
+        Usuario(
+            idUsuario = preferencesManager.getUserId(),
+            nombre = preferencesManager.getUserName(),
+            correoElectronico = preferencesManager.getUserEmail(),
+            contrasena = "",
+            idTipoUsuario = preferencesManager.getUserType(),
+            onboardingCompletado = true // El admin no usa onboarding
+        )
+    }
+
+    // Estados
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showPerfilDialog by remember { mutableStateOf(false) }
+    var showSuccessAlert by remember { mutableStateOf(false) }
 
     // Dialog Acerca De
     if (showAboutDialog) {
@@ -79,6 +97,51 @@ fun AdminDashboardScreen(
         )
     }
 
+    // Editar perfil dialog
+    if (showPerfilDialog) {
+        EditarPerfilAdminDialog(
+            usuario = usuarioActual,
+            onDismiss = { showPerfilDialog = false },
+            onConfirmDatos = { nuevoNombre, nuevoEmail, nuevaPass ->
+                val usuarioActualizado = usuarioActual.copy(
+                    nombre = nuevoNombre,
+                    correoElectronico = nuevoEmail,
+                    contrasena = nuevaPass
+                )
+                usuarioViewModel.updateUsuario(usuarioActualizado.idUsuario, usuarioActualizado)
+                preferencesManager.saveUserSession(usuarioActualizado)
+
+                showPerfilDialog = false
+                showSuccessAlert = true
+            }
+        )
+    }
+
+    // Alert de éxito
+    if (showSuccessAlert) {
+        AlertDialog(
+            onDismissRequest = { showSuccessAlert = false },
+            containerColor = Secondary,
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Tertiary, modifier = Modifier.size(24.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("¡Actualización Exitosa!", color = OnPrimary, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = { Text("Tus credenciales de administrador se han modificado.", color = OnPrimary) },
+            confirmButton = {
+                Button(
+                    onClick = { showSuccessAlert = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = OnPrimaryContainer)
+                ) {
+                    Text("Entendido", color = OnPrimary)
+                }
+            }
+        )
+    }
+
+
     Scaffold(
         containerColor = Color.Transparent,
         topBar = {
@@ -92,6 +155,9 @@ fun AdminDashboardScreen(
                     contentScale = ContentScale.Fit
                 )},
                 actions = {
+                    IconButton(onClick = { showPerfilDialog = true }) {
+                        Icon(Icons.Default.AccountCircle, "Mi Perfil", tint = OnPrimary)
+                    }
                     IconButton(onClick = onLogout) {
                         Icon(Icons.AutoMirrored.Filled.ExitToApp, "Cerrar Sesión", tint = OnPrimary)
                     }
@@ -147,7 +213,7 @@ fun AdminDashboardScreen(
         ) {
             // Saludo personalizado
             Text(
-                text = "¡Hola ${userName}!",
+                text = "¡Hola ${preferencesManager.getUserName()}!",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = OnSurface

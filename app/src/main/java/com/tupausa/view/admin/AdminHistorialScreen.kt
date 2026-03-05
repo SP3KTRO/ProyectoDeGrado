@@ -32,6 +32,7 @@ import com.tupausa.ui.theme.OnPrimaryContainer
 import com.tupausa.ui.theme.OnSecondary
 import com.tupausa.ui.theme.OnSurface
 import com.tupausa.ui.theme.OnSurfaceVariant
+import com.tupausa.ui.theme.Outline
 import com.tupausa.ui.theme.Primary
 import com.tupausa.ui.theme.PrimaryContainer
 import com.tupausa.ui.theme.Secondary
@@ -52,6 +53,13 @@ fun AdminHistorialScreen(
 
     var usuarioSeleccionado by remember { mutableStateOf<Usuario?>(null) }
     var rutinaS3Seleccionada by remember { mutableStateOf<RutinaS3?>(null) }
+
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredUsuarios = remember(searchQuery, usuarios) {
+        if (searchQuery.isBlank()) usuarios
+        else usuarios.filter { it.nombre.contains(searchQuery, ignoreCase = true) || it.correoElectronico.contains(searchQuery, ignoreCase = true) }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.cargarUsuarios()
@@ -120,6 +128,7 @@ fun AdminHistorialScreen(
                         if (usuarioSeleccionado != null) {
                             usuarioSeleccionado = null
                             viewModel.limpiarHistorial()
+                            searchQuery = ""
                         } else {
                             onBack()
                         }
@@ -135,47 +144,80 @@ fun AdminHistorialScreen(
             )
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center),
-                    color = OnPrimaryContainer
-                )
-            } else if (usuarioSeleccionado == null) {
+        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
 
-                // Lista de usuarios
-                LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(usuarios) { usuario ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth().clickable {
-                                usuarioSeleccionado = usuario
-                                viewModel.cargarHistorialUsuario(usuario.idUsuario)
-                            },
-                            colors = CardDefaults.cardColors(containerColor = Secondary)
-                        ) {
-                            Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Icon(painter = painterResource(id = R.drawable.user), contentDescription = null, modifier = Modifier.size(40.dp), tint = Color.Unspecified)
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Column {
-                                    Text(text = usuario.nombre, fontWeight = FontWeight.Bold, color = OnPrimary)
-                                    Text(text = usuario.correoElectronico, fontSize = 12.sp, color = Surface)
+            // Barra de búsqueda
+            if (usuarioSeleccionado == null && !isLoading) {
+                OutlinedTextField(
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text("Buscar usuario...", color = OnSurface) },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar", tint = OnPrimary) },
+                    trailingIcon = {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { searchQuery = "" }) {
+                                Icon(Icons.Default.Clear, contentDescription = "Limpiar", tint = OnPrimary)
+                            }
+                        }
+                    },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Tertiary,
+                        unfocusedBorderColor = OnPrimaryContainer,
+                        focusedContainerColor = Secondary,
+                        unfocusedContainerColor = Secondary
+                    ),
+                    shape = MaterialTheme.shapes.medium,
+                    singleLine = true
+                )
+            }
+
+            Box(modifier = Modifier.fillMaxSize().weight(1f)) {
+                if (isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = OnPrimaryContainer)
+                } else if (usuarioSeleccionado == null) {
+
+                    // Lista de usuarios
+                    if (filteredUsuarios.isEmpty()) {
+                        Text(
+                            text = if (searchQuery.isEmpty()) "No hay usuarios." else "Sin resultados.",
+                            color = OnSurface,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(filteredUsuarios) { usuario ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth().clickable {
+                                        usuarioSeleccionado = usuario
+                                        viewModel.cargarHistorialUsuario(usuario.idUsuario)
+                                    },
+                                    colors = CardDefaults.cardColors(containerColor = Secondary)
+                                ) {
+                                    Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(painter = painterResource(id = R.drawable.user), contentDescription = null, modifier = Modifier.size(40.dp), tint = Color.Unspecified)
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                        Column {
+                                            Text(text = usuario.nombre, fontWeight = FontWeight.Bold, color = OnPrimary)
+                                            Text(text = usuario.correoElectronico, fontSize = 12.sp, color = Surface)
+                                        }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            } else {
-                // Historial de usuarios
-                if (rutinas.isEmpty()) {
-                    Text("No hay registros en la nube para este usuario.",
-                        fontSize = 18.sp, color = OnSurface, modifier = Modifier.align(Alignment.Center))
                 } else {
-                    LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        items(rutinas) { rutina ->
-                            AdminRutinaItemView(
-                                rutina = rutina,
-                                onClick = { rutinaS3Seleccionada = rutina }
-                            )
+                    // Historial de usuarios
+                    if (rutinas.isEmpty()) {
+                        Text("No hay registros en la nube para este usuario.", fontSize = 18.sp, color = OnSurface, modifier = Modifier.align(Alignment.Center))
+                    } else {
+                        LazyColumn(modifier = Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(rutinas) { rutina ->
+                                AdminRutinaItemView(
+                                    rutina = rutina,
+                                    onClick = { rutinaS3Seleccionada = rutina }
+                                )
+                            }
                         }
                     }
                 }

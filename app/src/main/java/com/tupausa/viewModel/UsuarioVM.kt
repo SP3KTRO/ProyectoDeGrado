@@ -13,10 +13,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() {
-
-    // LiveData para la lista de usuarios
     private val _usuarios = MutableLiveData<List<Usuario>>()
     val usuarios: LiveData<List<Usuario>> get() = _usuarios
+
     private val _isLoading = MutableLiveData(false)
     val isLoading: LiveData<Boolean> get() = _isLoading
     private val _error = MutableLiveData<String>()
@@ -104,6 +103,11 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
         }
     }
 
+    // Obtener días restantes para actualizar preferencias
+    fun getDiasRestantesPreferencias(): Int {
+        return repository.getDiasRestantesPreferencias()
+    }
+
     // Limpiar estados
     private fun handleTemporaryError(message: String) {
         _error.value = message
@@ -128,6 +132,7 @@ class UsuarioViewModel(private val repository: UsuarioRepository) : ViewModel() 
         _operationSuccess.value = ""
     }
 }
+
 class UsuarioViewModelFactory(private val repository: UsuarioRepository) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

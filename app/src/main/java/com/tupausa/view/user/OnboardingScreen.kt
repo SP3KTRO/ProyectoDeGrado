@@ -33,7 +33,7 @@ fun OnboardingScreen(
 ) {
     val isLoading by usuarioViewModel.isLoading.observeAsState(false)
 
-    // Estado para controlar en qué pregunta vamos (0 a 6)
+    // Estado para controlar en qué pregunta va el usuario
     var pasoActual by remember { mutableIntStateOf(0) }
 
     var tieneCondicionCardiaca by remember { mutableStateOf(false) }
@@ -93,7 +93,6 @@ fun OnboardingScreen(
                             onSeleccion = { tieneTunelCarpo = it },
                             isLoading = isLoading,
                             onGuardar = {
-                                // Juntamos las limitaciones seleccionadas
                                 val limitacionesFinales = seleccionesSuperior.filter { it.value }.keys.toMutableList()
 
                                 if (tieneCondicionCardiaca && !limitacionesFinales.contains("CARDIO SUAVE")) {
@@ -162,8 +161,9 @@ fun PasoOpciones(pregunta: String, opciones: List<String>, onOpcionSeleccionada:
 }
 @Composable
 fun PasoMovilidadInferior(onSeleccion: (Boolean) -> Unit) {
-    Text("Movilidad Física",
+    Text("⚠\uFE0F\n\nMovilidad Física",
         fontSize = 21.sp,
+        textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         color = OnPrimaryContainer,
         modifier = Modifier.padding(bottom = 16.dp))
@@ -191,8 +191,9 @@ fun PasoLimitacionesSuperior(
     categorias: List<String>,
     onSiguiente: () -> Unit
 ) {
-    Text("Limitaciones Físicas",
+    Text("⚠\uFE0F\n\nLimitaciones Físicas",
         fontSize = 21.sp,
+        textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 8.dp),
         color = OnPrimaryContainer)
@@ -228,8 +229,9 @@ fun PasoLimitacionesSuperior(
 }
 @Composable
 fun PasoCondicionCardiaca(onSeleccion: (Boolean) -> Unit) {
-    Text("Condición Cardíaca",
+    Text("⚠\uFE0F\n\nCondición Cardíaca",
         fontSize = 21.sp,
+        textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         color = OnPrimaryContainer,
         modifier = Modifier.padding(bottom = 16.dp))
@@ -261,6 +263,7 @@ fun PasoTunelCarpo(
 ) {
     Text("Cuidado de las Manos",
         fontSize = 21.sp,
+        textAlign = TextAlign.Center,
         fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(bottom = 8.dp),
         color = OnPrimaryContainer)
