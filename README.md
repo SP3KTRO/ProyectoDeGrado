@@ -19,13 +19,9 @@ Brayan Acosta Parrado & Jorge Daniel Callejas Cendales — 2026
 
 **Paso 1 — Descargar el APK**
 
-Ve a la sección de [**Releases**](../../releases) y descarga el archivo `.apk` de la última versión.
-
-[![Descargar APK](https://img.shields.io/badge/⬇️%20Descargar-TuPausa%20v1.0-darkred?style=for-the-badge)](../../releases/latest/download/TuPausa-v1.0.apk)
+[![Descargar APK](https://img.shields.io/badge/⬇️%20Descargar-TuPausa%20v1.0-darkred?style=for-the-badge)](https://github.com/SP3KTRO/ProyectoDeGrado/releases/latest)
 
 **Paso 2 — Habilitar fuentes desconocidas**
-
-Como la app no se distribuye por Google Play, debes permitir la instalación manual:
 
 1. Ve a **Ajustes → Seguridad** (o **Privacidad**)
 2. Activa **"Instalar apps de fuentes desconocidas"**
@@ -109,7 +105,7 @@ AWS Lambda (Python)
     └── upload_db()    → sube versión actualizada a S3
 ```
 
-### Función Lambda — Gestión de la base de datos
+### Función Lambda
 ```python
 import boto3, sqlite3, os, json
 
@@ -142,11 +138,9 @@ def lambda_handler(event, context):
                 )
                 conn.commit()
                 return {'statusCode': 201, 'body': json.dumps({'message': 'Usuario creado exitosamente'})}
-
             elif method == 'GET':
                 cursor.execute('SELECT * FROM Usuarios')
                 return {'statusCode': 200, 'body': json.dumps(cursor.fetchall())}
-
             elif method == 'PUT':
                 cursor.execute(
                     'UPDATE Usuarios SET nombre=?, correo_electronico=?, contrasena=?, id_tipo_usuario=? WHERE id_usuario=?',
@@ -154,7 +148,6 @@ def lambda_handler(event, context):
                 )
                 conn.commit()
                 return {'statusCode': 200, 'body': json.dumps({'message': 'Usuario actualizado exitosamente'})}
-
             elif method == 'DELETE':
                 cursor.execute('DELETE FROM Usuarios WHERE id_usuario=?', (body['id_usuario'],))
                 conn.commit()
@@ -182,13 +175,10 @@ interface ApiService {
     fun createUsuario(@Body usuario: Usuario): Call<Usuario>
 }
 
-// La URL base se carga desde local.properties — nunca en el código fuente
 val retrofit = Retrofit.Builder()
     .baseUrl(BuildConfig.API_BASE_URL)
     .addConverterFactory(GsonConverterFactory.create())
     .build()
-
-val apiService = retrofit.create(ApiService::class.java)
 ```
 
 ---
@@ -211,25 +201,21 @@ val apiService = retrofit.create(ApiService::class.java)
 ## 👨‍💻 Instalación para Desarrolladores
 ```bash
 # 1. Clonar el repositorio
-git clone https://github.com/tu-usuario/tupausa.git
-cd tupausa
+git clone https://github.com/SP3KTRO/ProyectoDeGrado.git
+cd ProyectoDeGrado
 ```
 ```bash
-# 2. Crear local.properties en la raíz del proyecto (NO subir a git)
+# 2. Crear local.properties en la raíz (NO subir a git)
 echo "API_BASE_URL=https://tu-endpoint.amazonaws.com/etapa/" >> local.properties
 ```
-```bash
-# 3. Abrir en Android Studio y ejecutar
-# Asegúrate de tener Android Studio Hedgehog o superior
-```
 
-> 🔒 **Seguridad**: El endpoint de la API **nunca** debe incluirse en el código fuente. Usa `local.properties` (ya incluido en `.gitignore`) para gestionar credenciales de forma segura. Para obtener acceso al endpoint de producción, contacta al equipo de desarrollo.
+> 🔒 **Seguridad**: El endpoint de la API nunca debe incluirse en el código fuente. Para obtener acceso al endpoint de producción, contacta al equipo de desarrollo.
 
 ---
 
 ## 📁 Estructura del Proyecto
 ```
-tupausa/
+ProyectoDeGrado/
 ├── app/
 │   ├── src/main/
 │   │   ├── java/com/tupausa/
@@ -240,7 +226,7 @@ tupausa/
 │   │   │   └── database/       # Room + SQLite
 │   │   └── res/
 ├── lambda/
-│   └── lambda_function.py      # Función AWS Lambda
+│   └── lambda_function.py
 ├── local.properties            # ← NO subir a git
 └── README.md
 ```
